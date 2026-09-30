@@ -81,9 +81,9 @@ const mailMissing = (env) => {
   const miss = need.filter((k) => !env[k]); return miss.length ? miss.join(', ') : '';
 };
 /* send one e-mail (Resend if RESEND_API_KEY is set, otherwise Microsoft 365). Returns '' or an error text. */
-async function sendMail(env, { subject, html, file, files }) {
+async function sendMail(env, { subject, html, file, files, to: toOverride }) {
   files = files || (file ? [file] : []);
-  const to = env.MAIL_TO.split(',').map((a) => a.trim()).filter(Boolean);
+  const to = toOverride || env.MAIL_TO.split(',').map((a) => a.trim()).filter(Boolean);
   if (env.RESEND_API_KEY) {
     const r = await fetch('https://api.resend.com/emails', {
       method: 'POST', headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
@@ -133,7 +133,8 @@ export async function runBackup(env, trigger = 'weekly') {
   const store = DATA(), miss = mailMissing(env);
   if (miss) return `The mail service is not set up yet (missing: ${miss}).`;
   const sends = await listJSON(store, 'send/'), released = await releasedMap(store), clears = await listJSON(store, 'clear/');
-  const maint = await listJSON(store, 'maint/'), users = (await listJSON(store, 'users/')).map(publicUser), drafts = await listJSON(store, 'drafts/');
+  const withKey = async (prefix, f) => { const { blobs } = await store.list({ prefix }); return (await Promise.all(blobs.map(async (b) => { const v = await store.get(b.key, { type: 'json' }); return v && { ...v, ...f(b.key.split('/')) }; }))).filter(Boolean); };
+  const maint = await listJSON(store, 'maint/'), users = (await listJSON(store, 'users/')).map(publicUser), drafts = await withKey('drafts/', (k) => ({ user: k[1] }));
   const team = ((await store.get('config/team', { type: 'json' })) || {}).names || [];
   const { blobs: dk } = await store.list({ prefix: 'drafts/' });
   const draftUsers = {}; dk.forEach((b) => { const u = b.key.split('/')[1]; draftUsers[u] = (draftUsers[u] || 0) + 1; });
@@ -157,9 +158,15 @@ export async function runBackup(env, trigger = 'weekly') {
     { name: 'Accounts', freeze: 2, cols: [22, 14, 14, 10, 16, 16, 14].map((w) => ({ w })),
       rows: [T('Accounts (no passwords)'), H(['Name', 'Username', 'Role', 'Active', 'Created', 'Last sign-in', 'Unsent drafts']), ...users.map((u) => ({ cells: [cell(u.name, 3), cell(u.u), cell(ROLES[u.role] || u.role), cell(u.active ? 'Yes' : 'Blocked'), dcell(u.created), dcell(u.lastLogin), cell(draftUsers[u.u] || 0)] }))] },
   ];
+  const ncrAll = await listJSON(store, 'ncr/');
+  sheets.push({ name: 'Problem reports', freeze: 2, cols: [16, 34, 14, 10, 12, 16, 18, 44, 30, 30, 16].map((w) => ({ w })),
+    rows: [T('Problem reports'), H(['Reported', 'Title', 'Category', 'Severity', 'Status', 'Chassis', 'Part', 'Description', 'Cause', 'Action', 'Closed']),
+      ...ncrAll.sort((a, b) => String(b.at).localeCompare(String(a.at))).map((n) => ({ cells: [dcell(n.at), cell(n.title, 3), cell(n.cat), cell(n.sev), cell(n.status), cell(n.chassis), cell(n.part && n.part.name), cell(n.desc), cell(n.cause), cell(n.action), dcell(n.closedAt)] }))] });
   const xlsx = Buffer.from(X.build(sheets)).toString('base64');
-  const threads = await listJSON(store, 'thread/'), messages = await listJSON(store, 'msg/');
-  const raw = { exportedAt: new Date().toISOString(), trigger, sends, released, clears, maint, users, team, drafts, threads, messages };
+  const threads = await listJSON(store, 'thread/'), messages = await withKey('msg/', (k) => ({ tid: k[1] }));
+  const meta = Object.fromEntries(await Promise.all([...META, 'chk', 'ncrindex', 'inspindex', 'vehicles'].map(async (k) => [k, await getMeta(store, k)])));
+  const ncr = await listJSON(store, 'ncr/'), insp = await listJSON(store, 'insp/'), instr = await withKey('instr/', (k) => ({ base: k[1] }));
+  const raw = { exportedAt: new Date().toISOString(), trigger, sends, released, clears, maint, users, team, drafts, threads, messages, meta, ncr, insp, instr };
   const json64 = Buffer.from(JSON.stringify(raw)).toString('base64');
   const html = `<div style="font-family:Segoe UI,Arial,sans-serif;font-size:14px;color:#14232c"><div style="background:#012135;color:#fff;padding:14px 16px;border-bottom:4px solid #0bbbef"><b style="font-size:17px">BLIX Parts Review – ${trigger === 'weekly' ? 'weekly' : 'manual'} backup</b><br><span style="color:#a9dff2">${esc(fmtNL(raw.exportedAt))}</span></div>
     <p>${rows.length} sent report${rows.length === 1 ? '' : 's'} · ${Object.keys(released).length} released in CAD · ${dk.length} unsent draft${dk.length === 1 ? '' : 's'} · ${users.length} account${users.length === 1 ? '' : 's'}.</p>
@@ -167,6 +174,34 @@ export async function runBackup(env, trigger = 'weekly') {
   const d = new Date().toISOString().slice(0, 10);
   return sendMail(env, { subject: `BLIX parts – ${trigger === 'weekly' ? 'weekly' : 'manual'} backup – ${stamp}`, html,
     files: [{ name: `BLIX_Parts_Backup_${d}.xlsx`, b64: xlsx }, { name: `BLIX_Parts_Backup_${d}.json`, b64: json64, type: 'application/json' }] });
+}
+
+/* ---------- v12 helpers: combined meta docs, audit log ---------- */
+const META = ['partx', 'stock', 'dwg', 'appr', 'fit', 'veh'];
+const getMeta = async (store, k) => (await store.get(`meta/${k}`, { type: 'json' })) || {};
+async function updMeta(store, k, fn) { const m = await getMeta(store, k); const r = fn(m); await store.setJSON(`meta/${k}`, m); return r; }
+async function audit(store, id, me, act, detail = '') {
+  const q = parseId(id), base = q ? q.base : String(id || 'general'), at = new Date().toISOString();
+  await store.setJSON(`audit/${base}/${at}-${crypto.randomBytes(2).toString('hex')}`, { at, by: me.name, u: me.u, act, detail: clip(detail, 400), id });
+}
+const isEA = (me) => me.role === 'engineer' || me.role === 'admin';
+const CHASSIS_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{1,39}$/;
+const REF_RE = /^[a-z0-9]{6,40}$/;
+const newId = (pfx) => pfx + crypto.randomBytes(6).toString('hex');
+const today = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Amsterdam' });
+/* weekly overdue summary: sent changes with a planned date in the past that are not released or rejected */
+export async function runOverdue(env, trigger = 'weekly') {
+  const store = DATA(), miss = mailMissing(env);
+  if (miss) return `The mail service is not set up yet (missing: ${miss}).`;
+  const parts = await sharedStatus(store), released = await releasedMap(store), appr = await getMeta(store, 'appr'), t = today();
+  const over = Object.values(parts).filter((r) => r.dateIso && r.dateIso < t && !released[revId(parseId(r.id).base, parseId(r.id).k + 1)] && !(appr[r.id] && appr[r.id].status === 'rejected'));
+  if (!over.length) return trigger === 'weekly' ? '' : 'Nothing is overdue – no e-mail sent.';
+  const groups = {}; over.forEach((r) => (groups[r.responsible || 'No responsible person'] = groups[r.responsible || 'No responsible person'] || []).push(r));
+  const td = (v, x = '') => `<td style="padding:6px 8px;border-bottom:1px solid #dbe3e8;${x}">${esc(v)}</td>`;
+  const html = `<div style="font-family:Segoe UI,Arial,sans-serif;font-size:14px;color:#14232c"><div style="background:#012135;color:#fff;padding:14px 16px;border-bottom:4px solid #d9a441"><b style="font-size:17px">BLIX Parts Review – overdue changes</b><br><span style="color:#a9dff2">${over.length} change${over.length === 1 ? '' : 's'} past the planned date</span></div>` +
+    Object.entries(groups).map(([who, rs]) => `<h3 style="margin:18px 0 6px;color:#012135">${esc(who)} (${rs.length})</h3><table style="border-collapse:collapse;font-size:13px;width:100%">${rs.sort((a, b) => a.dateIso.localeCompare(b.dateIso)).map((r) => `<tr>${td(r.vehicle, 'font-weight:600')}${td(r.part, 'font-family:Consolas,monospace;font-weight:600')}${td(r.next || '')}${td(r.note)}${td('Planned ' + r.dateIso.split('-').reverse().join('-'), 'white-space:nowrap;color:#b3470c;font-weight:600')}</tr>`).join('')}</table>`).join('') +
+    `<p style="color:#5d6e78;font-size:12px">Sent automatically by the BLIX Parts app.</p></div>`;
+  return sendMail(env, { subject: `BLIX parts – ${over.length} overdue change${over.length === 1 ? '' : 's'}`, html });
 }
 
 /* ---------- chat ---------- */
@@ -260,7 +295,12 @@ export default async (req) => {
       if (stale.length) { for (const d of stale) await moveDraft(me.u, d.id, openRev(parts, d.id)); drafts = await listJSON(store, `drafts/${me.u}/`); }
       const team = (await store.get('config/team', { type: 'json' })) || { names: [] };
       const maint = (await listJSON(store, 'maint/')).sort((a, b) => String(b.at).localeCompare(String(a.at)))[0] || null;
-      return json(200, { user: me, drafts, parts, team: team.names, cleared: await clearedMap(store), maint, released: await releasedMap(store), unread: me.u === 'admin' ? 0 : (await myThreads(store, me.u)).filter((t) => t.unread).length });
+      const meta = Object.fromEntries(await Promise.all(META.map(async (k) => [k, await getMeta(store, k)])));
+      const used = parseInt(url.searchParams.get('used') || '', 10);
+      if (used > 0 && me.u) await store.setJSON(`usage/${today()}/${me.u}`, { n: Math.min(used, 1e6), at: new Date().toISOString() });
+      const ncrOpen = await getMeta(store, 'ncrindex');
+      return json(200, { user: me, drafts, parts, team: team.names, cleared: await clearedMap(store), maint, released: await releasedMap(store), unread: me.u === 'admin' ? 0 : (await myThreads(store, me.u)).filter((t) => t.unread).length,
+        meta, ncrMine: Object.values(ncrOpen).filter((n) => n.status !== 'closed' && n.assignee === me.u).length, ncrOpen: Object.values(ncrOpen).filter((n) => n.status !== 'closed').length });
     }
 
     /* drafts */
@@ -368,6 +408,7 @@ export default async (req) => {
         note: clip(x.note, 4000), responsible: clip(x.responsible, 80), dateIso: /^\d{4}-\d{2}-\d{2}$/.test(x.dateIso || '') ? x.dateIso : '', date: clip(x.date, 30),
         photos: Number(x.photos) || 0, vehicle: clip(x.vehicle, 10), part: clip(x.part, 80), next: clip(x.next, 80) }));
       await store.setJSON(`send/${at}-${crypto.randomBytes(3).toString('hex')}`, { by: me.name, u: me.u, at, rows: rec });
+      for (const x of rec) await audit(store, x.id, me, `Sent ${x.part}`, `${x.status}${x.note ? ' – ' + x.note : ''}${x.next ? ' → new revision ' + x.next : ''}`);
       await Promise.all(rows.map((x) => deleteDraft(me.u, x.id))); // photos went out by e-mail; clear the draft
       return json(200, { ok: true, at });
     }
@@ -381,9 +422,9 @@ export default async (req) => {
         if (q.k < 1 || !parts[revId(q.base, q.k - 1)]) return err(400, 'This revision does not exist (yet).');
         const b = await req.json().catch(() => ({}));
         const rec = { id, name: clip(b.name, 80), note: clip(String(b.note || '').trim(), 300), at: new Date().toISOString(), by: me.name, u: me.u };
-        await store.setJSON(key, rec); return json(200, { release: rec });
+        await store.setJSON(key, rec); await audit(store, id, me, `Released ${rec.name} in CAD`, rec.note); return json(200, { release: rec });
       }
-      if (M === 'DELETE') { await store.delete(key); return json(200, { ok: true }); }
+      if (M === 'DELETE') { await store.delete(key); await audit(store, id, me, 'Release undone'); return json(200, { ok: true }); }
     }
 
     /* clear changes of one part (any account) or a whole section (Admin): unlocks for everyone, e-mails Engineering first */
@@ -415,6 +456,9 @@ export default async (req) => {
       for (const x of blobs) { const rec = await store.get(x.key, { type: 'json' }); if (!rec || !(rec.rows || []).some((r) => inScope(r.id))) continue;
         rec.rows = rec.rows.filter((r) => !inScope(r.id)); if (rec.rows.length) await store.setJSON(x.key, rec); else await store.delete(x.key); }
       await Promise.all(drafts.map((k) => deleteDraft(k[1], k[2])));
+      await updMeta(store, 'appr', (m) => { for (const k of Object.keys(m)) if (inScope(k)) delete m[k]; });
+      await updMeta(store, 'fit', (m) => { for (const k of Object.keys(m)) { const q = parseId(k), w = q && want.get(q.base); if (w && q.k > w.from) delete m[k]; } });
+      for (const p of ev.parts) await audit(store, p.id, me, 'Changes cleared', `${p.from ? 'From ' + p.fromName + ' onwards' : 'Everything'} – ${reason}`);
       const { blobs: rl } = await store.list({ prefix: 'release/' }); // revisions created by removed reports no longer exist
       for (const x of rl) { const q = parseId(x.key.slice(8)); const w = q && want.get(q.base); if (w && q.k > w.from) await store.delete(x.key); }
       for (const p of ev.parts) {
@@ -424,6 +468,222 @@ export default async (req) => {
       }
       return json(200, { ok: true, at: ev.at, parts: ev.parts.length });
     }
+
+    /* ================= v12: parts, stock, drawings, approvals, fitted, workshop ================= */
+    /* add / edit parts (Engineering + Admin) */
+    if (seg[0] === 'partx' && M === 'PUT' && seg.length === 2 && PART_RE.test(seg[1])) {
+      if (!isEA(me)) return err(403, 'Only Engineering or Admin can edit parts.');
+      const b = await req.json().catch(() => ({})), id = seg[1];
+      const rec = await updMeta(store, 'partx', (m) => { const r = { ...(m[id] || {}) };
+        for (const k of ['n', 'v', 'c', 't']) if (b[k] !== undefined) r[k] = clip(String(b[k]).trim(), k === 'c' ? 60 : 40);
+        if (b.img !== undefined) r.img = typeof b.img === 'string' && b.img.startsWith('data:image/') && b.img.length < 120000 ? b.img : r.img;
+        if (b.hidden !== undefined) r.hidden = !!b.hidden;
+        if (b.supplier !== undefined) r.supplier = { name: clip(b.supplier.name, 80), email: clip(b.supplier.email, 120) };
+        if (b.isNew) r.custom = true; r.by = me.name; r.at = new Date().toISOString(); m[id] = r; return r; });
+      if (b.vehName && b.v) await updMeta(store, 'veh', (m) => { m[clip(b.v, 20)] = clip(b.vehName, 80); });
+      await audit(store, id, me, b.isNew ? `Part added: ${rec.n}` : (b.hidden !== undefined ? (b.hidden ? 'Part hidden' : 'Part shown again') : 'Part details edited'), [rec.n, rec.v, rec.c].filter(Boolean).join(' · '));
+      return json(200, { part: rec });
+    }
+    if (path === 'partx/import' && M === 'POST') {
+      if (!isEA(me)) return err(403, 'Only Engineering or Admin can import parts.');
+      const b = await req.json().catch(() => ({}));
+      const rows = (Array.isArray(b.rows) ? b.rows : []).slice(0, 1000).filter((r) => r && String(r.n || '').trim() && String(r.v || '').trim());
+      if (!rows.length) return err(400, 'No rows with at least a part number and vehicle.');
+      const at = new Date().toISOString(); const made = [];
+      await updMeta(store, 'partx', (m) => { for (const r of rows) { const id = 'p' + crypto.randomBytes(5).toString('hex'); m[id] = { n: clip(String(r.n).trim(), 40), v: clip(String(r.v).trim().toUpperCase(), 20), c: clip(String(r.c || 'Other').trim(), 60), t: String(r.t || '').toUpperCase().startsWith('A') ? 'A' : 'P', custom: true, by: me.name, at }; made.push(id); } });
+      if (b.vehNames) await updMeta(store, 'veh', (m) => { for (const [k, v] of Object.entries(b.vehNames)) if (v) m[clip(k, 20)] = clip(v, 80); });
+      await audit(store, 'general', me, `Imported ${made.length} parts`);
+      return json(200, { added: made.length });
+    }
+    /* stock (any account) */
+    if (seg[0] === 'stock' && M === 'POST' && seg.length === 2 && PART_RE.test(seg[1])) {
+      const b = await req.json().catch(() => ({})), id = seg[1];
+      const rec = await updMeta(store, 'stock', (m) => { const r = { qty: 0, min: 0, loc: '', ...(m[id] || {}) };
+        if (Number.isFinite(+b.delta) && b.delta !== null && b.delta !== '') r.qty = Math.max(0, (+r.qty || 0) + Math.round(+b.delta));
+        if (b.qty !== undefined && b.qty !== '' && Number.isFinite(+b.qty)) r.qty = Math.max(0, Math.round(+b.qty));
+        if (b.min !== undefined && b.min !== '' && Number.isFinite(+b.min)) r.min = Math.max(0, Math.round(+b.min));
+        if (b.loc !== undefined) r.loc = clip(String(b.loc).trim(), 40);
+        r.by = me.name; r.at = new Date().toISOString(); m[id] = r; return r; });
+      await audit(store, id, me, 'Stock updated', `${b.delta ? (b.delta > 0 ? '+' : '') + b.delta + ' → ' : ''}${rec.qty} in stock${rec.min ? ', min ' + rec.min : ''}${rec.loc ? ', location ' + rec.loc : ''}`);
+      return json(200, { stock: rec });
+    }
+    /* drawings (PDF) per part or revision */
+    if (seg[0] === 'dwg' && seg.length === 2 && PART_RE.test(seg[1])) {
+      const id = seg[1];
+      if (M === 'GET') { const buf = await PHOTOS().get(`dwg/${id}`, { type: 'arrayBuffer' }); if (!buf) return err(404, 'No drawing.'); return new Response(buf, { status: 200, headers: { 'Content-Type': 'application/pdf', 'Cache-Control': 'private, max-age=60' } }); }
+      if (!isEA(me)) return err(403, 'Only Engineering or Admin can change drawings.');
+      if (M === 'POST') {
+        const buf = await req.arrayBuffer(); if (!buf.byteLength || buf.byteLength > 5_500_000) return err(413, 'The PDF is too large (max 5 MB).');
+        if (Buffer.from(buf.slice(0, 5)).toString() !== '%PDF-') return err(400, 'This is not a PDF file.');
+        await PHOTOS().set(`dwg/${id}`, buf);
+        const name = clip(url.searchParams.get('name') || 'drawing.pdf', 100);
+        await updMeta(store, 'dwg', (m) => { m[id] = { name, size: buf.byteLength, at: new Date().toISOString(), by: me.name }; });
+        await audit(store, id, me, 'Drawing uploaded', name); return json(200, { ok: true });
+      }
+      if (M === 'DELETE') { await PHOTOS().delete(`dwg/${id}`); await updMeta(store, 'dwg', (m) => { delete m[id]; }); await audit(store, id, me, 'Drawing removed'); return json(200, { ok: true }); }
+    }
+    /* send drawing / change to the supplier */
+    if (seg[0] === 'supplier' && seg.length === 2 && PART_RE.test(seg[1]) && M === 'POST') {
+      if (!isEA(me)) return err(403, 'Only Engineering or Admin can e-mail suppliers.');
+      const miss = mailMissing(env); if (miss) return err(500, `The mail service is not set up yet (missing: ${miss}).`);
+      const b = await req.json().catch(() => ({})), id = seg[1];
+      const email = String(b.email || '').trim(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return err(400, 'Enter a valid supplier e-mail address.');
+      const dwgId = PART_RE.test(b.dwg || '') ? b.dwg : id, buf = await PHOTOS().get(`dwg/${dwgId}`, { type: 'arrayBuffer' }), dm = (await getMeta(store, 'dwg'))[dwgId];
+      const html = `<div style="font-family:Segoe UI,Arial,sans-serif;font-size:14px;color:#14232c"><p>${esc(b.message || '').replace(/\n/g, '<br>')}</p><p><b>Part:</b> ${esc(b.part || '')}</p>${buf ? '<p>The drawing is attached.</p>' : ''}<p>Kind regards,<br>${esc(me.name)}<br>BLIX Automotive – Engineering</p></div>`;
+      const e = await sendMail(env, { subject: clip(b.subject || `Drawing ${b.part || ''}`, 150), html, to: [email, ...env.MAIL_TO.split(',').map((a) => a.trim()).filter(Boolean)],
+        files: buf ? [{ name: dm ? dm.name : `${b.part || 'drawing'}.pdf`, b64: Buffer.from(buf).toString('base64'), type: 'application/pdf' }] : [] });
+      if (e) return err(502, e);
+      await audit(store, id, me, 'Sent to supplier', `${email}${buf ? ' (with drawing)' : ''}`); return json(200, { ok: true });
+    }
+    /* approval of a sent change (Engineering) */
+    if (seg[0] === 'appr' && seg.length === 2 && PART_RE.test(seg[1])) {
+      if (me.role !== 'engineer') return err(403, 'Only an Engineering account can approve or reject changes.');
+      const id = seg[1];
+      if (M === 'POST') {
+        const parts = await sharedStatus(store); if (!parts[id]) return err(400, 'This part has not been sent.');
+        const b = await req.json().catch(() => ({}));
+        if (!['approved', 'rejected'].includes(b.status)) return err(400, 'Choose approve or reject.');
+        if (b.status === 'rejected' && String(b.reason || '').trim().length < 3) return err(400, 'Write why the change is rejected.');
+        const rec = { status: b.status, reason: clip(String(b.reason || '').trim(), 500), cost: clip(b.cost, 30), stock: ['use', 'scrap', 'rework', ''].includes(b.stock) ? b.stock : '', effect: clip(b.effect, 60),
+          deadline: /^\d{4}-\d{2}-\d{2}$/.test(b.deadline || '') ? b.deadline : '', at: new Date().toISOString(), by: me.name, u: me.u };
+        await updMeta(store, 'appr', (m) => { m[id] = rec; });
+        await audit(store, id, me, b.status === 'approved' ? 'Change approved' : 'Change rejected', [rec.reason, rec.cost && 'cost ' + rec.cost, rec.stock && 'old stock: ' + rec.stock, rec.effect && 'from ' + rec.effect, rec.deadline && 'deadline ' + rec.deadline].filter(Boolean).join(' · '));
+        return json(200, { appr: rec });
+      }
+      if (M === 'DELETE') { await updMeta(store, 'appr', (m) => { delete m[id]; }); await audit(store, id, me, 'Approval undone'); return json(200, { ok: true }); }
+    }
+    /* fitted on vehicle (after release) */
+    if (seg[0] === 'fit' && seg.length === 2 && PART_RE.test(seg[1]) && M === 'POST') {
+      const id = seg[1], b = await req.json().catch(() => ({}));
+      if (b.remove) { await updMeta(store, 'fit', (m) => { m[id] = (m[id] || []).filter((x) => !(x.at === b.remove && (x.u === me.u || isEA(me)))); }); await audit(store, id, me, 'Fitted entry removed'); return json(200, { ok: true }); }
+      const released = await releasedMap(store); if (!released[id]) return err(400, 'This revision is not released in CAD yet.');
+      const chassis = String(b.chassis || '').trim(); if (!CHASSIS_RE.test(chassis)) return err(400, 'Enter a chassis number (letters, digits, - or .).');
+      const rec = { chassis, note: clip(String(b.note || '').trim(), 200), at: new Date().toISOString(), by: me.name, u: me.u };
+      await updMeta(store, 'fit', (m) => { m[id] = [...(m[id] || []), rec].slice(-200); });
+      await audit(store, id, me, `Fitted on vehicle ${chassis}`, rec.note); return json(200, { fit: rec });
+    }
+    /* per-part history */
+    if (seg[0] === 'audit' && seg.length === 2 && /^p[0-9a-f]{10}$|^general$/.test(seg[1]) && M === 'GET') {
+      const list = (await listJSON(store, `audit/${seg[1]}/`)).sort((a, b) => String(b.at).localeCompare(String(a.at))).slice(0, 150);
+      return json(200, { audit: list });
+    }
+    /* photos for problem reports, inspections and instructions */
+    if (seg[0] === 'up' && ['ncr', 'insp', 'instr'].includes(seg[1]) && REF_RE.test(seg[2] || '')) {
+      if (seg.length === 3 && M === 'POST') {
+        const buf = await req.arrayBuffer(); if (!buf.byteLength || buf.byteLength > MAX_PHOTO) return err(413, 'Photo is too large.');
+        const id = crypto.randomBytes(12).toString('hex'); await PHOTOS().set(`${seg[1]}/${seg[2]}/${id}`, buf); return json(200, { id });
+      }
+      if (seg.length === 4 && /^[0-9a-f]{24}$/.test(seg[3]) && M === 'GET') {
+        const buf = await PHOTOS().get(`${seg[1]}/${seg[2]}/${seg[3]}`, { type: 'arrayBuffer' }); if (!buf) return err(404, 'Photo not found.');
+        return new Response(buf, { status: 200, headers: { 'Content-Type': 'image/jpeg', 'Cache-Control': 'private, max-age=31536000' } });
+      }
+    }
+    /* problem reports (non-conformance) */
+    if (seg[0] === 'ncr') {
+      const cleanP = (a) => (Array.isArray(a) ? a : []).filter((x) => /^[0-9a-f]{24}$/.test(x)).slice(0, 12);
+      const idx = async (n) => updMeta(store, 'ncrindex', (m) => { m[n.id] = { id: n.id, status: n.status, assignee: (n.assignee || {}).u || '', title: n.title, sev: n.sev, at: n.at, updated: n.updated, chassis: n.chassis, part: n.part, cat: n.cat, by: n.by, closedAt: n.closedAt || '' }; });
+      if (seg.length === 1 && M === 'GET') return json(200, { ncr: Object.values(await getMeta(store, 'ncrindex')).sort((a, b) => String(b.updated || b.at).localeCompare(String(a.updated || a.at))) });
+      if (seg.length === 1 && M === 'POST') {
+        const b = await req.json().catch(() => ({})); if (String(b.title || '').trim().length < 3) return err(400, 'Give the problem a short title.');
+        const at = new Date().toISOString(), id = newId('n');
+        const asg = USER_RE.test(b.assignee || '') ? await store.get(`users/${b.assignee}`, { type: 'json' }) : null;
+        const n = { id, title: clip(String(b.title).trim(), 120), cat: clip(b.cat, 40), sev: ['low', 'medium', 'high'].includes(b.sev) ? b.sev : 'medium', chassis: CHASSIS_RE.test(b.chassis || '') ? b.chassis : '',
+          part: b.part && PART_RE.test(b.part.id || '') ? { id: b.part.id, name: clip(b.part.name, 80) } : null, desc: clip(String(b.desc || '').trim(), 4000), photos: cleanP(b.photos), ref: REF_RE.test(b.ref || '') ? b.ref : id,
+          status: 'open', assignee: asg ? { u: asg.u, name: asg.name } : null, cause: '', action: '', comments: [], by: me.name, u: me.u, at, updated: at };
+        await store.setJSON(`ncr/${id}`, n); await idx(n); if (n.part) await audit(store, n.part.id, me, `Problem reported: ${n.title}`, n.desc);
+        return json(200, { ncr: n });
+      }
+      if (seg.length === 2 && /^n[0-9a-f]{12}$/.test(seg[1])) {
+        const key = `ncr/${seg[1]}`, n = await store.get(key, { type: 'json' }); if (!n) return err(404, 'Problem report not found.');
+        if (M === 'GET') return json(200, { ncr: n });
+        if (M === 'PUT') {
+          const b = await req.json().catch(() => ({})), at = new Date().toISOString(), changes = [];
+          if (b.status && ['open', 'progress', 'closed'].includes(b.status) && b.status !== n.status) { if (b.status === 'closed' && !String(b.action ?? n.action).trim()) return err(400, 'Write the action taken before closing.'); changes.push(`Status → ${b.status}`); n.status = b.status; if (b.status === 'closed') { n.closedAt = at; n.closedBy = me.name; } else { n.closedAt = ''; } }
+          if (b.cause !== undefined && b.cause !== n.cause) { n.cause = clip(String(b.cause).trim(), 2000); changes.push('Cause updated'); }
+          if (b.action !== undefined && b.action !== n.action) { n.action = clip(String(b.action).trim(), 2000); changes.push('Action updated'); }
+          if (b.assignee !== undefined) { const a = USER_RE.test(b.assignee || '') ? await store.get(`users/${b.assignee}`, { type: 'json' }) : null; n.assignee = a ? { u: a.u, name: a.name } : null; changes.push(`Assigned to ${a ? a.name : 'nobody'}`); }
+          if (String(b.comment || '').trim() || cleanP(b.photos).length) n.comments = [...(n.comments || []), { at, by: me.name, u: me.u, text: clip(String(b.comment || '').trim(), 2000), photos: cleanP(b.photos) }].slice(-200);
+          if (changes.length) n.comments = [...(n.comments || []), { at, by: me.name, u: me.u, sys: changes.join(' · ') }];
+          n.updated = at; await store.setJSON(key, n); await idx(n);
+          if (n.part && changes.length) await audit(store, n.part.id, me, `Problem “${n.title}”`, changes.join(' · '));
+          return json(200, { ncr: n });
+        }
+      }
+    }
+    /* checklist templates */
+    if (seg[0] === 'chk') {
+      if (seg.length === 1 && M === 'GET') return json(200, { chk: Object.values(await getMeta(store, 'chk')).sort((a, b) => a.name.localeCompare(b.name)) });
+      if (seg.length === 2 && /^c[0-9a-f]{12}$|^new$/.test(seg[1]) && ['PUT', 'DELETE'].includes(M)) {
+        if (!isEA(me)) return err(403, 'Only Engineering or Admin can edit checklists.');
+        if (M === 'DELETE') { await updMeta(store, 'chk', (m) => { delete m[seg[1]]; }); return json(200, { ok: true }); }
+        const b = await req.json().catch(() => ({})), id = seg[1] === 'new' ? newId('c') : seg[1];
+        const items = (Array.isArray(b.items) ? b.items : []).map((x) => ({ t: clip(String(x.t || '').trim(), 200), photo: !!x.photo, val: !!x.val })).filter((x) => x.t).slice(0, 150);
+        if (String(b.name || '').trim().length < 2 || !items.length) return err(400, 'Give the checklist a name and at least one item.');
+        const rec = { id, name: clip(String(b.name).trim(), 80), veh: clip(b.veh || '', 20), items, by: me.name, at: new Date().toISOString() };
+        await updMeta(store, 'chk', (m) => { m[id] = rec; }); return json(200, { chk: rec });
+      }
+    }
+    /* inspections (filled-in checklists) */
+    if (seg[0] === 'insp') {
+      const idx = async (x) => updMeta(store, 'inspindex', (m) => { m[x.id] = { id: x.id, name: x.name, chassis: x.chassis, veh: x.veh, status: x.status, by: x.by, at: x.at, doneAt: x.doneAt || '', ok: x.items.filter((i) => i.ok === true).length, nok: x.items.filter((i) => i.ok === false).length, total: x.items.length }; });
+      if (seg.length === 1 && M === 'GET') return json(200, { insp: Object.values(await getMeta(store, 'inspindex')).sort((a, b) => String(b.at).localeCompare(String(a.at))) });
+      if (seg.length === 1 && M === 'POST') {
+        const b = await req.json().catch(() => ({})), tpl = (await getMeta(store, 'chk'))[b.tpl]; if (!tpl) return err(400, 'Choose a checklist.');
+        const chassis = String(b.chassis || '').trim(); if (!CHASSIS_RE.test(chassis)) return err(400, 'Enter the chassis number.');
+        const x = { id: newId('i'), tpl: tpl.id, name: tpl.name, veh: tpl.veh, chassis, items: tpl.items.map((i) => ({ ...i, ok: null, value: '', note: '', photos: [] })), status: 'open', by: me.name, u: me.u, at: new Date().toISOString() };
+        await store.setJSON(`insp/${x.id}`, x); await idx(x); return json(200, { insp: x });
+      }
+      if (seg.length === 2 && /^i[0-9a-f]{12}$/.test(seg[1])) {
+        const key = `insp/${seg[1]}`, x = await store.get(key, { type: 'json' }); if (!x) return err(404, 'Inspection not found.');
+        if (M === 'GET') return json(200, { insp: x });
+        if (M === 'PUT') {
+          if (x.status === 'done' && !isEA(me)) return err(400, 'This inspection is signed off and locked.');
+          const b = await req.json().catch(() => ({}));
+          if (Array.isArray(b.items)) b.items.slice(0, x.items.length).forEach((i, k) => { const t = x.items[k]; t.ok = i.ok === true ? true : i.ok === false ? false : null; t.value = clip(i.value, 60); t.note = clip(i.note, 500); t.photos = (Array.isArray(i.photos) ? i.photos : []).filter((p) => /^[0-9a-f]{24}$/.test(p)).slice(0, 6); });
+          if (b.status === 'done') { if (x.items.some((i) => i.ok === null)) return err(400, 'Check every item (OK or Not OK) before signing off.'); x.status = 'done'; x.doneAt = new Date().toISOString(); x.doneBy = me.name; }
+          if (b.status === 'open' && isEA(me)) { x.status = 'open'; x.doneAt = ''; x.doneBy = ''; }
+          x.updated = new Date().toISOString(); await store.setJSON(key, x); await idx(x); return json(200, { insp: x });
+        }
+      }
+    }
+    /* assembly instructions per part */
+    if (seg[0] === 'instr' && seg.length === 2 && /^p[0-9a-f]{10}$/.test(seg[1])) {
+      const key = `instr/${seg[1]}`;
+      if (M === 'GET') return json(200, { instr: (await store.get(key, { type: 'json' })) || { steps: [] } });
+      if (M === 'PUT') {
+        const b = await req.json().catch(() => ({}));
+        const steps = (Array.isArray(b.steps) ? b.steps : []).map((x) => ({ text: clip(String(x.text || '').trim(), 1000), torque: clip(String(x.torque || '').trim(), 40), photo: /^[0-9a-f]{24}$/.test(x.photo || '') ? x.photo : '' })).filter((x) => x.text || x.photo).slice(0, 60);
+        const rec = { steps, by: me.name, at: new Date().toISOString() }; await store.setJSON(key, rec); await audit(store, seg[1], me, 'Assembly instructions updated', `${steps.length} step${steps.length === 1 ? '' : 's'}`);
+        return json(200, { instr: rec });
+      }
+    }
+    /* vehicles (chassis numbers) with build record */
+    if (seg[0] === 'vehicles') {
+      if (seg.length === 1 && M === 'GET') return json(200, { vehicles: Object.values(await getMeta(store, 'vehicles')).sort((a, b) => String(b.start || b.at).localeCompare(String(a.start || a.at))) });
+      const ch = decodeURIComponent(seg[1] || '');
+      if (seg.length === 2 && CHASSIS_RE.test(ch)) {
+        if (M === 'PUT') {
+          const b = await req.json().catch(() => ({})); const d = (x) => (/^\d{4}-\d{2}-\d{2}$/.test(x || '') ? x : '');
+          const rec = await updMeta(store, 'vehicles', (m) => { const r = { chassis: ch, ...(m[ch] || {}) };
+            if (b.type !== undefined) r.type = clip(b.type, 20); if (b.customer !== undefined) r.customer = clip(b.customer, 80); if (b.note !== undefined) r.note = clip(b.note, 1000);
+            if (b.status !== undefined && ['build', 'done', 'delivered'].includes(b.status)) r.status = b.status; if (b.start !== undefined) r.start = d(b.start); if (b.delivered !== undefined) r.delivered = d(b.delivered);
+            r.status = r.status || 'build'; r.by = me.name; r.at = new Date().toISOString(); m[ch] = r; return r; });
+          return json(200, { vehicle: rec });
+        }
+        if (M === 'GET') {
+          const v = (await getMeta(store, 'vehicles'))[ch] || null, fit = await getMeta(store, 'fit');
+          const fitted = Object.entries(fit).flatMap(([id, arr]) => (arr || []).filter((x) => x.chassis.toLowerCase() === ch.toLowerCase()).map((x) => ({ ...x, id })));
+          const insp = Object.values(await getMeta(store, 'inspindex')).filter((x) => String(x.chassis).toLowerCase() === ch.toLowerCase());
+          const ncr = Object.values(await getMeta(store, 'ncrindex')).filter((x) => String(x.chassis).toLowerCase() === ch.toLowerCase());
+          return json(200, { vehicle: v, fitted, insp, ncr });
+        }
+      }
+    }
+    if (path === 'admin/usage' && M === 'GET' && me.role === 'admin') {
+      const out = []; for (let i = 0; i < 7; i++) { const d = new Date(Date.now() - i * 864e5).toLocaleDateString('sv-SE', { timeZone: 'Europe/Amsterdam' }); const l = await listJSON(store, `usage/${d}/`); out.push({ day: d, n: l.reduce((s, x) => s + (x.n || 0), 0), users: l.length }); }
+      return json(200, { usage: out });
+    }
+    if (path === 'admin/overdue' && M === 'POST' && me.role === 'admin') { const e = await runOverdue(env, 'manual'); return e && !e.startsWith('Nothing') ? err(502, e) : json(200, { ok: true, msg: e || 'Overdue summary sent.' }); }
 
     /* ---- admin ---- */
     if (seg[0] === 'admin') {
@@ -478,6 +738,7 @@ export default async (req) => {
         for (const x of cl.filter((x) => ids.has(x.key.slice(6)))) { await store.delete(x.key); notes++; }
         const { blobs: rl } = await store.list({ prefix: 'release/' });
         for (const x of rl) { const q = parseId(x.key.slice(8)); if (q && ids.has(q.base)) await store.delete(x.key); }
+        for (const k of ['appr', 'fit']) await updMeta(store, k, (m) => { for (const id of Object.keys(m)) if (inScope(id)) delete m[id]; });
         const ev = { at: new Date().toISOString(), by: me.name, u: me.u, scope: clip(b.scope, 160), parts: ids.size, reports, drafts, notes };
         await store.setJSON(`maint/${ev.at}-${crypto.randomBytes(3).toString('hex')}`, ev);
         return json(200, { ok: true, ...ev });

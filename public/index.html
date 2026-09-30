@@ -179,6 +179,44 @@ label.check{display:flex;gap:8px;align-items:center;margin-top:12px;font-size:14
 .cbtn{all:unset;cursor:pointer;flex:none;width:44px;height:44px;display:grid;place-items:center;border-radius:12px;background:var(--ice)}.cbtn svg{width:22px;height:22px;stroke:var(--navy);fill:none;stroke-width:2}
 .phview{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center}.phview img{max-width:100%;max-height:100%}.phview button{all:unset;position:absolute;top:calc(var(--safe-t) + 10px);right:16px;color:#fff;font-size:34px;cursor:pointer}
 .plink{all:unset;cursor:pointer;color:#a9dff2;text-decoration:underline}
+.sent.apptag{color:#fff;background:#0b7fa6}.sent.rejtag{color:#fff;background:var(--chg)}.sent.latetag{color:#fff;background:#c0392b}
+.rejcard{margin-top:12px;border-left:5px solid var(--chg)}.fitcard{margin-top:12px;border-left:5px solid #0b7fa6}
+.fitlist{display:flex;flex-direction:column;gap:4px;margin-top:6px}.fitrow{display:flex;justify-content:space-between;gap:8px;font-size:13px;background:var(--ice);border-radius:8px;padding:6px 8px}.fitrow button{all:unset;cursor:pointer;font-weight:700;color:var(--muted);padding:0 4px}
+.fitform{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}.fitform .txt{flex:1;min-width:110px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px}.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.tools{display:flex;flex-direction:column;gap:6px}.tool{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.tool summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;font-weight:600;color:var(--navy)}.tool summary::-webkit-details-marker{display:none}
+.tool summary em{font-style:normal;font-weight:500;font-size:13px;color:var(--muted);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:55%}.tool[open] summary{border-bottom:1px solid var(--line)}
+.tbody{padding:12px 14px}.stkrow{display:flex;align-items:center;justify-content:center;gap:18px;margin-bottom:10px}.stkrow b{font-size:28px;color:var(--navy);min-width:60px;text-align:center}.stkrow .btn{flex:0 0 auto;padding:10px 20px;font-size:18px}
+.qrprev{display:flex;justify-content:center;margin:6px 0 10px}.qrprev svg{border:1px solid var(--line);border-radius:6px}
+.hrow{border-left:3px solid var(--line);padding:4px 0 8px 10px;font-size:14px}.hrow div{color:#14232c;font-size:13px}.hrow span{display:block;color:var(--muted);font-size:12px}
+.steps{padding-left:22px;margin:0}.steps li{margin-bottom:10px}.steps li img{display:block;max-width:100%;border-radius:8px;margin-bottom:4px;cursor:zoom-in}.torque{display:inline-block;margin-left:6px;font-size:12px;font-weight:700;color:var(--done);background:var(--ice);border-radius:6px;padding:1px 6px}
+.istep{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:8px}.ihead{display:flex;justify-content:space-between;align-items:center}.ihead button{all:unset;cursor:pointer;padding:2px 8px;font-weight:700;color:var(--muted)}.istep textarea{margin-top:6px}.irow{display:flex;gap:6px;margin-top:6px}.irow .txt{flex:1}.ithumb{max-width:120px;border-radius:8px;margin-top:6px}
+.ov.sheet .ovbox{margin-top:5vh}.ovbox.wide{max-width:640px}.shead{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line);color:var(--navy);font-size:17px}.sx{all:unset;cursor:pointer;font-size:28px;line-height:1;color:var(--muted);padding:0 4px}
+.tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}@media(min-width:620px){.tgrid{grid-template-columns:repeat(4,1fr)}}
+.tile{all:unset;box-sizing:border-box;cursor:pointer;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;position:relative;min-height:78px;justify-content:center}.tile .ti{font-size:22px}.tile .tl{font-size:12px;font-weight:700;color:var(--navy)}.tile .tb{font-size:11px;font-weight:700;color:#fff;background:#ff3b30;border-radius:999px;padding:1px 7px}
+.boardmain{max-width:none}.board{display:flex;gap:10px;overflow-x:auto;padding-bottom:12px;scroll-snap-type:x mandatory}.bcol{flex:0 0 min(82vw,300px);scroll-snap-align:start;background:#e9eff3;border-radius:12px;padding:8px}.bcol h3{margin:2px 4px 8px;font-size:13px;color:var(--navy);display:flex;justify-content:space-between}.bcol h3 span{background:#fff;border-radius:999px;padding:0 8px}
+.bc-new{border-top:4px solid #d9a441}.bc-appr{border-top:4px solid #0b7fa6}.bc-rel{border-top:4px solid var(--ok)}.bc-fit{border-top:4px solid var(--navy)}.bc-rej{border-top:4px solid var(--chg)}
+.bcard,.ncard{all:unset;box-sizing:border-box;cursor:pointer;display:block;width:100%;background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 10px;margin-bottom:6px}.bcard b,.ncard b{display:block;font:600 14px var(--mono);color:var(--navy)}.ncard b{font-family:inherit;font-size:15px}
+.bcard span,.ncard span{display:block;font-size:12px;color:var(--muted);margin-top:2px}.bcard .bn{color:#14232c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bcard.late{border-color:#c0392b;box-shadow:inset 3px 0 0 #c0392b}.bempty{text-align:center;color:var(--muted);padding:10px}
+.ncard.sev-high{box-shadow:inset 4px 0 0 #c0392b}.ncard.sev-medium{box-shadow:inset 4px 0 0 #d9a441}.ncard.sev-low{box-shadow:inset 4px 0 0 #7c8f99}.ncard.done{box-shadow:inset 4px 0 0 var(--ok)}.ncard.st-delivered{box-shadow:inset 4px 0 0 var(--ok)}.ncard.st-build{box-shadow:inset 4px 0 0 #d9a441}
+.pill.sevp-high{background:#fbe1dd;color:#c0392b}.pill.sevp-medium{background:#fff4dc;color:#8a5a00}.pill.sevp-low{background:#eef3f6;color:#526570}.ncard .pill{display:inline-block;margin:0 4px 0 0}
+.nh{display:flex;gap:8px;align-items:center}.nh b{font-size:17px;color:var(--navy)}.nh .pill{margin:0}.ndesc{white-space:pre-wrap;margin:10px 0 0;font-size:15px}.nlinks{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.nlinks .pchip{all:unset;cursor:pointer;font:600 13px var(--mono);color:var(--done);background:var(--ice);border-radius:8px;padding:6px 10px}
+.nph{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}.nph img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:zoom-in;background:#eef3f6}
+.tline{display:flex;flex-direction:column}.tsys{font-size:12px;color:var(--muted);text-align:center;margin:6px 0}
+.citem{display:flex;gap:6px;align-items:center;margin-bottom:6px}.citem .txt{flex:1}.citem label{display:flex;align-items:center;gap:2px;font-size:13px}.citem button{all:unset;cursor:pointer;font-weight:700;color:var(--muted);padding:0 6px;font-size:18px}
+.ilist{display:flex;flex-direction:column;gap:8px;margin-top:12px}.iitem{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px}.iitem.ok{border-left:5px solid var(--ok)}.iitem.nok{border-left:5px solid var(--chg);background:#fff8f5}.iitem .it{font-weight:600;color:#14232c}
+.ib{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}.ib button{all:unset;cursor:pointer;padding:8px 12px;border-radius:10px;border:1px solid var(--line);font-weight:700;font-size:14px;background:#fff}.ib button[data-ok][aria-pressed=true]{background:var(--ok);color:#fff;border-color:var(--ok)}.ib button[data-nok][aria-pressed=true]{background:var(--chg);color:#fff;border-color:var(--chg)}.ib button[disabled]{opacity:.6;cursor:default}.ib .txt{flex:1;min-width:80px}.inote{margin-top:6px}
+.plink2{all:unset;cursor:pointer;color:var(--blue);text-decoration:underline;font-weight:600}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}@media(min-width:620px){.kpis{grid-template-columns:repeat(3,1fr)}}.kpi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px}.kpi b{display:block;font-size:26px;color:var(--navy)}.kpi span{font-size:12px;color:var(--muted);font-weight:600}
+.dcard{margin-top:10px}.dcard h3{margin:0 0 10px;font-size:15px;color:var(--navy)}.hbars{display:flex;flex-direction:column;gap:6px}.hb{display:grid;grid-template-columns:minmax(80px,38%) 1fr auto;align-items:center;gap:8px;font-size:13px}.hl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#14232c}.ht{height:12px;background:transparent;border-radius:4px}.ht i{display:block;height:12px;background:var(--blue);border-radius:0 4px 4px 0}.hb:hover .ht i{background:var(--navy)}.hv{font-weight:700;color:#14232c;min-width:22px;text-align:right}
+.skrow{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 10px}.skrow.low{border-left:5px solid var(--chg)}.skn{all:unset;cursor:pointer;flex:1;min-width:0}.skn b{display:block;font:600 14px var(--mono);color:var(--navy)}.skn span{font-size:12px;color:var(--muted)}
+.skq{display:flex;align-items:center;gap:6px}.skq button{all:unset;cursor:pointer;width:30px;height:30px;border-radius:8px;background:var(--ice);text-align:center;font-weight:700;font-size:18px;line-height:30px}.skq b{min-width:28px;text-align:center}.skm{font-size:12px;color:var(--muted);min-width:44px;text-align:right}
+.pmimg{display:flex;gap:10px;align-items:center}.pmimg img{width:120px;height:84px;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:8px}.item.hid{opacity:.55}
+.upd.rej{border-left-color:var(--chg)}.upd.rej b{color:var(--chg)}.fitnote{display:block;font-size:12px;color:var(--muted)}
+.printwrap{position:fixed;inset:0;z-index:95;background:#fff;overflow:auto}.printbar{position:sticky;top:0;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:calc(var(--safe-t) + 10px) 16px 10px;background:var(--navy);color:#fff}.printbar span{display:flex;gap:8px}.printbar .btn{flex:0 0 auto;padding:10px 16px}.printbar .btn.ghost{background:#fff;color:var(--navy);border-color:#fff}.fitc{box-shadow:inset 4px 0 0 #0b7fa6}
+.labels{display:grid;grid-template-columns:repeat(auto-fill,minmax(62mm,1fr));gap:4mm;padding:8mm}.label{display:flex;gap:3mm;align-items:center;border:1px dashed #9aa;border-radius:2mm;padding:2mm;break-inside:avoid}.label svg{width:24mm;height:24mm;flex:none}.label b{display:block;font:700 12pt Consolas,monospace;color:#000;word-break:break-all}.label span{display:block;font-size:9pt;color:#333}
+@media print{body.printing>*:not(.printwrap){display:none!important}.printbar{display:none}.printwrap{position:static}.label{border-color:#ccc}}
 </style>
 </head>
 <body>
@@ -298,7 +336,16 @@ const HOLIDAYS = ["2026-12-25","2026-12-26"];
 const STATUS = [["chg","Change needed"],["ok","No change"],["wip","In progress"],["done","Changed"]];
 const PRIO = [["h","High"],["m","Medium"],["l","Low"]];
 const SL = Object.fromEntries(STATUS), PL = Object.fromEntries(PRIO);
-const PARTS = DATA.parts, VEH = DATA.veh, BYID = Object.fromEntries(PARTS.map(p=>[p.id,p]));
+const BASE_PARTS = DATA.parts, BASE_VEH = DATA.veh;
+let PARTS = BASE_PARTS.slice(), VEH = {...BASE_VEH}, BYID = Object.fromEntries(PARTS.map(p=>[p.id,p]));
+let META = {partx:{},stock:{},dwg:{},appr:{},fit:{},veh:{}}, NCR_MINE=0, NCR_OPEN=0;
+function applyMeta(m){ META={partx:{},stock:{},dwg:{},appr:{},fit:{},veh:{},...(m||{})};
+  VEH={...BASE_VEH,...META.veh}; const px=META.partx;
+  PARTS=BASE_PARTS.filter(p=>!(px[p.id]&&px[p.id].hidden)).map(p=>px[p.id]?{...p,...Object.fromEntries(['n','v','c','t','img'].filter(k=>px[p.id][k]).map(k=>[k,px[p.id][k]]))}:p);
+  for(const [id,x] of Object.entries(px)) if(x.custom&&!x.hidden&&!BASE_PARTS.some(b=>b.id===id)) PARTS.push({id,n:x.n,v:x.v,c:x.c||'Other',t:x.t||'P',s:'',d:1,img:x.img||NOIMG,custom:true});
+  for(const k of Object.keys(VEH)) if(!PARTS.some(p=>p.v===k)&&!BASE_VEH[k]) delete VEH[k];
+  BYID=Object.fromEntries(PARTS.map(p=>[p.id,p])); }
+const NOIMG='data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="140"><rect width="200" height="140" fill="#eef3f6"/><text x="100" y="78" font-family="Arial" font-size="15" fill="#7c8f99" text-anchor="middle">No picture</text></svg>');
 /* revisions: a sent part is locked; changes continue on a new revision (-A, -B …). Id: base, base-r1, base-r2 … */
 const revId=(base,k)=>k?`${base}-r${k}`:base;
 const parseId=id=>{ const m=/^(p[0-9a-f]{10})(?:-r([1-9]\d?))?$/.exec(id||''); return m?{base:m[1],k:m[2]?+m[2]:0}:null; };
@@ -349,11 +396,13 @@ async function compress(file,max=1600,q=.82){ const url=URL.createObjectURL(file
     return await new Promise(r=>c.toBlob(b=>r(b),'image/jpeg',q)); } finally { URL.revokeObjectURL(url); } }
 
 /* ================= server calls ================= */
+function countUse(){ try{ const d=new Date().toISOString().slice(0,10), k='blixUse'; const o=JSON.parse(localStorage.getItem(k)||'{}'); o[d]=(o[d]||0)+1; for(const x of Object.keys(o)) if(x<new Date(Date.now()-8*864e5).toISOString().slice(0,10)) delete o[x]; localStorage.setItem(k,JSON.stringify(o)); }catch(e){} }
+function usedToday(){ try{ return JSON.parse(localStorage.getItem('blixUse')||'{}')[new Date().toISOString().slice(0,10)]||0; }catch(e){ return 0; } }
 class ApiError extends Error{constructor(status,msg){super(msg);this.status=status;}}
 async function api(path,{method='GET',body,raw}={}){
   const headers={}; if(SESSION) headers.Authorization='Bearer '+SESSION.token;
-  if(body!==undefined&&!raw) headers['Content-Type']='application/json'; if(raw) headers['Content-Type']='image/jpeg';
-  let r; try{ r=await fetch(API+'/'+path,{method,headers,body:raw?body:body!==undefined?JSON.stringify(body):undefined,cache:'no-store'}); }catch(e){ throw new ApiError(0,'No connection.'); }
+  if(body!==undefined&&!raw) headers['Content-Type']='application/json'; if(raw) headers['Content-Type']=raw==='pdf'?'application/pdf':'image/jpeg';
+  countUse(); let r; try{ r=await fetch(API+'/'+path,{method,headers,body:raw?body:body!==undefined?JSON.stringify(body):undefined,cache:'no-store'}); }catch(e){ throw new ApiError(0,'No connection.'); }
   if(r.status===401&&SESSION&&path!=='login'){ await signOut(true); throw new ApiError(401,'Please sign in again.'); }
   if(!r.ok){ let m=''; try{ m=(await r.json()).error; }catch(_){ } throw new ApiError(r.status,m||`Server answered ${r.status}.`); }
   const ct=r.headers.get('content-type')||''; return ct.includes('json')?r.json():r.blob();
@@ -380,14 +429,14 @@ async function sync(){
   syncing=true;
   try{
     for(const d of Object.values(DRAFTS).filter(x=>x.dirty)) await pushOne(d);
-    const st=await api('state'); setOnline(true);
-    SHARED=st.parts||{}; CLEARED=st.cleared||{}; MAINT=st.maint||null; RELEASED=st.released||{}; if((st.unread||0)>UNREAD&&view.name!=='thread') toast('💬 New message'); UNREAD=st.unread||0; TEAM=st.team||[]; setBadge(); SESSION.user=st.user; await dev.set('session',SESSION);
+    const st=await api('state?used='+usedToday()); setOnline(true);
+    SHARED=st.parts||{}; applyMeta(st.meta); NCR_MINE=st.ncrMine||0; NCR_OPEN=st.ncrOpen||0; CLEARED=st.cleared||{}; MAINT=st.maint||null; RELEASED=st.released||{}; if((st.unread||0)>UNREAD&&view.name!=='thread') toast('💬 New message'); UNREAD=st.unread||0; TEAM=st.team||[]; setBadge(); SESSION.user=st.user; await dev.set('session',SESSION);
     const server=Object.fromEntries((st.drafts||[]).map(d=>[d.id,d]));
     for(const id of Object.keys(DRAFTS)) if(!server[id]&&!DRAFTS[id].dirty){ await loc.delDraft(id); delete DRAFTS[id]; }   // sent or removed on another phone
     for(const s of Object.values(server)){ const l=DRAFTS[s.id]; if(l&&l.dirty) continue;
       const d={id:s.id,status:s.status,priority:s.priority,note:s.note,resp:s.resp,date:s.date,photos:(s.photos||[]).map(pid=>({id:pid,key:pid})),updatedAt:s.updatedAt,dirty:false,queued:l?l.queued:false};
       DRAFTS[s.id]=d; await loc.putDraft(d); }
-    await loc.set('shared',SHARED); await loc.set('cleared',CLEARED); await loc.set('maint',MAINT); await loc.set('released',RELEASED); await loc.set('team',TEAM); lastSync=Date.now();
+    await loc.set('shared',SHARED); await loc.set('cleared',CLEARED); await loc.set('maint',MAINT); await loc.set('released',RELEASED); await loc.set('meta',META); await loc.set('team',TEAM); lastSync=Date.now();
     if(['home','veh'].includes(view.name)&&!document.querySelector('input:focus,textarea:focus')) render();
     flushQueue();
   }catch(e){ if(e.status===0) setOnline(false); else console.warn(e); }
@@ -395,8 +444,8 @@ async function sync(){
 }
 function setOnline(v){ if(online!==v){ online=v; const b=$('#net'); if(b) b.hidden=v; } }
 window.addEventListener('online',()=>setTimeout(sync,1000)); window.addEventListener('offline',()=>setOnline(false));
-setInterval(()=>{ if(document.visibilityState==='visible') sync(); },45000);
-document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&Date.now()-lastSync>15000) sync(); });
+setInterval(()=>{ if(document.visibilityState==='visible') sync(); },180000);   // every 3 min (saves Netlify credits)
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&Date.now()-lastSync>60000) sync(); });
 
 /* what a part shows: my draft first, otherwise the newest sent report of the team */
 function shown(id){ const m=DRAFTS[id], s=SHARED[id];
@@ -406,24 +455,25 @@ function shown(id){ const m=DRAFTS[id], s=SHARED[id];
 
 /* ================= session ================= */
 async function signIn(token,user){ SESSION={token,user}; await dev.set('session',SESSION); userp=null; DRAFTS={};
-  (await loc.drafts()).forEach(d=>DRAFTS[d.id]=d); SHARED=(await loc.get('shared'))||{}; CLEARED=(await loc.get('cleared'))||{}; MAINT=(await loc.get('maint'))||null; RELEASED=(await loc.get('released'))||{}; TEAM=(await loc.get('team'))||[]; }
+  (await loc.drafts()).forEach(d=>DRAFTS[d.id]=d); SHARED=(await loc.get('shared'))||{}; CLEARED=(await loc.get('cleared'))||{}; MAINT=(await loc.get('maint'))||null; RELEASED=(await loc.get('released'))||{}; applyMeta(await loc.get('meta')); TEAM=(await loc.get('team'))||[]; }
 async function signOut(expired){ SESSION=null; userp=null; DRAFTS={}; SHARED={}; CLEARED={}; RELEASED={}; UNREAD=0; draft=null; await dev.del('session'); urlCache.clear();
   go({name:'home'},true); if(expired) toast('Please sign in again.'); }
 
 /* ================= router ================= */
 let view={name:'home'};
-function go(v,replace){ view=v; const hash=v.name==='home'?'#':v.name==='veh'?`#v/${v.vc}`:v.name==='part'?`#p/${v.id}`:v.name==='thread'?`#t/${v.id}`:`#${v.name}`; replace?history.replaceState(v,'',hash):history.pushState(v,'',hash); render(); window.scrollTo(0,0); }
+function go(v,replace){ view=v; const hash=v.name==='home'?'#':v.name==='veh'?`#v/${v.vc}`:v.name==='part'?`#p/${v.id}`:v.name==='thread'?`#t/${v.id}`:['ncrd','inspd','vehd'].includes(v.name)?`#${v.name}/${encodeURIComponent(v.id)}`:`#${v.name}`; replace?history.replaceState(v,'',hash):history.pushState(v,'',hash); render(); window.scrollTo(0,0); }
 window.addEventListener('popstate',e=>{ view=e.state||{name:'home'}; render(); });
-function parseHash(){ const tm=location.hash.match(/^#t\/(t[0-9a-f]{12})$/); if(tm) return {name:'thread',id:tm[1]}; const m=location.hash.match(/^#(v|p)\/(.+)$/); if(m) return m[1]==='v'&&VEH[m[2]]?{name:'veh',vc:m[2]}:(getPart(m[2])?{name:'part',id:m[2]}:{name:'home'}); const n=location.hash.slice(1); if(['send','account','admin','settings','inbox','newmsg'].includes(n)) return {name:n}; return {name:'home'}; }
+function parseHash(){ const tm=location.hash.match(/^#t\/(t[0-9a-f]{12})$/); if(tm) return {name:'thread',id:tm[1]}; const m=location.hash.match(/^#(v|p)\/(.+)$/); if(m) return m[1]==='v'&&VEH[m[2]]?{name:'veh',vc:m[2]}:(getPart(m[2])?{name:'part',id:m[2]}:{name:'home'}); const n=location.hash.slice(1); if(['send','account','admin','settings','inbox','newmsg','board','ncr','insp','vehicles','dash','stock','parts','chk'].includes(n)) return {name:n}; const sm=n.match(/^(ncrd|inspd|vehd)\/(.+)$/); if(sm) return {name:sm[1],id:decodeURIComponent(sm[2])}; return {name:'home'}; }
 function topbar(title,sub,back,extra=''){ return `<header class="top"><div class="row">${back?`<button class="iconbtn" id="back" aria-label="Back">${ICON.back}</button>`:LOGO}<h1>${h(title)}${sub?`<small>${h(sub)}</small>`:''}</h1>${!back&&SESSION&&SESSION.user.u!=='admin'?`<button class="iconbtn" id="mail" aria-label="Messages">${ICON.mail}${badgeHTML()}</button>`:''}${!back&&SESSION?`<button class="iconbtn" id="gear" aria-label="Settings">${ICON.gear}</button>`:''}${!back?`<button class="iconbtn" id="acct" aria-label="Account">${ICON.user}</button>`:''}</div>${extra}</header><div id="net" class="netbar" ${online?'hidden':''}>Offline – your work is saved on this phone and synced when you're back online.</div>`; }
 const isAdminUser=()=>!!SESSION&&SESSION.user.role==='admin';
 const isEng=()=>!!SESSION&&SESSION.user.role==='engineer';
 const ROLE_L={mechanic:'Mechanic',engineer:'Engineering',admin:'Admin'};
-const waitingEng=id=>!!SHARED[id]&&!RELEASED[nextPart(getPart(id)).id];   // sent, new revision not yet released in CAD
+const waitingEng=id=>!!SHARED[id]&&!RELEASED[nextPart(getPart(id)).id]&&!(META.appr[id]&&META.appr[id].status==='rejected');   // sent, new revision not yet released in CAD
 function updSeen(){ try{ return localStorage.getItem('blixUpd::'+SESSION.user.u)||''; }catch(e){ return ''; } }
 function myUpdates(){ if(!SESSION) return []; const seen=updSeen(), out=[], cut=new Date(Date.now()-30*864e5).toISOString();
   for(const [id,r] of Object.entries(RELEASED)){ const rev=getPart(id); if(!rev||r.at<cut) continue; const q=parseId(id), sh=SHARED[revId(q.base,q.k-1)];
     if(sh&&sh.u===SESSION.user.u) out.push({rev,r,isNew:String(r.at)>seen}); }
+  for(const [id,ap] of Object.entries(META.appr||{})){ const sh=SHARED[id], p=getPart(id); if(!p||!sh||sh.u!==SESSION.user.u||ap.at<cut) continue; out.push({rev:p,r:ap,appr:ap.status,isNew:String(ap.at)>seen}); }
   return out.sort((a,b)=>String(b.r.at).localeCompare(String(a.r.at))).slice(0,20); }
 const badgeCount=()=>UNREAD+myUpdates().filter(u=>u.isNew).length;
 const badgeHTML=()=>{ const n=badgeCount(); return n?`<span class="badge">${n>9?'9+':n}</span>`:''; };
@@ -431,11 +481,12 @@ function setBadge(){ const m=$('#mail'); if(!m) return; const b=m.querySelector(
 function bind(){ const ml=$('#mail'); if(ml) ml.onclick=()=>go({name:'inbox'}); const gr=$('#gear'); if(gr) gr.onclick=()=>go({name:'settings'}); const b=$('#back'); if(b) b.onclick=()=>history.length>1?history.back():go({name:'home'}); const g=$('#acct'); if(g) g.onclick=()=>go({name:SESSION.user.role==='admin'&&SESSION.user.u==='admin'?'admin':'account'}); }
 const myDrafts=()=>Object.values(DRAFTS).filter(d=>!d.deleted);
 function render(){ const a=$('#app');
-  if(!SESSION) return renderLogin(a);
+  if(!SESSION){ renderLogin(a); if(typeof translateUI==='function') translateUI(a); return; }
   if(SESSION.user.u==='admin'&&!['admin','settings'].includes(view.name)) view={name:'admin'};
   if(['send'].includes(view.name)&&isEng()) view={name:'home'};
   if(['inbox','thread','newmsg'].includes(view.name)&&SESSION.user.u==='admin') view={name:'admin'};
-  ({home:renderHome,veh:renderVeh,part:renderPart,send:renderSend,account:renderAccount,admin:renderAdmin,settings:renderSettings,inbox:renderInbox,thread:renderThread,newmsg:renderNewMsg})[view.name](a); bind(); }
+  (VIEWS[view.name]||renderHome)(a); bind(); if(typeof translateUI==='function') translateUI(a); }
+const VIEWS={home:renderHome,veh:renderVeh,part:renderPart,send:renderSend,account:renderAccount,admin:renderAdmin,settings:renderSettings,inbox:renderInbox,thread:renderThread,newmsg:renderNewMsg};
 
 /* ================= screens ================= */
 function renderLogin(a){
@@ -443,7 +494,8 @@ function renderLogin(a){
    <form class="card" id="lf" autocomplete="on" style="margin:0 16px"><div class="field" style="margin-top:0"><label for="un">Username</label><input class="txt" id="un" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required></div>
    <div class="field"><label for="pw">Password</label><input class="txt" id="pw" name="password" type="password" autocomplete="current-password" required></div>
    <div id="lerr" class="note" style="color:var(--chg)" hidden></div><div style="height:6px"></div><button class="btn" id="lb" type="submit" style="display:block;width:100%">Sign in</button>
-   <p class="note" style="text-align:center">No account yet? Ask Engineering.</p></form></div>`;
+   <p class="note" style="text-align:center">No account yet? Ask Engineering.</p><p class="note" style="text-align:center"><button type="button" id="lgl" class="plink2">${getLang()==='nl'?'English':'Nederlands'}</button></p></form></div>`;
+  $('#lgl').onclick=()=>{ try{ localStorage.setItem('blixLang',getLang()==='nl'?'en':'nl'); }catch(_){} location.reload(); };
   $('#lf').onsubmit=async ev=>{ ev.preventDefault(); const b=$('#lb'); b.textContent='Signing in…'; b.setAttribute('disabled',''); $('#lerr').hidden=true;
     try{ const r=await api('login',{method:'POST',body:{username:$('#un').value.trim(),password:$('#pw').value}}); await signIn(r.token,r.user); view={name:r.user.u==='admin'?'admin':'home'}; history.replaceState(view,'','#'); render(); sync(); }
     catch(e){ $('#lerr').textContent=e.status===0?"No connection. Signing in needs internet the first time.":e.message; $('#lerr').hidden=false; b.textContent='Sign in'; b.removeAttribute('disabled'); } };
@@ -464,11 +516,11 @@ function renderHome(a){
   `<main><div id="res"></div><div id="homebody">${maintNotice()}
    ${statHTML}
    ${isStandalone()?'':`<div class="card" style="margin-top:10px;font-size:13px"><b>Tip: install as an app</b><br>${/iPhone|iPad/.test(navigator.userAgent)?'Tap the Share button in Safari, then “Add to Home Screen”.':'Tap the ⋮ menu in Chrome, then “Install app”.'}</div>`}
-   ${waitHTML}<div class="section-t">Vehicles</div><div class="grid">${Object.entries(VEH).map(([vc,vn])=>{const n=PARTS.filter(p=>p.v===vc).length;const c=cnt[vc]||0;return `<button class="veh" data-vc="${vc}"><span class="c">${vc}</span><span class="n">${h(vn)}</span><span class="prog"><i style="width:${Math.round(c/n*100)}%"></i></span><span class="k ${dr[vc]?'has':''}">${c} of ${n} sent${dr[vc]?` · ${dr[vc]} draft`:''}</span></button>`}).join('')}</div>
+   ${toolsHTML()}${waitHTML}<div class="section-t">Vehicles</div><div class="grid">${Object.entries(VEH).map(([vc,vn])=>{const n=PARTS.filter(p=>p.v===vc).length;const c=cnt[vc]||0;return `<button class="veh" data-vc="${vc}"><span class="c">${vc}</span><span class="n">${h(vn)}</span><span class="prog"><i style="width:${Math.round(c/n*100)}%"></i></span><span class="k ${dr[vc]?'has':''}">${c} of ${n} sent${dr[vc]?` · ${dr[vc]} draft`:''}</span></button>`}).join('')}</div>
    <p class="note">${lastSync?`Synced ${new Date(lastSync).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`:'Not synced yet'}</p>
   </div></main>
   ${isEng()?'':`<div class="bar"><button class="btn cyan" id="send" ${drafts?'':'disabled'}>Send to Engineering${drafts?` (${drafts})`:''}</button></div>`}`;
-  bindItems(a);
+  bindItems(a); bindTools(a);
   a.querySelectorAll('.veh').forEach(b=>b.onclick=()=>go({name:'veh',vc:b.dataset.vc}));
   const mx=$('#mx'); if(mx) mx.onclick=()=>{ try{ localStorage.setItem('blixMaintSeen',MAINT.at); }catch(e){} $('#mnote').remove(); };
   const sb=$('#send'); if(sb) sb.onclick=()=>go({name:'send'});
@@ -479,7 +531,7 @@ function renderHome(a){
 }
 const isStandalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
 function itemHTML(p){ const s=shown(p.id); const st=s&&s.status, rv=revOf(p);
-  const tag=(!s?'':s.draft?`<span class="sent" style="color:var(--wip);background:var(--wip-bg)">${s.queued?'Waiting to send':'My draft'}</span>`:`<span class="sent">🔒 Sent · ${h(s.by)} · ${ddmm(s.at)}</span>`)+(s&&s.sent?(RELEASED[nextPart(p).id]?`<span class="sent reltag">✓ ${h(nextPart(p).n)} released</span>`:`<span class="sent waittag">⏳ Engineering</span>`):'')+(rv&&!(s&&s.sent)?(RELEASED[p.id]?`<span class="sent reltag">✓ Released in CAD</span>`:`<span class="sent rvtag">New revision</span>`):'')+(!(s&&s.sent)&&CLEARED[baseOf(p)]&&!SHARED[revId(baseOf(p),revOf(p)+1)]?`<span class="sent clrtag">⟲ Cleared ${ddmm(CLEARED[baseOf(p)].at)}</span>`:'');
+  const tag=(!s?'':s.draft?`<span class="sent" style="color:var(--wip);background:var(--wip-bg)">${s.queued?'Waiting to send':'My draft'}</span>`:`<span class="sent">🔒 Sent · ${h(s.by)} · ${ddmm(s.at)}</span>`)+(s&&s.sent?(RELEASED[nextPart(p).id]?`<span class="sent reltag">✓ ${h(nextPart(p).n)} released</span>`:engTag(p)):'')+(rv&&!(s&&s.sent)?(RELEASED[p.id]?`<span class="sent reltag">✓ Released in CAD</span>`:`<span class="sent rvtag">New revision</span>`):'')+(!(s&&s.sent)&&CLEARED[baseOf(p)]&&!SHARED[revId(baseOf(p),revOf(p)+1)]?`<span class="sent clrtag">⟲ Cleared ${ddmm(CLEARED[baseOf(p)].at)}</span>`:'');
   return `<button class="item ${st?'s-'+st:''}${rv?' rev':''}${s&&s.sent?' locked':''}" data-id="${p.id}"><img src="${p.img}" alt="" loading="lazy"><span class="t"><span class="pn">${h(p.n)}</span><span class="m">${p.v} · ${h(p.c)}${p.t==='A'?' · Assembly':''}</span>${st?`<span class="pill">${SL[st]}</span>`:''}${tag}</span>${s&&s.photos?`<span class="cam">📷 ${s.photos}</span>`:''}</button>`; }
 function bindItems(root){ root.querySelectorAll('.item[data-id]').forEach(b=>b.onclick=()=>go({name:'part',id:b.dataset.id})); }
 
@@ -487,9 +539,9 @@ let vehFilter='all';
 function renderVeh(a){
   const vc=view.vc, list=PARTS.filter(p=>p.v===vc);
   a.innerHTML=topbar(vc,VEH[vc],true,`<div class="search"><input id="q" type="search" placeholder="Search in ${h(vc)}…" enterkeyhint="search"></div>`)+
-   `<div class="chips">${[['all','All'],['todo','To do'],...(isEng()?[]:[['mine','My drafts']]),['sent','Sent'],['wait','Waiting for Eng.'],['rel','Released'],...STATUS].map(([k,l])=>`<button class="chip" data-f="${k}" aria-pressed="${vehFilter===k}">${l}</button>`).join('')}</div><main id="lst"></main>`;
+   `<div class="chips">${[['all','All'],['todo','To do'],...(isEng()?[]:[['mine','My drafts']]),['sent','Sent'],['wait','Waiting for Eng.'],['rel','Released'],['myp','My parts'],['late','Overdue'],...STATUS].map(([k,l])=>`<button class="chip" data-f="${k}" aria-pressed="${vehFilter===k}">${l}</button>`).join('')}</div><main id="lst"></main>`;
   const draw=()=>{ const t=$('#q').value.trim().toUpperCase(); let rows=list.filter(p=>!t||p.n.toUpperCase().includes(t));
-    rows=rows.flatMap(chain).filter(p=>{const e=shown(p.id); if(vehFilter==='all')return true; if(vehFilter==='wait')return waitingEng(p.id); if(vehFilter==='rel')return revOf(p)>0&&!!RELEASED[p.id]; if(vehFilter==='todo')return !e; if(vehFilter==='mine')return e&&e.draft; if(vehFilter==='sent')return e&&e.sent; return e&&e.status===vehFilter;});
+    rows=rows.flatMap(chain).filter(p=>{const e=shown(p.id); if(vehFilter==='all')return true; if(vehFilter==='wait')return waitingEng(p.id); if(vehFilter==='myp'){ const x=SHARED[p.id]; return !!x&&x.responsible===SESSION.user.name; } if(vehFilter==='late') return isOverdue(p.id); if(vehFilter==='rel')return revOf(p)>0&&!!RELEASED[p.id]; if(vehFilter==='todo')return !e; if(vehFilter==='mine')return e&&e.draft; if(vehFilter==='sent')return e&&e.sent; return e&&e.status===vehFilter;});
     let html='',cat=null; rows.forEach(p=>{ if(p.c!==cat){ if(cat!==null) html+='</div>'; cat=p.c; const sentIn=list.filter(q=>q.c===cat&&SHARED[q.id]).length; html+=`<div class="cat"><span>${h(cat)}</span>${SESSION.user.role==='admin'&&sentIn?`<button class="catclr" data-cat="${h(cat)}">Clear section</button>`:''}</div><div class="list">`; } html+=itemHTML(p); }); if(cat!==null) html+='</div>';
     $('#lst').innerHTML=html||'<div class="empty">No parts match this filter.</div>'; bindItems($('#lst'));
     $('#lst').querySelectorAll('.catclr').forEach(b=>b.onclick=()=>{ const ps=list.filter(q=>q.c===b.dataset.cat&&SHARED[q.id]); openClear(ps.map(q=>({p:q,from:0})),`${vc} · section “${b.dataset.cat}” – ${ps.length} part${ps.length>1?'s':''} with sent changes`); }); };
@@ -517,6 +569,7 @@ function renderPart(a){
    <div class="field"><label for="resp">Responsible</label><select id="resp"><option value="">— Choose a person —</option>${team.map(n=>`<option ${n===draft.resp?'selected':''}>${h(n)}</option>`).join('')}</select></div>
    <div class="field"><label for="date">Planned date</label><select id="date"><option value="">— Choose a workday —</option>${days.map(d=>`<option value="${d}" ${d===draft.date?'selected':''}>${fmtDate(d)}</option>`).join('')}</select><div class="note">Workdays only (Mon–Fri), until 31-12-2026.</div></div>
    ${mine?`<div class="field"><div id="delzone"><button class="btn danger" id="del" style="display:block">Remove my draft</button></div></div>`:''}
+   ${fittedHTML(p)}${partExtrasHTML(p)}
    <div class="field"><button class="btn ghost" id="disc" style="display:block;width:100%">💬 Discuss this part</button></div>
    ${revOf(p)?`<div class="field"><button class="btn ghost dangerline" id="clr" style="display:block;width:100%">Clear changes…</button></div>`:''}
   </main><div class="bar"><button class="btn ghost" id="cancel" style="flex:0 0 auto;padding:14px 18px">Cancel</button><button class="btn" id="save">Save draft</button></div>`;
@@ -526,7 +579,7 @@ function renderPart(a){
     $('#ph').querySelectorAll('img[data-i]').forEach(async im=>{ im.onclick=()=>markPh(+im.dataset.i); im.src=await photoURL(draft.photos[+im.dataset.i])||''; });
     $('#ph').querySelectorAll('.ph button').forEach(b=>b.onclick=()=>{draft.photos.splice(+b.dataset.i,1);drawPh();});
     $('#take').onclick=()=>$('#camIn').click(); $('#pick').onclick=()=>$('#galIn').click(); };
-  drawPh(); bindHist(a); $('#disc').onclick=()=>{ draft=null; discuss(p); }; const cb=$('#clr'); if(cb) cb.onclick=()=>openClear([{p:BYID[baseOf(p)],from:0}],BYID[baseOf(p)].n);
+  drawPh(); bindHist(a); $('#disc').onclick=()=>{ draft=null; discuss(p); }; bindPartExtras(p,a); bindFitted(p,a); const cb=$('#clr'); if(cb) cb.onclick=()=>openClear([{p:BYID[baseOf(p)],from:0}],BYID[baseOf(p)].n);
   const onFiles=async files=>{ for(const f of files){ try{ draft.photos.push({key:rid(),blob:await compress(f)}); }catch(err){ toast("This photo couldn't be read. Try another one."); } } drawPh();
     if(files.length===1&&draft.photos.length) await markPh(draft.photos.length-1); else if(files.length>1) toast('Tap a photo to draw on it'); };
   $('#camIn').onchange=ev=>{onFiles([...ev.target.files]);ev.target.value='';}; $('#galIn').onchange=ev=>{onFiles([...ev.target.files]);ev.target.value='';};
@@ -593,14 +646,15 @@ function renderLocked(a,p,sh){ const nx=nextPart(p), nxLocked=!!SHARED[nx.id];
    <div class="hero"><img src="${p.img}" alt="Preview of ${h(p.n)}"><div class="info"><div class="pn">${h(p.n)}</div><div class="m">${h(VEH[p.v])} · ${h(p.c)} · ${p.t==='A'?'Assembly':'Part'}${revOf(p)?` · Revision of ${h(BYID[p.base].n)}`:''}</div></div></div>
    <div class="card lockcard"><b>🔒 Sent and locked</b><div class="note" style="margin:4px 0 0">${h(sh.by)} sent this part to Engineering on ${fmtDate(sh.at)}. It can't be changed any more.</div>
     <div class="cred" style="margin-top:10px"><div>Status</div><b style="font-family:inherit">${h(sh.status||'–')}</b>${sh.note?`<div>Change</div><b style="font-family:inherit;font-weight:500">${h(sh.note)}</b>`:''}${sh.priority?`<div>Priority</div><b style="font-family:inherit">${h(sh.priority)}</b>`:''}${sh.responsible?`<div>Responsible</div><b style="font-family:inherit">${h(sh.responsible)}</b>`:''}${sh.date?`<div>Planned</div><b style="font-family:inherit">${h(sh.date)}</b>`:''}<div>Photos</div><b style="font-family:inherit">${sh.photos||0} (in the e-mail)</b></div></div>
-   ${engHTML(nx)}
+   ${apprHTML(p)}${engHTML(nx)}
    <div class="field"><button class="btn" id="nx" style="display:block;width:100%">${nxLocked?`Go to ${h(nx.n)}`:`Open new revision ${h(nx.n)}`}</button></div>
    ${revOf(p)?`<div class="section-t">Earlier revisions</div>${historyHTML(p)}`:''}
    ${clearedHTML(p)}
+   ${fittedHTML(p)}${partExtrasHTML(p)}
    <div class="field"><button class="btn ghost" id="disc" style="display:block;width:100%">💬 Discuss this part</button></div>
    <div class="field"><button class="btn ghost dangerline" id="clr" style="display:block;width:100%">Clear changes…</button><div class="note">Change not correct? Clear it, unlock the part and make the right change. Engineering is notified.</div></div>
   </main>`;
-  $('#nx').onclick=()=>go({name:'part',id:nx.id}); bindHist(a); bindEng(nx,a); $('#disc').onclick=()=>discuss(p);
+  $('#nx').onclick=()=>go({name:'part',id:nx.id}); bindHist(a); bindEng(nx,a); bindAppr(p,a); $('#disc').onclick=()=>discuss(p); bindPartExtras(p,a); bindFitted(p,a);
   $('#clr').onclick=()=>openClear([{p:BYID[baseOf(p)],from:0}],BYID[baseOf(p)].n);
 }
 
@@ -609,10 +663,11 @@ function renderEngOpen(a,p){ const rv=revOf(p);
    <div class="hero"><img src="${p.img}" alt="Preview of ${h(p.n)}"><div class="info"><div class="pn">${h(p.n)}</div><div class="m">${h(VEH[p.v])} · ${h(p.c)} · ${p.t==='A'?'Assembly':'Part'}${rv?` · Revision of ${h(BYID[p.base].n)}`:''}</div></div></div>
    ${clearedHTML(p)}
    ${rv?`${engHTML(p)}<div class="section-t">Changes that led to this revision</div>${historyHTML(p)}`:`<div class="card" style="margin-top:12px"><b>No report yet</b><div class="note" style="margin:4px 0 0">The mechanics haven't sent a change for this part.</div></div>`}
+   ${fittedHTML(p)}${partExtrasHTML(p)}
    <div class="field"><button class="btn ghost" id="disc" style="display:block;width:100%">💬 Message a mechanic about this part</button></div>
    ${rv?`<div class="field"><button class="btn ghost dangerline" id="clr" style="display:block;width:100%">Clear changes…</button></div>`:''}
   </main>`;
-  bindHist(a); bindEng(p,a); $('#disc').onclick=()=>discuss(p); const cb=$('#clr'); if(cb) cb.onclick=()=>openClear([{p:BYID[baseOf(p)],from:0}],BYID[baseOf(p)].n); }
+  bindHist(a); bindEng(p,a); $('#disc').onclick=()=>discuss(p); bindPartExtras(p,a); bindFitted(p,a); const cb=$('#clr'); if(cb) cb.onclick=()=>openClear([{p:BYID[baseOf(p)],from:0}],BYID[baseOf(p)].n); }
 
 let sending=false;
 function renderSend(a){
@@ -749,7 +804,7 @@ async function renderInbox(a){
   const ups=myUpdates();
   a.innerHTML=topbar('Messages','Chat about parts and changes',true)+`<main>
    <button class="btn" id="nm" style="display:block;width:100%">✉ New message</button>
-   ${ups.length?`<div class="section-t">Updates from Engineering</div><div class="updlist">${ups.map(u=>`<button class="upd${u.isNew?' new':''}" data-id="${u.rev.id}"><b>✓ ${h(u.rev.n)} released in CAD</b><span>${h(u.r.by)} · ${fmtDT(u.r.at)}${u.r.note?` – “${h(u.r.note)}”`:''}</span></button>`).join('')}</div>`:''}
+   ${ups.length?`<div class="section-t">Updates from Engineering</div><div class="updlist">${ups.map(u=>`<button class="upd${u.isNew?' new':''}${u.appr==='rejected'?' rej':''}" data-id="${u.rev.id}"><b>${u.appr?(u.appr==='approved'?`✓ Change on ${h(u.rev.n)} approved`:`✗ Change on ${h(u.rev.n)} rejected`):`✓ ${h(u.rev.n)} released in CAD`}</b><span>${h(u.r.by)} · ${fmtDT(u.r.at)}${u.r.note?` – “${h(u.r.note)}”`:''}</span></button>`).join('')}</div>`:''}
    <div class="section-t">Conversations</div><div id="thl"><div class="note">Loading…</div></div></main>`;
   try{ localStorage.setItem('blixUpd::'+SESSION.user.u,new Date().toISOString()); }catch(e){}
   $('#nm').onclick=()=>go({name:'newmsg'}); a.querySelectorAll('.upd').forEach(b=>b.onclick=()=>go({name:'part',id:b.dataset.id}));
@@ -807,7 +862,7 @@ async function renderThread(a){
       const add=r.messages.filter(m=>!seen.has(key(m))); add.forEach(m=>seen.add(key(m))); if(add.length||!msgs.length){ msgs.push(...add); draw(); } }
     catch(e){ if(e.status===404){ toast(e.message); go({name:'inbox'},true); } } };
   await load(); if(UNREAD) sync();
-  chatPoll=setInterval(()=>{ if(view.name!=='thread'||view.id!==tid){ clearInterval(chatPoll); return; } if(document.visibilityState==='visible') load(); },6000);
+  chatPoll=setInterval(()=>{ if(view.name!=='thread'||view.id!==tid){ clearInterval(chatPoll); return; } if(document.visibilityState==='visible') load(); },20000);
   const tx=$('#ctx'); tx.oninput=()=>{ tx.style.height='auto'; tx.style.height=Math.min(120,tx.scrollHeight)+'px'; };
   const post=async body=>{ const r=await api(`threads/${tid}/messages`,{method:'POST',body}); if(!seen.has(key(r.message))){ seen.add(key(r.message)); msgs.push(r.message); draw(); } };
   $('#csend').onclick=async()=>{ const t=tx.value.trim(); if(!t) return; const b=$('#csend'); b.setAttribute('disabled',''); try{ await post({text:t}); tx.value=''; tx.style.height='auto'; }catch(e){ toast(e.message); } b.removeAttribute('disabled'); };
@@ -879,14 +934,22 @@ async function renderSettings(a){
    <div class="section-t">App</div>
    <div class="card">${adm?`<div class="setrow"><span>Accounts & “Responsible” names</span><button class="btn ghost" id="toadm" style="flex:0 0 auto;padding:10px 14px">Open</button></div>`:''}
     <div class="setrow"><span>Refresh data now<br><span class="note" style="margin:0">${lastSync?'Last synced '+new Date(lastSync).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'Not synced yet'}</span></span><button class="btn ghost" id="syn" style="flex:0 0 auto;padding:10px 14px">Sync</button></div>
-    <div class="setrow"><span>App version</span><b>v11 · ${PARTS.length} parts · ${Object.keys(VEH).length} vehicles</b></div></div>
+    <div class="setrow"><span>Language</span><select id="lang" style="flex:0 0 auto;width:auto"><option value="en" ${getLang()==='en'?'selected':''}>English</option><option value="nl" ${getLang()==='nl'?'selected':''}>Nederlands</option></select></div>
+    ${EA()?`<div class="setrow"><span>Parts (add / edit / import)</span><button class="btn ghost" id="toparts" style="flex:0 0 auto;padding:10px 14px">Open</button></div><div class="setrow"><span>Checklists (inspection templates)</span><button class="btn ghost" id="tochk" style="flex:0 0 auto;padding:10px 14px">Open</button></div>`:''}
+    ${adm?`<div class="setrow"><span>Server requests (Netlify credits)<br><span class="note" style="margin:0" id="usage">Loading…</span></span></div><div class="setrow"><span>Overdue summary e-mail<br><span class="note" style="margin:0">Also sent automatically every Monday</span></span><button class="btn ghost" id="ovd" style="flex:0 0 auto;padding:10px 14px">Send now</button></div>`:''}
+    <div class="setrow"><span>This phone today</span><b>${usedToday()} server requests</b></div>
+    <div class="setrow"><span>App version</span><b>v12 · ${PARTS.length} parts · ${Object.keys(VEH).length} vehicles</b></div></div>
   </main>`;
   $('#dv').onchange=e=>{ dlVeh=e.target.value; dlCat=''; renderSettings(a); bind(); };
   $('#dc').onchange=e=>{ dlCat=e.target.value; renderSettings(a); bind(); };
   $('#dp').onchange=e=>{ dlPics=e.target.checked; };
   $('#dlgo').onclick=()=>downloadOverview(dsel,$('#dlgo'));
   $('#syn').onclick=async()=>{ await sync(); toast('Data refreshed'); renderSettings(a); bind(); };
+  $('#lang').onchange=e=>{ try{ localStorage.setItem('blixLang',e.target.value); }catch(_){} location.reload(); };
+  const tp=$('#toparts'); if(tp) tp.onclick=()=>go({name:'parts'}); const tc=$('#tochk'); if(tc) tc.onclick=()=>go({name:'chk'});
   if(!adm) return;
+  api('admin/usage').then(r=>{ const el=$('#usage'); if(el) el.textContent=`Today ${r.usage[0].n} (${r.usage[0].users} user${r.usage[0].users===1?'':'s'}) · last 7 days ${r.usage.reduce((t,x)=>t+x.n,0)}`; }).catch(()=>{ const el=$('#usage'); if(el) el.textContent='–'; });
+  $('#ovd').onclick=async()=>{ try{ const r=await api('admin/overdue',{method:'POST'}); toast(r.msg||'Sent'); }catch(e){ toast(e.message); } };
   $('#bk').onclick=async()=>{ const b=$('#bk'); b.setAttribute('disabled',''); b.textContent='Sending…'; try{ await api('admin/backup',{method:'POST'}); toast('Backup sent to Engineering'); b.textContent='✓ Backup sent'; }catch(e){ toast(e.message); b.textContent='Send a backup now'; b.removeAttribute('disabled'); } };
   $('#sv').onchange=e=>{ setVeh=e.target.value; setCat=''; renderSettings(a); bind(); };
   $('#sc').onchange=e=>{ setCat=e.target.value; renderSettings(a); bind(); };
@@ -962,6 +1025,448 @@ async function renderAdmin(a){
   $('#saveteam').onclick=async()=>{ try{ const r=await api('admin/team',{method:'PUT',body:{names:$('#team').value.split('\n')}}); TEAM=r.names; toast('Names saved for everyone'); }catch(e){ toast(e.message); } };
   loadUsers(); bind();
 }
+
+/* ======================================================================
+   v12 features: approval, fitted, part tools (drawing, stock, supplier,
+   instructions, QR label, history), board, problems, checklists,
+   inspections, vehicles, dashboard, stock & labels, parts manager, Dutch
+   ====================================================================== */
+const todayISO=()=>{ const d=new Date(); return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10); };
+const EA=()=>!!SESSION&&['engineer','admin'].includes(SESSION.user.role);
+function isOverdue(id){ const x=SHARED[id]; if(!x||!x.dateIso||x.dateIso>=todayISO()) return false; const p=getPart(id); if(!p) return false; return !RELEASED[nextPart(p).id]&&!(META.appr[id]&&META.appr[id].status==='rejected'); }
+function engTag(p){ const a=META.appr[p.id];
+  if(a&&a.status==='rejected') return `<span class="sent rejtag">✗ Rejected</span>`;
+  if(a&&a.status==='approved') return `<span class="sent apptag">✓ Approved · in CAD</span>`;
+  return `<span class="sent waittag">⏳ Engineering</span>`+(isOverdue(p.id)?`<span class="sent latetag">Overdue</span>`:''); }
+const STOCK_L={use:'Use up old stock',scrap:'Scrap old stock',rework:'Rework old stock'};
+
+/* ---------- generic helpers: photo picking/upload, overlays ---------- */
+function pickFiles({accept='image/*',multiple=true,camera=false}={}){ return new Promise(res=>{ const i=document.createElement('input'); i.type='file'; i.accept=accept; i.multiple=multiple; if(camera) i.setAttribute('capture','environment'); i.style.display='none'; document.body.appendChild(i);
+  i.onchange=()=>{ const f=[...i.files]; i.remove(); res(f); }; i.click(); setTimeout(()=>{ if(i.isConnected&&!i.files.length){} },60000); }); }
+async function pickPhotos(opt={}){ const out=[]; for(const f of await pickFiles(opt)){ try{ const c=await compress(f); const m=opt.markup===false?c:await openMarkup(c,{title:'Draw on photo (optional)',done:'Add photo',keepIfNone:true}); if(m) out.push(m); }catch(e){ toast("This photo couldn't be read."); } } return out; }
+const upPhoto=async(kind,ref,blob)=>(await api(`up/${kind}/${ref}`,{method:'POST',body:blob,raw:true})).id;
+const upUrls=new Map();
+async function upURL(kind,ref,pid){ const k=`${kind}/${ref}/${pid}`; if(upUrls.has(k)) return upUrls.get(k); try{ const b=await api(`up/${k}`); const u=URL.createObjectURL(b); upUrls.set(k,u); return u; }catch(e){ return ''; } }
+function loadUpImgs(root){ root.querySelectorAll('img[data-up]').forEach(async im=>{ const [k,r,p]=im.dataset.up.split('/'); im.src=await upURL(k,r,p); im.onclick=()=>viewPhoto(im.src); }); }
+const rnd=n=>[...crypto.getRandomValues(new Uint8Array(n))].map(b=>b.toString(16).padStart(2,'0')).join('');
+function sheet(title,html,{wide=false}={}){ const ov=document.createElement('div'); ov.className='ov sheet'; ov.innerHTML=`<div class="ovbox${wide?' wide':''}"><div class="shead"><b>${h(title)}</b><button class="sx" aria-label="Close">×</button></div><div class="ovbody">${html}</div></div>`;
+  document.body.appendChild(ov); document.body.style.overflow='hidden'; const close=()=>{ ov.remove(); document.body.style.overflow=''; };
+  ov.querySelector('.sx').onclick=close; ov.addEventListener('click',e=>{ if(e.target===ov) close(); }); if(typeof translateUI==='function') translateUI(ov); return {ov,close,$:s=>ov.querySelector(s)}; }
+const fmtD=iso=>iso?iso.slice(0,10).split('-').reverse().join('-'):'';
+const daysBetween=(a,b)=>Math.max(0,(new Date(b)-new Date(a))/864e5);
+function peopleCache(){ return peopleCache.p||(peopleCache.p=api('people').then(r=>r.people).catch(()=>[])); }
+
+/* ---------- approval of a sent change (Engineering) ---------- */
+function apprHTML(p){ const a=META.appr[p.id], nx=nextPart(p), rel=RELEASED[nx.id];
+  if(a){ const ok=a.status==='approved';
+    return `<div class="card ${ok?'relcard':'rejcard'}"><b>${ok?'✓ Change approved by Engineering':'✗ Change rejected by Engineering'}</b><div class="note" style="margin:4px 0 0">${h(a.by)} · ${fmtDT(a.at)}${a.reason?` – “${h(a.reason)}”`:''}</div>
+      ${ok&&(a.cost||a.stock||a.effect||a.deadline)?`<div class="cred" style="margin-top:8px">${a.cost?`<div>Cost</div><b style="font-family:inherit">${h(a.cost)}</b>`:''}${a.stock?`<div>Old stock</div><b style="font-family:inherit">${h(STOCK_L[a.stock]||a.stock)}</b>`:''}${a.effect?`<div>From</div><b style="font-family:inherit">${h(a.effect)}</b>`:''}${a.deadline?`<div>Deadline</div><b style="font-family:inherit;${!rel&&a.deadline<todayISO()?'color:var(--chg)':''}">${fmtD(a.deadline)}</b>`:''}</div>`:''}
+      ${isEng()&&!rel?`<button class="btn ghost" id="apundo" style="display:block;width:100%;margin-top:10px">Undo ${ok?'approval':'rejection'}</button>`:''}</div>`; }
+  if(!isEng()||rel) return '';
+  return `<div class="card waitcard"><b>Engineering review</b><div class="note" style="margin:4px 0 8px">Approve the change (then make ${h(nx.n)} in CAD) or reject it.</div>
+    <div class="grid2"><div class="field" style="margin:0"><label for="apc">Cost estimate</label><input class="txt" id="apc" placeholder="e.g. € 120"></div>
+    <div class="field" style="margin:0"><label for="apd">Deadline</label><input class="txt" id="apd" type="date"></div></div>
+    <div class="field"><label for="aps">Old stock</label><select id="aps"><option value="">—</option><option value="use">Use up old stock</option><option value="scrap">Scrap old stock</option><option value="rework">Rework old stock</option></select></div>
+    <div class="field"><label for="ape">Effective from (chassis no. / date)</label><input class="txt" id="ape" placeholder="e.g. chassis BLX-0142"></div>
+    <div class="field"><label for="apr">Note / reason</label><textarea id="apr" placeholder="Required when rejecting"></textarea></div>
+    <div class="ovbtns"><button class="btn" id="aprej" style="background:var(--chg)">Reject</button><button class="btn" id="apok" style="background:var(--ok)">Approve</button></div></div>`; }
+function bindAppr(p,a){ const go2=async status=>{ try{ const r=await api('appr/'+p.id,{method:'POST',body:{status,reason:$('#apr').value,cost:$('#apc').value,stock:$('#aps').value,effect:$('#ape').value,deadline:$('#apd').value}}); META.appr[p.id]=r.appr; toast(status==='approved'?'Change approved':'Change rejected'); render(); sync(); }catch(e){ toast(e.message); } };
+  const ok=$('#apok'); if(ok) ok.onclick=()=>go2('approved'); const rj=$('#aprej'); if(rj) rj.onclick=()=>go2('rejected');
+  const u=$('#apundo'); if(u) u.onclick=async()=>{ if(!u.dataset.sure){ u.dataset.sure=1; u.textContent='Tap again to undo'; return; } try{ await api('appr/'+p.id,{method:'DELETE'}); delete META.appr[p.id]; render(); sync(); }catch(e){ toast(e.message); } }; }
+
+/* ---------- fitted on vehicle ---------- */
+function fittedHTML(p){ if(!(revOf(p)>0&&RELEASED[p.id])) return ''; const list=META.fit[p.id]||[];
+  return `<div class="card fitcard"><b>🚚 Fitted on vehicles</b>${list.length?`<div class="fitlist">${list.map(x=>`<div class="fitrow"><span><b>${h(x.chassis)}</b> · ${h(x.by)} · ${fmtDate(x.at)}${x.note?` – ${h(x.note)}`:''}</span>${x.u===SESSION.user.u||EA()?`<button data-rm="${h(x.at)}" aria-label="Remove">×</button>`:''}</div>`).join('')}</div>`:`<div class="note" style="margin:4px 0 0">Not fitted on a vehicle yet. After fitting ${h(p.n)}, record the chassis number here.</div>`}
+    <div class="fitform"><input class="txt" id="fch" placeholder="Chassis no." autocapitalize="characters"><input class="txt" id="fnt" placeholder="Note (optional)"><button class="btn" id="fgo" style="flex:0 0 auto;padding:12px 14px">Mark as fitted</button></div></div>`; }
+function bindFitted(p,a){ const g=$('#fgo'); if(!g) return;
+  g.onclick=async()=>{ try{ const r=await api('fit/'+p.id,{method:'POST',body:{chassis:$('#fch').value.trim(),note:$('#fnt').value}}); (META.fit[p.id]=META.fit[p.id]||[]).push(r.fit); toast(`Recorded: fitted on ${r.fit.chassis}`); render(); }catch(e){ toast(e.message); } };
+  a.querySelectorAll('.fitrow button[data-rm]').forEach(b=>b.onclick=async()=>{ try{ await api('fit/'+p.id,{method:'POST',body:{remove:b.dataset.rm}}); META.fit[p.id]=(META.fit[p.id]||[]).filter(x=>x.at!==b.dataset.rm); render(); }catch(e){ toast(e.message); } }); }
+
+/* ---------- part tools: drawing, instructions, stock, supplier, label, history ---------- */
+function dwgFor(p){ for(let k=revOf(p);k>=0;k--){ const id=revId(baseOf(p),k); if(META.dwg[id]) return {id,m:META.dwg[id],own:k===revOf(p)}; } return null; }
+function partExtrasHTML(p){ const d=dwgFor(p), st=META.stock[p.id], px=META.partx[baseOf(p)]||{}, sup=px.supplier||{}, low=st&&st.min&&st.qty<=st.min;
+  return `<div class="section-t">Part tools</div><div class="tools">
+   <details class="tool" id="t-dwg"><summary><span>📄 Drawing</span><em>${d?(d.own?h(d.m.name):`from ${h(getPart(d.id).n)}`):'none yet'}</em></summary><div class="tbody">
+     ${d?`<button class="btn" id="dwgopen" style="display:block;width:100%">Open drawing (${h(d.m.name)} · ${Math.round(d.m.size/1024)} KB)</button><div class="note">Uploaded by ${h(d.m.by)} · ${fmtDate(d.m.at)}${d.own?'':` · belongs to ${h(getPart(d.id).n)}`}</div>`:'<div class="note">No drawing uploaded yet.</div>'}
+     ${EA()?`<div class="ovbtns"><button class="btn ghost" id="dwgup">${d&&d.own?'Replace PDF':'Upload PDF for '+h(p.n)}</button>${d&&d.own?`<button class="btn ghost dangerline" id="dwgrm" style="flex:0 0 auto">Remove</button>`:''}</div>`:''}</div></details>
+   <details class="tool" id="t-ins"><summary><span>🔧 Assembly instructions</span><em>tap to open</em></summary><div class="tbody" id="insbody"><div class="note">Loading…</div></div></details>
+   <details class="tool" id="t-stk"><summary><span>📦 Stock</span><em${low?' style="color:var(--chg);font-weight:700"':''}>${st?`${st.qty} in stock${st.min?` · min ${st.min}`:''}${low?' · order!':''}`:'not tracked'}</em></summary><div class="tbody">
+     <div class="stkrow"><button class="btn ghost" id="skdn" aria-label="Take one">−1</button><b id="skq">${st?st.qty:0}</b><button class="btn ghost" id="skup" aria-label="Add one">+1</button></div>
+     <div class="grid3"><div class="field" style="margin:0"><label for="skqi">In stock</label><input class="txt" id="skqi" type="number" min="0" value="${st?st.qty:''}"></div><div class="field" style="margin:0"><label for="skm">Minimum</label><input class="txt" id="skm" type="number" min="0" value="${st&&st.min||''}"></div><div class="field" style="margin:0"><label for="skl">Location</label><input class="txt" id="skl" value="${h(st&&st.loc||'')}" placeholder="e.g. A-03"></div></div>
+     <button class="btn ghost" id="sksave" style="display:block;width:100%;margin-top:8px">Save stock</button>${st?`<div class="note">Last change: ${h(st.by)} · ${fmtDT(st.at)}</div>`:''}</div></details>
+   <details class="tool" id="t-sup"><summary><span>🏭 Supplier</span><em>${sup.name?h(sup.name):'not set'}</em></summary><div class="tbody">
+     ${EA()?`<div class="grid2"><div class="field" style="margin:0"><label for="spn">Supplier</label><input class="txt" id="spn" value="${h(sup.name||'')}" placeholder="e.g. Lasercut BV"></div><div class="field" style="margin:0"><label for="spe">E-mail</label><input class="txt" id="spe" type="email" value="${h(sup.email||'')}" placeholder="orders@…"></div></div>
+       <div class="ovbtns"><button class="btn ghost" id="spsave">Save supplier</button><button class="btn" id="spsend">✉ Send to supplier</button></div>`:(sup.name?`<div><b>${h(sup.name)}</b>${sup.email?`<br><span class="note" style="margin:0">${h(sup.email)}</span>`:''}</div>`:'<div class="note">No supplier recorded.</div>')}</div></details>
+   <details class="tool" id="t-qr"><summary><span>🏷 QR label</span><em>print a sticker</em></summary><div class="tbody"><div class="note" style="margin-top:0">Scanning the sticker with the phone camera opens this part in the app.</div><div class="qrprev">${qrSVG(partLink(p),{px:4})}</div><button class="btn ghost" id="qrprint" style="display:block;width:100%">Print label</button></div></details>
+   <details class="tool" id="t-his"><summary><span>🕘 History</span><em>everything that happened</em></summary><div class="tbody" id="hisbody"><div class="note">Loading…</div></div></details>
+  </div>`; }
+const partLink=p=>`${location.origin}${location.pathname}#p/${p.id}`;
+function bindPartExtras(p,a){
+  const o=$('#dwgopen'); if(o) o.onclick=()=>openDrawing(dwgFor(p));
+  const up=$('#dwgup'); if(up) up.onclick=async()=>{ const [f]=await pickFiles({accept:'application/pdf',multiple:false}); if(!f) return; if(f.size>5.5e6) return toast('The PDF is too large (max 5 MB).');
+    up.textContent='Uploading…'; try{ await api(`dwg/${p.id}?name=${encodeURIComponent(f.name)}`,{method:'POST',body:f,raw:'pdf'}); META.dwg[p.id]={name:f.name,size:f.size,at:new Date().toISOString(),by:SESSION.user.name}; toast('Drawing uploaded'); render(); sync(); }catch(e){ toast(e.message); up.textContent='Upload PDF'; } };
+  const rm=$('#dwgrm'); if(rm) rm.onclick=async()=>{ if(!rm.dataset.sure){ rm.dataset.sure=1; rm.textContent='Sure?'; return; } try{ await api('dwg/'+p.id,{method:'DELETE'}); delete META.dwg[p.id]; render(); }catch(e){ toast(e.message); } };
+  const ins=$('#t-ins'); ins.addEventListener('toggle',()=>{ if(ins.open) loadInstr(p); });
+  const his=$('#t-his'); his.addEventListener('toggle',()=>{ if(his.open) loadHistory(p); });
+  const stk=async body=>{ try{ const r=await api('stock/'+p.id,{method:'POST',body}); META.stock[p.id]=r.stock; toast(`Stock: ${r.stock.qty}`); render(); const t=$('#t-stk'); if(t) t.open=true; }catch(e){ toast(e.message); } };
+  $("#skdn").onclick=()=>stk({delta:-1}); $("#skup").onclick=()=>stk({delta:1}); $('#sksave').onclick=()=>stk({qty:$('#skqi').value,min:$('#skm').value,loc:$('#skl').value});
+  const ss=$('#spsave'); if(ss) ss.onclick=async()=>{ try{ await api('partx/'+baseOf(p),{method:'PUT',body:{supplier:{name:$('#spn').value,email:$('#spe').value}}}); (META.partx[baseOf(p)]=META.partx[baseOf(p)]||{}).supplier={name:$('#spn').value,email:$('#spe').value}; toast('Supplier saved'); render(); }catch(e){ toast(e.message); } };
+  const sd=$('#spsend'); if(sd) sd.onclick=()=>supplierSheet(p);
+  $('#qrprint').onclick=()=>printLabels([p]); }
+async function openDrawing(d){ if(!d) return; const android=/Android/i.test(navigator.userAgent); const w=android?null:window.open('','_blank'); if(w) try{ w.document.write('<p style="font-family:sans-serif;padding:20px">Loading drawing…</p>'); }catch(_){}
+  try{ const b=await api('dwg/'+d.id); const u=URL.createObjectURL(new Blob([b],{type:'application/pdf'}));
+    if(w&&!w.closed) w.location.href=u; else { const el=document.createElement('a'); el.href=u; el.download=d.m.name; document.body.appendChild(el); el.click(); el.remove(); }
+    setTimeout(()=>URL.revokeObjectURL(u),300000); }catch(e){ if(w) w.close(); toast(e.message); } }
+function supplierSheet(p){ const sup=(META.partx[baseOf(p)]||{}).supplier||{}, d=dwgFor(p);
+  const s=sheet('Send to supplier',`<div class="field" style="margin-top:0"><label for="sse">Supplier e-mail</label><input class="txt" id="sse" type="email" value="${h(sup.email||'')}"></div>
+    <div class="field"><label for="sss">Subject</label><input class="txt" id="sss" value="${h(`New revision ${p.n}`)}"></div>
+    <div class="field"><label for="ssm">Message</label><textarea id="ssm">Hello${sup.name?' '+h(sup.name):''},\n\nPlease find attached the drawing of ${h(p.n)}. From now on please produce this revision.\n\n</textarea></div>
+    <div class="note">${d?`Attached: ${h(d.m.name)}`:'No drawing – the e-mail is sent without attachment.'} A copy goes to Engineering.</div><div id="sser" class="note" style="color:var(--chg)" hidden></div>
+    <div class="ovbtns"><button class="btn" id="ssgo">Send</button></div>`);
+  s.$('#ssgo').onclick=async()=>{ const b=s.$('#ssgo'); b.setAttribute('disabled',''); b.textContent='Sending…';
+    try{ await api('supplier/'+p.id,{method:'POST',body:{email:s.$('#sse').value,subject:s.$('#sss').value,message:s.$('#ssm').value,part:p.n,dwg:d?d.id:''}}); s.close(); toast('Sent to supplier'); }catch(e){ const er=s.$('#sser'); er.textContent=e.message; er.hidden=false; b.removeAttribute('disabled'); b.textContent='Send'; } }; }
+async function loadHistory(p){ const el=$('#hisbody'); try{ const r=await api('audit/'+baseOf(p)); if(!el.isConnected) return;
+  el.innerHTML=r.audit.map(x=>`<div class="hrow"><b>${h(x.act)}</b>${x.detail?`<div>${h(x.detail)}</div>`:''}<span>${h(x.by)} · ${fmtDT(x.at)}</span></div>`).join('')||'<div class="note">No history yet.</div>'; translateUI(el); }catch(e){ el.innerHTML=`<div class="note" style="color:var(--chg)">${h(e.message)}</div>`; } }
+async function loadInstr(p){ const el=$('#insbody'), base=baseOf(p); try{ const r=await api('instr/'+base); if(!el.isConnected) return; const st=r.instr.steps||[];
+  el.innerHTML=(st.length?`<ol class="steps">${st.map(x=>`<li>${x.photo?`<img data-up="instr/${base}/${x.photo}" alt="Step photo">`:''}<div>${h(x.text)}${x.torque?`<span class="torque">🔩 ${h(x.torque)}</span>`:''}</div></li>`).join('')}</ol><div class="note">Last edited by ${h(r.instr.by)} · ${fmtDT(r.instr.at)}</div>`:'<div class="note">No instructions yet. Anyone can add them – share what you know.</div>')+`<button class="btn ghost" id="insedit" style="display:block;width:100%;margin-top:8px">${st.length?'Edit instructions':'Add instructions'}</button>`;
+  loadUpImgs(el); translateUI(el); $('#insedit').onclick=()=>editInstr(p,st); }catch(e){ el.innerHTML=`<div class="note" style="color:var(--chg)">${h(e.message)}</div>`; } }
+function editInstr(p,steps){ const base=baseOf(p); let st=steps.length?steps.map(x=>({...x})):[{text:'',torque:'',photo:''}];
+  const s=sheet(`Instructions – ${BYID[base].n}`,`<div id="ied"></div><button class="btn ghost" id="iadd" style="display:block;width:100%;margin-top:8px">+ Add step</button><div class="ovbtns"><button class="btn" id="isave">Save instructions</button></div>`,{wide:true});
+  const draw=()=>{ s.$('#ied').innerHTML=st.map((x,i)=>`<div class="istep"><div class="ihead"><b>Step ${i+1}</b><span><button data-up="${i}" aria-label="Move up">↑</button><button data-dn="${i}" aria-label="Move down">↓</button><button data-rm="${i}" aria-label="Remove">×</button></span></div>
+      <textarea data-t="${i}" placeholder="What to do">${h(x.text)}</textarea><div class="irow"><input class="txt" data-q="${i}" value="${h(x.torque)}" placeholder="Torque, e.g. 25 Nm"><button class="btn ghost" data-ph="${i}" style="flex:0 0 auto">${x.photo||x.blob?'📷 Change photo':'📷 Photo'}</button></div>${x.blob?`<img class="ithumb" src="${URL.createObjectURL(x.blob)}">`:x.photo?`<img class="ithumb" data-up="instr/${base}/${x.photo}">`:''}</div>`).join('')||'<div class="note">No steps yet.</div>';
+    loadUpImgs(s.ov); translateUI(s.ov);
+    s.ov.querySelectorAll('[data-t]').forEach(e=>e.oninput=()=>st[+e.dataset.t].text=e.value); s.ov.querySelectorAll('[data-q]').forEach(e=>e.oninput=()=>st[+e.dataset.q].torque=e.value);
+    s.ov.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{ st.splice(+b.dataset.rm,1); draw(); });
+    s.ov.querySelectorAll('[data-up]:not(img)').forEach(b=>b.onclick=()=>{ const i=+b.dataset.up; if(i>0){ [st[i-1],st[i]]=[st[i],st[i-1]]; draw(); } });
+    s.ov.querySelectorAll('[data-dn]').forEach(b=>b.onclick=()=>{ const i=+b.dataset.dn; if(i<st.length-1){ [st[i+1],st[i]]=[st[i],st[i+1]]; draw(); } });
+    s.ov.querySelectorAll('[data-ph]').forEach(b=>b.onclick=async()=>{ const [bl]=await pickPhotos({multiple:false}); if(bl){ st[+b.dataset.ph].blob=bl; draw(); } }); };
+  draw(); s.$('#iadd').onclick=()=>{ st.push({text:'',torque:'',photo:''}); draw(); };
+  s.$('#isave').onclick=async()=>{ const b=s.$('#isave'); b.setAttribute('disabled',''); b.textContent='Saving…';
+    try{ for(const x of st) if(x.blob){ x.photo=await upPhoto('instr',base,x.blob); delete x.blob; }
+      await api('instr/'+base,{method:'PUT',body:{steps:st.map(x=>({text:x.text,torque:x.torque,photo:x.photo||''}))}}); s.close(); toast('Instructions saved'); const t=$('#t-ins'); if(t){ t.open=true; loadInstr(p); } }
+    catch(e){ toast(e.message); b.removeAttribute('disabled'); b.textContent='Save instructions'; } }; }
+
+/* ---------- QR code (byte mode, error correction M, versions 1–10) ---------- */
+const QR=(()=>{ const EXP=new Uint8Array(512),LOG=new Uint8Array(256); { let x=1; for(let i=0;i<255;i++){ EXP[i]=x; LOG[x]=i; x<<=1; if(x&256) x^=0x11D; } for(let i=255;i<512;i++) EXP[i]=EXP[i-255]; }
+  const mul=(a,b)=>a&&b?EXP[LOG[a]+LOG[b]]:0;
+  const ECC=[0,10,16,26,18,24,16,18,22,22,26], BLK=[0,1,1,1,2,2,4,4,4,5,5];
+  const rawMods=v=>{ let r=(16*v+128)*v+64; if(v>=2){ const n=Math.floor(v/7)+2; r-=(25*n-10)*n-55; if(v>=7) r-=36; } return r; };
+  const gen=d=>{ let g=[1]; for(let i=0;i<d;i++){ const n=new Array(g.length+1).fill(0); for(let j=0;j<g.length;j++){ n[j]^=g[j]; n[j+1]^=mul(g[j],EXP[i]); } g=n; } return g; };
+  const rem=(data,d)=>{ const g=gen(d), r=new Array(d).fill(0); for(const b of data){ const f=b^r.shift(); r.push(0); for(let j=0;j<d;j++) r[j]^=mul(g[j+1],f); } return r; };
+  const align=(v,size)=>{ if(v===1) return []; const n=Math.floor(v/7)+2, step=Math.ceil((v*4+4)/(n*2-2))*2, r=[6]; for(let p=size-7;r.length<n;p-=step) r.splice(1,0,p); return r; };
+  return function encode(text){ const bytes=[...new TextEncoder().encode(text)]; let v=1;
+    for(;v<=10;v++){ const cap=Math.floor(rawMods(v)/8)-ECC[v]*BLK[v]; if(4+(v<10?8:16)+bytes.length*8<=cap*8) break; } if(v>10) throw new Error('Text too long for QR');
+    const cap=Math.floor(rawMods(v)/8)-ECC[v]*BLK[v], bits=[]; const put=(val,n)=>{ for(let i=n-1;i>=0;i--) bits.push((val>>>i)&1); };
+    put(4,4); put(bytes.length,v<10?8:16); bytes.forEach(b=>put(b,8)); put(0,Math.min(4,cap*8-bits.length)); while(bits.length%8) bits.push(0);
+    const data=[]; for(let i=0;i<bits.length;i+=8) data.push(parseInt(bits.slice(i,i+8).join(''),2)); for(let p=0xEC;data.length<cap;p^=0xEC^0x11) data.push(p);
+    const raw=Math.floor(rawMods(v)/8), nb=BLK[v], e=ECC[v], ns=nb-raw%nb, sl=Math.floor(raw/nb), blocks=[]; let k=0;
+    for(let i=0;i<nb;i++){ const len=sl-e+(i<ns?0:1), d=data.slice(k,k+len); k+=len; blocks.push({d,e:rem(d,e)}); }
+    const cw=[]; const md=Math.max(...blocks.map(b=>b.d.length)); for(let i=0;i<md;i++) for(const b of blocks) if(i<b.d.length) cw.push(b.d[i]); for(let i=0;i<e;i++) for(const b of blocks) cw.push(b.e[i]);
+    const size=v*4+17, M=[...Array(size)].map(()=>new Array(size).fill(false)), F=[...Array(size)].map(()=>new Array(size).fill(false));
+    const set=(x,y,d)=>{ M[y][x]=d; F[y][x]=true; };
+    for(let i=0;i<size;i++){ set(6,i,i%2===0); set(i,6,i%2===0); }
+    const finder=(cx,cy)=>{ for(let dy=-4;dy<=4;dy++) for(let dx=-4;dx<=4;dx++){ const x=cx+dx,y=cy+dy; if(x<0||y<0||x>=size||y>=size) continue; const d=Math.max(Math.abs(dx),Math.abs(dy)); set(x,y,d!==2&&d!==4); } };
+    finder(3,3); finder(size-4,3); finder(3,size-4);
+    const al=align(v,size); for(let i=0;i<al.length;i++) for(let j=0;j<al.length;j++){ if((i===0&&j===0)||(i===0&&j===al.length-1)||(i===al.length-1&&j===0)) continue; for(let dy=-2;dy<=2;dy++) for(let dx=-2;dx<=2;dx++) set(al[i]+dx,al[j]+dy,Math.max(Math.abs(dx),Math.abs(dy))!==1); }
+    const fmt=mask=>{ const dt=(0<<3)|mask; let r=dt; for(let i=0;i<10;i++) r=(r<<1)^((r>>>9)*0x537); const b=((dt<<10)|r)^0x5412; const g=i=>((b>>>i)&1)===1;
+      for(let i=0;i<=5;i++) set(8,i,g(i)); set(8,7,g(6)); set(8,8,g(7)); set(7,8,g(8)); for(let i=9;i<15;i++) set(14-i,8,g(i));
+      for(let i=0;i<8;i++) set(size-1-i,8,g(i)); for(let i=8;i<15;i++) set(8,size-15+i,g(i)); set(8,size-8,true); };
+    fmt(0);
+    if(v>=7){ let r=v; for(let i=0;i<12;i++) r=(r<<1)^((r>>>11)*0x1F25); const b=(v<<12)|r; for(let i=0;i<18;i++){ const bt=((b>>>i)&1)===1, a=size-11+i%3, c=Math.floor(i/3); set(a,c,bt); set(c,a,bt); } }
+    let bi=0; for(let right=size-1;right>=1;right-=2){ if(right===6) right=5; for(let vert=0;vert<size;vert++) for(let j=0;j<2;j++){ const x=right-j, up=((right+1)&2)===0, y=up?size-1-vert:vert; if(!F[y][x]&&bi<cw.length*8){ M[y][x]=((cw[bi>>>3]>>>(7-(bi&7)))&1)===1; bi++; } } }
+    const MASK=0; for(let y=0;y<size;y++) for(let x=0;x<size;x++) if(!F[y][x]&&(x+y)%2===0) M[y][x]=!M[y][x];
+    fmt(MASK); return M; }; })();
+function qrSVG(text,{px=4}={}){ const M=QR(text), n=M.length, q=4, s=n+q*2; let d='';
+  for(let y=0;y<n;y++) for(let x=0;x<n;x++) if(M[y][x]) d+=`M${x+q},${y+q}h1v1h-1z`;
+  return `<svg class="qr" viewBox="0 0 ${s} ${s}" width="${s*px}" height="${s*px}" shape-rendering="crispEdges" role="img" aria-label="QR code"><rect width="${s}" height="${s}" fill="#fff"/><path d="${d}" fill="#000"/></svg>`; }
+function printLabels(parts){ const ov=document.createElement('div'); ov.className='printwrap';
+  ov.innerHTML=`<div class="printbar"><b>${parts.length} label${parts.length===1?'':'s'}</b><span><button class="btn ghost" id="plx">Close</button><button class="btn" id="plp">Print</button></span></div><div class="labels">${parts.map(p=>{ const st=META.stock[p.id]; return `<div class="label">${qrSVG(partLink(p),{px:3})}<div><b>${h(p.n)}</b><span>${h(p.v)} · ${h(p.c)}</span>${st&&st.loc?`<span>📍 ${h(st.loc)}</span>`:''}</div></div>`; }).join('')}</div>`;
+  document.body.appendChild(ov); document.body.classList.add('printing'); const close=()=>{ ov.remove(); document.body.classList.remove('printing'); };
+  ov.querySelector('#plx').onclick=close; ov.querySelector('#plp').onclick=()=>window.print(); translateUI(ov); }
+
+/* ---------- home tools ---------- */
+function toolsHTML(){ const t=[['ncr','⚠️','Problems',NCR_MINE?`${NCR_MINE} for you`:NCR_OPEN?`${NCR_OPEN} open`:''],['insp','✅','Inspections',''],['vehicles','🚚','Vehicles',''],['board','🗂','Change board',''],['dash','📊','Dashboard',''],['stock','📦','Stock & labels',Object.values(META.stock).filter(s=>s.min&&s.qty<=s.min).length?`${Object.values(META.stock).filter(s=>s.min&&s.qty<=s.min).length} to order`:'']];
+  if(EA()) t.push(['parts','🧩','Parts',''],['chk','📋','Checklists',''] );
+  return `<div class="section-t">Workshop & Engineering</div><div class="tgrid">${t.map(([k,i,l,b])=>`<button class="tile" data-go="${k}"><span class="ti">${i}</span><span class="tl">${l}</span>${b?`<span class="tb">${h(b)}</span>`:''}</button>`).join('')}</div>`; }
+function bindTools(a){ a.querySelectorAll('.tile[data-go]').forEach(b=>b.onclick=()=>go({name:b.dataset.go})); }
+
+/* ---------- change board ---------- */
+let boardVeh='';
+function boardData(){ const cols={new:[],appr:[],rel:[],fit:[],rej:[]};
+  for(const [id,s] of Object.entries(SHARED)){ const p=getPart(id); if(!p||(boardVeh&&p.v!==boardVeh)) continue; const nx=nextPart(p), a=META.appr[id], rel=RELEASED[nx.id], fit=(META.fit[nx.id]||[]).length;
+    const c=a&&a.status==='rejected'?'rej':fit?'fit':rel?'rel':a?'appr':'new'; cols[c].push({p,s,a,nx,rel,fit}); }
+  for(const k of Object.keys(cols)) cols[k].sort((x,y)=>String((x.a&&x.a.deadline)||x.s.dateIso||'9').localeCompare(String((y.a&&y.a.deadline)||y.s.dateIso||'9'))||String(x.s.at).localeCompare(String(y.s.at)));
+  return cols; }
+function renderBoard(a){ const cols=boardData(), L={new:'New – to review',appr:'Approved – in CAD',rel:'Released – to fit',fit:'Fitted – done',rej:'Rejected'};
+  a.innerHTML=topbar('Change board','From report to fitted on the vehicle',true)+`<main class="boardmain"><div class="field" style="margin-top:0"><select id="bveh"><option value="">All vehicles</option>${Object.keys(VEH).map(k=>`<option ${k===boardVeh?'selected':''}>${k}</option>`).join('')}</select></div>
+   <div class="board">${Object.entries(L).map(([k,l])=>`<section class="bcol bc-${k}"><h3>${l} <span>${cols[k].length}</span></h3>${cols[k].map(({p,s,a,nx,rel,fit})=>{ const dl=(a&&a.deadline)||s.dateIso||'', late=dl&&dl<todayISO()&&!rel&&k!=='rej';
+     return `<button class="bcard${late?' late':''}" data-id="${p.id}"><b>${h(p.n)}</b><span class="bm">${p.v} · ${h(s.status||'')}${s.priority?' · '+h(s.priority):''}</span>${s.note?`<span class="bn">${h(s.note)}</span>`:''}<span class="bf">${h(s.by)} · ${ddmm(s.at)}${dl?` · ${late?'⚠ ':''}due ${fmtD(dl)}`:''}${fit?` · 🚚 ${fit}`:''}</span></button>`; }).join('')||'<div class="bempty">—</div>'}</section>`).join('')}</div></main>`;
+  $('#bveh').onchange=e=>{ boardVeh=e.target.value; renderBoard(a); bind(); translateUI(a); };
+  a.querySelectorAll('.bcard').forEach(b=>b.onclick=()=>go({name:'part',id:b.dataset.id})); }
+
+/* ---------- problem reports ---------- */
+const NCR_CAT=['Supplier error','Damage','Missing part','Assembly issue','Design issue','Other'], SEV_L={low:'Low',medium:'Medium',high:'High'}, NST_L={open:'Open',progress:'In progress',closed:'Closed'};
+let ncrFilter='open';
+async function renderNcrList(a){ a.innerHTML=topbar('Problem reports','Issues during assembly and quality',true)+`<main><button class="btn" id="nnew" style="display:block;width:100%">⚠️ Report a problem</button>
+   <div class="chips" style="padding:10px 0 0">${[['open','Open'],['progress','In progress'],['mine','Assigned to me'],['closed','Closed'],['all','All']].map(([k,l])=>`<button class="chip" data-f="${k}" aria-pressed="${ncrFilter===k}">${l}</button>`).join('')}</div><div id="nl"><div class="note">Loading…</div></div></main>`;
+  $('#nnew').onclick=()=>go({name:'ncrd',id:'new'}); let list=[];
+  const draw=()=>{ const f=list.filter(n=>ncrFilter==='all'||(ncrFilter==='mine'?n.assignee===SESSION.user.u&&n.status!=='closed':n.status===ncrFilter));
+    $('#nl').innerHTML=f.map(n=>`<button class="ncard sev-${n.sev}" data-id="${n.id}"><b>${h(n.title)}</b><span class="bm"><span class="pill sevp-${n.sev}">${SEV_L[n.sev]||n.sev}</span> ${NST_L[n.status]} · ${h(n.cat||'')}${n.chassis?' · 🚚 '+h(n.chassis):''}${n.part?' · '+h(n.part.name):''}</span><span class="bf">${h(n.by)} · ${fmtDate(n.at)}${n.assignee?` · → ${h(n.assigneeName||n.assignee)}`:''}</span></button>`).join('')||'<div class="empty" style="padding:18px">Nothing here.</div>';
+    a.querySelectorAll('.ncard').forEach(b=>b.onclick=()=>go({name:'ncrd',id:b.dataset.id})); translateUI(a); };
+  a.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ ncrFilter=c.dataset.f; a.querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed',x===c)); draw(); });
+  try{ list=(await api('ncr')).ncr; const ppl=await peopleCache(); list.forEach(n=>{ if(n.assignee){ const x=ppl.find(q=>q.u===n.assignee); n.assigneeName=x?x.name:(n.assignee===SESSION.user.u?SESSION.user.name:n.assignee); } }); draw(); }catch(e){ $('#nl').innerHTML=`<div class="note" style="color:var(--chg)">${h(e.message)}</div>`; } }
+async function renderNcrDetail(a){ if(view.id==='new') return renderNcrNew(a);
+  a.innerHTML=topbar('Problem report','',true)+`<main id="nd"><div class="note">Loading…</div></main>`; let n;
+  try{ n=(await api('ncr/'+view.id)).ncr; }catch(e){ $('#nd').innerHTML=`<div class="note" style="color:var(--chg)">${h(e.message)}</div>`; return; }
+  const ppl=await peopleCache(), me=SESSION.user; const newPh=[];
+  const draw=()=>{ $('#nd').innerHTML=`<div class="card"><div class="nh"><span class="pill sevp-${n.sev}">${SEV_L[n.sev]}</span><b>${h(n.title)}</b></div><div class="note" style="margin:4px 0 0">${h(n.cat||'')} · reported by ${h(n.by)} · ${fmtDT(n.at)}</div>
+      ${n.chassis||n.part?`<div class="nlinks">${n.chassis?`<button class="pchip big" id="nch">🚚 ${h(n.chassis)}</button>`:''}${n.part?`<button class="pchip big" id="npt">${h(n.part.name)}</button>`:''}</div>`:''}
+      ${n.desc?`<p class="ndesc">${h(n.desc)}</p>`:''}${n.photos&&n.photos.length?`<div class="nph">${n.photos.map(pid=>`<img data-up="ncr/${n.ref}/${pid}" alt="Photo">`).join('')}</div>`:''}</div>
+     <div class="field"><span class="lab">Status</span><div class="seg seg3" id="nst">${Object.entries(NST_L).map(([k,l])=>`<button data-v="${k}" aria-pressed="${n.status===k}">${l}</button>`).join('')}</div></div>
+     <div class="field"><label for="nas">Assigned to</label><select id="nas"><option value="">— Nobody —</option>${ppl.concat(me.u!=='admin'?[{u:me.u,name:me.name+' (me)'}]:[]).map(x=>`<option value="${h(x.u)}" ${n.assignee&&n.assignee.u===x.u?'selected':''}>${h(x.name)}</option>`).join('')}</select></div>
+     <div class="field"><label for="ncs">Cause</label><textarea id="ncs" placeholder="What caused the problem?">${h(n.cause)}</textarea></div>
+     <div class="field"><label for="nac">Action taken</label><textarea id="nac" placeholder="What was done to solve it / prevent it?">${h(n.action)}</textarea></div>
+     <button class="btn" id="nsave" style="display:block;width:100%;margin-top:10px">Save</button>
+     <div class="section-t">Timeline</div><div class="tline">${(n.comments||[]).map(c=>c.sys?`<div class="tsys">${h(c.by)} · ${h(c.sys)} · ${fmtDT(c.at)}</div>`:`<div class="msg${c.u===me.u?' mine':''}">${(c.photos||[]).map(pid=>`<img class="cimg" data-up="ncr/${n.ref}/${pid}" alt="Photo">`).join('')}${c.text?`<div class="tx">${h(c.text)}</div>`:''}<div class="mt">${h(c.by)} · ${fmtDT(c.at)}</div></div>`).join('')||'<div class="note">No comments yet.</div>'}</div>
+     <div class="field"><label for="ncm">Add a comment</label><textarea id="ncm" placeholder="Update, question, result…"></textarea></div><div class="photos" id="ncph"></div>
+     <div class="ovbtns"><button class="btn ghost" id="ncphb">📷 Photo</button><button class="btn" id="ncgo">Add comment</button></div>`;
+    loadUpImgs(a); translateUI(a);
+    $('#ncph').innerHTML=newPh.map((b,i)=>`<div class="ph"><img src="${URL.createObjectURL(b)}"><button data-i="${i}">×</button></div>`).join(''); $('#ncph').querySelectorAll('button').forEach(b=>b.onclick=()=>{ newPh.splice(+b.dataset.i,1); draw(); });
+    let st=n.status; $('#nst').querySelectorAll('button').forEach(b=>b.onclick=()=>{ st=b.dataset.v; $('#nst').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); });
+    const c1=$('#nch'); if(c1) c1.onclick=()=>go({name:'vehd',id:n.chassis}); const c2=$('#npt'); if(c2) c2.onclick=()=>{ if(getPart(n.part.id)) go({name:'part',id:n.part.id}); };
+    $('#nsave').onclick=async()=>{ try{ n=(await api('ncr/'+n.id,{method:'PUT',body:{status:st,assignee:$('#nas').value,cause:$('#ncs').value,action:$('#nac').value}})).ncr; toast('Saved'); draw(); sync(); }catch(e){ toast(e.message); } };
+    $('#ncphb').onclick=async()=>{ newPh.push(...await pickPhotos()); draw(); };
+    $('#ncgo').onclick=async()=>{ const t=$('#ncm').value.trim(); if(!t&&!newPh.length) return; const b=$('#ncgo'); b.setAttribute('disabled','');
+      try{ const ids=[]; for(const bl of newPh) ids.push(await upPhoto('ncr',n.ref,bl)); newPh.length=0; n=(await api('ncr/'+n.id,{method:'PUT',body:{comment:t,photos:ids}})).ncr; draw(); }catch(e){ toast(e.message); b.removeAttribute('disabled'); } }; };
+  draw(); }
+async function renderNcrNew(a){ const ref='r'+rnd(8), photos=[]; let part=view.part?getPart(view.part):null;
+  a.innerHTML=topbar('Report a problem','',true)+`<main>
+   <div class="field" style="margin-top:0"><label for="nt">Title</label><input class="txt" id="nt" placeholder="e.g. Bracket does not fit on frame"></div>
+   <div class="field"><label for="ncat">Category</label><select id="ncat">${NCR_CAT.map(c=>`<option>${c}</option>`).join('')}</select></div>
+   <div class="field"><span class="lab">Severity</span><div class="seg seg3" id="nsv">${Object.entries(SEV_L).map(([k,l])=>`<button data-v="${k}" aria-pressed="${k==='medium'}">${l}</button>`).join('')}</div></div>
+   <div class="field"><label for="nchs">Chassis no. (optional)</label><input class="txt" id="nchs" value="${h(view.chassis||'')}" autocapitalize="characters"></div>
+   <div class="field"><span class="lab">Part (optional)</span><div id="npp"></div></div>
+   <div class="field"><label for="nd2">Description</label><textarea id="nd2" placeholder="What is wrong? Where? How did you notice?"></textarea></div>
+   <div class="field"><span class="lab">Photos</span><div class="photos" id="nph2"></div></div>
+   <div class="field"><label for="nas2">Assign to (optional)</label><select id="nas2"><option value="">— Nobody —</option></select></div>
+   <div id="nerr" class="note" style="color:var(--chg)" hidden></div></main><div class="bar"><button class="btn cyan" id="ngo">Submit problem report</button></div>`;
+  let sev='medium'; $('#nsv').querySelectorAll('button').forEach(b=>b.onclick=()=>{ sev=b.dataset.v; $('#nsv').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); });
+  const drawPart=()=>partPicker($('#npp'),part,v=>{ part=v; drawPart(); }); drawPart();
+  const drawPh=()=>{ $('#nph2').innerHTML=photos.map((b,i)=>`<div class="ph"><img src="${URL.createObjectURL(b)}"><button data-i="${i}">×</button></div>`).join('')+`<button class="addph" id="npa">${ICON.cam}Add photo</button>`;
+    $('#nph2').querySelectorAll('.ph button').forEach(b=>b.onclick=()=>{ photos.splice(+b.dataset.i,1); drawPh(); }); $('#npa').onclick=async()=>{ photos.push(...await pickPhotos()); drawPh(); }; translateUI($('#nph2')); };
+  drawPh(); peopleCache().then(pp=>{ const s=$('#nas2'); if(s) s.innerHTML+=pp.map(x=>`<option value="${h(x.u)}">${h(x.name)} (${ROLE_L[x.role]||x.role})</option>`).join(''); });
+  $('#ngo').onclick=async()=>{ const b=$('#ngo'), er=$('#nerr'); er.hidden=true; b.setAttribute('disabled',''); b.textContent='Submitting…';
+    try{ const ids=[]; for(const bl of photos) ids.push(await upPhoto('ncr',ref,bl));
+      const r=await api('ncr',{method:'POST',body:{title:$('#nt').value,cat:$('#ncat').value,sev,chassis:$('#nchs').value.trim(),part:part?{id:part.id,name:part.n}:null,desc:$('#nd2').value,photos:ids,assignee:$('#nas2').value,ref}});
+      toast('Problem reported'); sync(); go({name:'ncrd',id:r.ncr.id},true); }
+    catch(e){ er.textContent=e.message; er.hidden=false; b.removeAttribute('disabled'); b.textContent='Submit problem report'; } }; }
+function partPicker(el,part,onPick){ el.innerHTML=part?`<div class="pchip big">${h(part.n)} <button aria-label="Remove part">×</button></div>`:`<input class="txt" type="search" placeholder="Search a part number…"><div class="presl"></div>`;
+  if(part){ el.querySelector('button').onclick=()=>onPick(null); return; }
+  el.querySelector('input').oninput=e=>{ const t=e.target.value.trim().toUpperCase(); const hits=t.length<2?[]:PARTS.filter(p=>p.n.toUpperCase().includes(t)).slice(0,8).flatMap(chain);
+    el.querySelector('.presl').innerHTML=hits.map(p=>`<button data-id="${p.id}">${h(p.n)} <span>${p.v}</span></button>`).join(''); el.querySelectorAll('.presl button').forEach(b=>b.onclick=()=>onPick(getPart(b.dataset.id))); }; }
+
+/* ---------- checklist templates ---------- */
+async function renderChk(a){ a.innerHTML=topbar('Checklists','Templates for inspections',true)+`<main><button class="btn" id="cnew" style="display:block;width:100%">+ New checklist</button><div id="cl" style="margin-top:10px"><div class="note">Loading…</div></div></main>`;
+  let list=[]; const load=async()=>{ list=(await api('chk')).chk; $('#cl').innerHTML=list.map(c=>`<button class="ncard" data-id="${c.id}"><b>${h(c.name)}</b><span class="bm">${c.veh?h(c.veh):'All vehicles'} · ${c.items.length} item${c.items.length===1?'':'s'}</span><span class="bf">${h(c.by)} · ${fmtDate(c.at)}</span></button>`).join('')||'<div class="empty" style="padding:18px">No checklists yet. Make one, e.g. “Final inspection BLIX”.</div>';
+    a.querySelectorAll('.ncard').forEach(b=>b.onclick=()=>editChk(list.find(c=>c.id===b.dataset.id),load)); translateUI(a); };
+  $('#cnew').onclick=()=>editChk(null,load); try{ await load(); }catch(e){ $('#cl').innerHTML=`<div class="note" style="color:var(--chg)">${h(e.message)}</div>`; } }
+function editChk(c,reload){ let items=c?c.items.map(x=>({...x})):[{t:'',photo:false,val:false}];
+  const s=sheet(c?'Edit checklist':'New checklist',`<div class="field" style="margin-top:0"><label for="cn">Name</label><input class="txt" id="cn" value="${h(c?c.name:'')}" placeholder="e.g. Final inspection BLIX"></div>
+    <div class="field"><label for="cv">Vehicle type</label><select id="cv"><option value="">All vehicles</option>${Object.keys(VEH).map(k=>`<option ${c&&c.veh===k?'selected':''}>${k}</option>`).join('')}</select></div>
+    <div class="section-t">Items</div><div id="ci"></div><div class="ovbtns"><button class="btn ghost" id="cadd">+ Item</button>${c?'':'<button class="btn ghost" id="cex">Load example</button>'}</div>
+    <div id="cer" class="note" style="color:var(--chg)" hidden></div><div class="ovbtns">${c?'<button class="btn ghost dangerline" id="cdel" style="flex:0 0 auto">Delete</button>':''}<button class="btn" id="csave">Save checklist</button></div>`,{wide:true});
+  const draw=()=>{ s.$('#ci').innerHTML=items.map((x,i)=>`<div class="citem"><input class="txt" data-t="${i}" value="${h(x.t)}" placeholder="Check…"><label><input type="checkbox" data-p="${i}" ${x.photo?'checked':''}>📷</label><label><input type="checkbox" data-v="${i}" ${x.val?'checked':''}>123</label><button data-rm="${i}" aria-label="Remove">×</button></div>`).join('')+'<div class="note">📷 = photo required · 123 = value to fill in (e.g. torque, measurement)</div>';
+    s.ov.querySelectorAll('[data-t]').forEach(e=>e.oninput=()=>items[+e.dataset.t].t=e.value); s.ov.querySelectorAll('[data-p]').forEach(e=>e.onchange=()=>items[+e.dataset.p].photo=e.checked); s.ov.querySelectorAll('[data-v]').forEach(e=>e.onchange=()=>items[+e.dataset.v].val=e.checked);
+    s.ov.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{ items.splice(+b.dataset.rm,1); draw(); }); translateUI(s.ov); };
+  draw(); s.$('#cadd').onclick=()=>{ items.push({t:'',photo:false,val:false}); draw(); };
+  const ex=s.$('#cex'); if(ex) ex.onclick=()=>{ items=[{t:'Frame bolts tightened to torque',val:true},{t:'Cabin mounts checked',photo:false},{t:'Wiring harness secured, no chafing',photo:true},{t:'Doors open/close and lock correctly'},{t:'All lights working'},{t:'Seals and edge trim complete',photo:true},{t:'Paint / surface undamaged',photo:true},{t:'Final photo of the vehicle',photo:true}].map(x=>({photo:false,val:false,...x})); if(!s.$('#cn').value) s.$('#cn').value='Final inspection'; draw(); };
+  const del=s.$('#cdel'); if(del) del.onclick=async()=>{ if(!del.dataset.sure){ del.dataset.sure=1; del.textContent='Sure?'; return; } await api('chk/'+c.id,{method:'DELETE'}); s.close(); reload(); };
+  s.$('#csave').onclick=async()=>{ try{ await api('chk/'+(c?c.id:'new'),{method:'PUT',body:{name:s.$('#cn').value,veh:s.$('#cv').value,items}}); s.close(); toast('Checklist saved'); reload(); }catch(e){ const er=s.$('#cer'); er.textContent=e.message; er.hidden=false; } }; }
+
+/* ---------- inspections ---------- */
+async function renderInspList(a){ a.innerHTML=topbar('Inspections','Checklists per vehicle',true)+`<main><button class="btn" id="inew" style="display:block;width:100%">✅ Start an inspection</button><div id="il" style="margin-top:10px"><div class="note">Loading…</div></div></main>`;
+  $('#inew').onclick=()=>newInspSheet(); try{ const list=(await api('insp')).insp;
+    $('#il').innerHTML=list.map(x=>`<button class="ncard ${x.status==='done'?'done':''}" data-id="${x.id}"><b>${h(x.name)} · 🚚 ${h(x.chassis)}</b><span class="bm">${x.status==='done'?`✓ Signed off ${fmtDate(x.doneAt)}`:'Open'} · ${x.ok}/${x.total} OK${x.nok?` · <b style="color:var(--chg)">${x.nok} not OK</b>`:''}</span><span class="bf">${h(x.by)} · ${fmtDate(x.at)}</span></button>`).join('')||'<div class="empty" style="padding:18px">No inspections yet.</div>';
+    a.querySelectorAll('.ncard').forEach(b=>b.onclick=()=>go({name:'inspd',id:b.dataset.id})); translateUI(a); }catch(e){ $('#il').innerHTML=`<div class="note" style="color:var(--chg)">${h(e.message)}</div>`; } }
+async function newInspSheet(chassis=''){ let tpls=[]; try{ tpls=(await api('chk')).chk; }catch(e){ return toast(e.message); }
+  if(!tpls.length) return toast(EA()?'Make a checklist first (Checklists tile).':'No checklists yet – ask Engineering to make one.');
+  const s=sheet('Start an inspection',`<div class="field" style="margin-top:0"><label for="it">Checklist</label><select id="it">${tpls.map(c=>`<option value="${c.id}">${h(c.name)}${c.veh?' ('+h(c.veh)+')':''}</option>`).join('')}</select></div><div class="field"><label for="ich">Chassis no.</label><input class="txt" id="ich" value="${h(chassis)}" autocapitalize="characters"></div><div id="ier" class="note" style="color:var(--chg)" hidden></div><div class="ovbtns"><button class="btn" id="igo">Start</button></div>`);
+  s.$('#igo').onclick=async()=>{ try{ const r=await api('insp',{method:'POST',body:{tpl:s.$('#it').value,chassis:s.$('#ich').value.trim()}}); s.close(); go({name:'inspd',id:r.insp.id}); }catch(e){ const er=s.$('#ier'); er.textContent=e.message; er.hidden=false; } }; }
+async function renderInspDetail(a){ a.innerHTML=topbar('Inspection','',true)+`<main id="idm"><div class="note">Loading…</div></main>`; let x;
+  try{ x=(await api('insp/'+view.id)).insp; }catch(e){ $('#idm').innerHTML=`<div class="note" style="color:var(--chg)">${h(e.message)}</div>`; return; }
+  let timer=null; const locked=()=>x.status==='done';
+  const save=async(extra={})=>{ try{ x=(await api('insp/'+x.id,{method:'PUT',body:{items:x.items,...extra}})).insp; return true; }catch(e){ toast(e.message); return false; } };
+  const later=()=>{ clearTimeout(timer); timer=setTimeout(save,1200); };
+  const draw=()=>{ const done=x.items.filter(i=>i.ok!==null).length;
+    $('#idm').innerHTML=`<div class="card"><b>${h(x.name)}</b><div class="note" style="margin:4px 0 0">🚚 <button class="plink2" id="ich2">${h(x.chassis)}</button> · started by ${h(x.by)} · ${fmtDT(x.at)}</div>
+      <div class="prog" style="margin-top:8px"><i style="width:${Math.round(done/x.items.length*100)}%"></i></div><div class="note">${done} of ${x.items.length} checked${locked()?` · ✓ signed off by ${h(x.doneBy)} · ${fmtDT(x.doneAt)}`:''}</div></div>
+      <div class="ilist">${x.items.map((i,k)=>`<div class="iitem ${i.ok===true?'ok':i.ok===false?'nok':''}"><div class="it">${k+1}. ${h(i.t)}${i.photo?' <span class="note" style="margin:0">📷 required</span>':''}</div>
+        <div class="ib"><button data-ok="${k}" aria-pressed="${i.ok===true}" ${locked()?'disabled':''}>✓ OK</button><button data-nok="${k}" aria-pressed="${i.ok===false}" ${locked()?'disabled':''}>✗ Not OK</button>${i.val?`<input class="txt" data-val="${k}" value="${h(i.value)}" placeholder="Value" ${locked()?'disabled':''}>`:''}<button data-ph="${k}" class="iph" ${locked()?'disabled':''}>📷${i.photos.length?' '+i.photos.length:''}</button></div>
+        ${i.ok===false||i.note?`<input class="txt inote" data-note="${k}" value="${h(i.note)}" placeholder="What is not OK?" ${locked()?'disabled':''}>`:''}${i.photos.length?`<div class="nph">${i.photos.map(pid=>`<img data-up="insp/${x.id}/${pid}">`).join('')}</div>`:''}</div>`).join('')}</div>
+      <div class="ovbtns"><button class="btn ghost" id="ixl">⬇ Excel report</button>${locked()?(EA()?'<button class="btn ghost" id="iro">Reopen</button>':''):'<button class="btn" id="isign" style="background:var(--ok)">Sign off</button>'}</div>
+      ${x.items.some(i=>i.ok===false)?`<button class="btn ghost" id="incr" style="display:block;width:100%;margin-top:8px">⚠️ Report a problem for this vehicle</button>`:''}`;
+    loadUpImgs(a); translateUI(a);
+    $('#ich2').onclick=()=>go({name:'vehd',id:x.chassis});
+    a.querySelectorAll('[data-ok]').forEach(b=>b.onclick=()=>{ const i=x.items[+b.dataset.ok]; i.ok=i.ok===true?null:true; draw(); later(); });
+    a.querySelectorAll('[data-nok]').forEach(b=>b.onclick=()=>{ const i=x.items[+b.dataset.nok]; i.ok=i.ok===false?null:false; draw(); later(); const n=a.querySelector(`[data-note="${b.dataset.nok}"]`); if(n) n.focus(); });
+    a.querySelectorAll('[data-val]').forEach(e=>e.oninput=()=>{ x.items[+e.dataset.val].value=e.value; later(); });
+    a.querySelectorAll('[data-note]').forEach(e=>e.oninput=()=>{ x.items[+e.dataset.note].note=e.value; later(); });
+    a.querySelectorAll('[data-ph]').forEach(b=>b.onclick=async()=>{ const bl=await pickPhotos({camera:false}); if(!bl.length) return; b.textContent='…'; for(const p of bl) x.items[+b.dataset.ph].photos.push(await upPhoto('insp',x.id,p)); await save(); draw(); });
+    const sg=$('#isign'); if(sg) sg.onclick=async()=>{ clearTimeout(timer); const miss=x.items.findIndex(i=>i.photo&&!i.photos.length); if(miss>=0) return toast(`Item ${miss+1} needs a photo.`); if(await save({status:'done'})){ toast('Inspection signed off'); draw(); } };
+    const ro=$('#iro'); if(ro) ro.onclick=async()=>{ if(await save({status:'open'})) draw(); };
+    $('#ixl').onclick=()=>inspExcel(x); const nc=$('#incr'); if(nc) nc.onclick=()=>go({name:'ncrd',id:'new',chassis:x.chassis}); };
+  draw(); }
+async function inspExcel(x){ const X=window.XLSX_MINI, rows=[{h:30,cells:[{v:`${x.name} – chassis ${x.chassis}`,s:4}]},{h:22,cells:[{v:`Started by ${x.by} ${fmtDT(x.at)}${x.status==='done'?` · signed off by ${x.doneBy} ${fmtDT(x.doneAt)}`:' · not signed off'}`,s:0}]},{h:26,cells:['#','Item','Result','Value','Note','Photos'].map(v=>({v,s:1}))}], images=[];
+  for(let k=0;k<x.items.length;k++){ const i=x.items[k]; const r={h:null,cells:[{v:k+1,s:0},{v:i.t,s:3},{v:i.ok===true?'OK':i.ok===false?'NOT OK':'–',s:3},{v:i.value||'',s:0},{v:i.note||'',s:0},{v:i.photos.length||'',s:0}]};
+    for(let j=0;j<Math.min(3,i.photos.length);j++){ try{ const b=await api(`up/insp/${x.id}/${i.photos[j]}`); const im=await imgBytes(b,600,.75); images.push({row:rows.length,col:6+j,w:160,h:Math.round(160*im.h/im.w),data:im.data}); r.h=Math.max(r.h||0,Math.round(160*im.h/im.w*.75)+6); }catch(e){} }
+    rows.push(r); }
+  const bytes=X.build([{name:'Inspection',freeze:3,cols:[{w:5},{w:44},{w:10},{w:14},{w:40},{w:8},{w:24},{w:24},{w:24}],rows,images}]);
+  const name=`Inspection_${x.chassis}_${x.name.replace(/[^\w]+/g,'_')}.xlsx`; const u=URL.createObjectURL(new Blob([bytes],{type:XMIME})), el=document.createElement('a'); el.href=u; el.download=name; document.body.appendChild(el); el.click(); el.remove(); toast('Report downloaded'); }
+
+/* ---------- vehicles (chassis) ---------- */
+const VST_L={build:'In build',done:'Built',delivered:'Delivered'};
+async function renderVehicles(a){ a.innerHTML=topbar('Vehicles','Build record per chassis number',true)+`<main><button class="btn" id="vnew" style="display:block;width:100%">+ Add vehicle</button><div class="search" style="padding:10px 0 0"><input id="vq" type="search" placeholder="Search chassis or customer…"></div><div id="vl" style="margin-top:10px"><div class="note">Loading…</div></div></main>`;
+  let list=[]; const draw=()=>{ const t=$('#vq').value.trim().toLowerCase(); $('#vl').innerHTML=list.filter(v=>!t||(v.chassis+' '+(v.customer||'')).toLowerCase().includes(t)).map(v=>`<button class="ncard st-${v.status}" data-id="${h(v.chassis)}"><b>🚚 ${h(v.chassis)}</b><span class="bm">${h(v.type||'')} · ${VST_L[v.status]||''}${v.customer?' · '+h(v.customer):''}</span><span class="bf">${v.start?'Started '+fmtD(v.start):''}${v.delivered?' · delivered '+fmtD(v.delivered):''}</span></button>`).join('')||'<div class="empty" style="padding:18px">No vehicles yet.</div>';
+    a.querySelectorAll('.ncard').forEach(b=>b.onclick=()=>go({name:'vehd',id:b.dataset.id})); translateUI(a); };
+  $('#vq').oninput=draw; $('#vnew').onclick=()=>{ const s=sheet('Add vehicle',`<div class="field" style="margin-top:0"><label for="vc">Chassis no.</label><input class="txt" id="vc" autocapitalize="characters"></div><div class="field"><label for="vt">Vehicle type</label><select id="vt">${Object.keys(VEH).map(k=>`<option>${k}</option>`).join('')}</select></div><div class="field"><label for="vcu">Customer (optional)</label><input class="txt" id="vcu"></div><div class="field"><label for="vs">Start of build</label><input class="txt" id="vs" type="date" value="${todayISO()}"></div><div id="ver" class="note" style="color:var(--chg)" hidden></div><div class="ovbtns"><button class="btn" id="vgo">Add</button></div>`);
+    s.$('#vgo').onclick=async()=>{ const c=s.$('#vc').value.trim(); if(!/^[A-Za-z0-9][A-Za-z0-9._-]{1,39}$/.test(c)){ const er=s.$('#ver'); er.textContent='Enter a chassis number (letters, digits, - or .).'; er.hidden=false; return; }
+      try{ await api('vehicles/'+encodeURIComponent(c),{method:'PUT',body:{type:s.$('#vt').value,customer:s.$('#vcu').value,start:s.$('#vs').value,status:'build'}}); s.close(); go({name:'vehd',id:c}); }catch(e){ toast(e.message); } }; };
+  try{ list=(await api('vehicles')).vehicles; draw(); }catch(e){ $('#vl').innerHTML=`<div class="note" style="color:var(--chg)">${h(e.message)}</div>`; } }
+async function renderVehDetail(a){ const ch=view.id; a.innerHTML=topbar('🚚 '+ch,'Build record',true)+`<main id="vdm"><div class="note">Loading…</div></main>`; let r;
+  try{ r=await api('vehicles/'+encodeURIComponent(ch)); }catch(e){ $('#vdm').innerHTML=`<div class="note" style="color:var(--chg)">${h(e.message)}</div>`; return; }
+  const v=r.vehicle||{chassis:ch,status:'build'};
+  $('#vdm').innerHTML=`${r.vehicle?'':'<div class="card waitcard" style="margin-top:0"><b>Not registered yet</b><div class="note" style="margin:4px 0 0">This chassis number is used in the app but has no vehicle record. Save below to register it.</div></div>'}
+    <div class="field"><span class="lab">Status</span><div class="seg seg3" id="vst">${Object.entries(VST_L).map(([k,l])=>`<button data-v="${k}" aria-pressed="${v.status===k}">${l}</button>`).join('')}</div></div>
+    <div class="grid2"><div class="field"><label for="vt2">Vehicle type</label><select id="vt2">${Object.keys(VEH).map(k=>`<option ${k===v.type?'selected':''}>${k}</option>`).join('')}</select></div><div class="field"><label for="vcu2">Customer</label><input class="txt" id="vcu2" value="${h(v.customer||'')}"></div>
+    <div class="field" style="margin-top:0"><label for="vs2">Start of build</label><input class="txt" id="vs2" type="date" value="${h(v.start||'')}"></div><div class="field" style="margin-top:0"><label for="vd2">Delivered</label><input class="txt" id="vd2" type="date" value="${h(v.delivered||'')}"></div></div>
+    <div class="field"><label for="vn2">Notes</label><textarea id="vn2">${h(v.note||'')}</textarea></div><button class="btn" id="vsave" style="display:block;width:100%;margin-top:10px">Save vehicle</button>
+    <div class="section-t">Changes fitted on this vehicle (${r.fitted.length})</div>${r.fitted.length?`${r.fitted.map(f=>{ const p=getPart(f.id); return p?`<button class="ncard fitc" data-part="${p.id}"><b style="font-family:var(--mono)">${h(p.n)}</b><span class="bm">${h(p.v)} · ${h(p.c)} · revision of ${h(BYID[baseOf(p)].n)}</span><span class="bf">Fitted by ${h(f.by)} · ${fmtDate(f.at)}${f.note?' – '+h(f.note):''}</span></button>`:''; }).join('')}`:'<div class="note">None recorded yet. On a released revision, use “Mark as fitted”.</div>'}
+    <div class="section-t">Inspections (${r.insp.length})</div>${r.insp.map(x=>`<button class="ncard ${x.status==='done'?'done':''}" data-insp="${x.id}"><b>${h(x.name)}</b><span class="bm">${x.status==='done'?'✓ Signed off '+fmtDate(x.doneAt):'Open'} · ${x.ok}/${x.total} OK${x.nok?` · ${x.nok} not OK`:''}</span></button>`).join('')}<button class="btn ghost" id="vinsp" style="display:block;width:100%;margin-top:6px">✅ Start inspection for ${h(ch)}</button>
+    <div class="section-t">Problem reports (${r.ncr.length})</div>${r.ncr.map(n=>`<button class="ncard sev-${n.sev}" data-ncr="${n.id}"><b>${h(n.title)}</b><span class="bm">${NST_L[n.status]} · ${h(n.cat||'')}</span></button>`).join('')}<button class="btn ghost" id="vncr" style="display:block;width:100%;margin-top:6px">⚠️ Report a problem for ${h(ch)}</button>`;
+  a.querySelectorAll('[data-part]').forEach(b=>b.onclick=()=>go({name:'part',id:b.dataset.part})); translateUI(a); let st=v.status||'build'; $('#vst').querySelectorAll('button').forEach(b=>b.onclick=()=>{ st=b.dataset.v; $('#vst').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); });
+  $('#vsave').onclick=async()=>{ try{ await api('vehicles/'+encodeURIComponent(ch),{method:'PUT',body:{status:st,type:$('#vt2').value,customer:$('#vcu2').value,start:$('#vs2').value,delivered:$('#vd2').value,note:$('#vn2').value}}); toast('Vehicle saved'); renderVehDetail(a); bind(); }catch(e){ toast(e.message); } };
+  a.querySelectorAll('[data-insp]').forEach(b=>b.onclick=()=>go({name:'inspd',id:b.dataset.insp})); a.querySelectorAll('[data-ncr]').forEach(b=>b.onclick=()=>go({name:'ncrd',id:b.dataset.ncr}));
+  $('#vinsp').onclick=()=>newInspSheet(ch); $('#vncr').onclick=()=>go({name:'ncrd',id:'new',chassis:ch}); }
+
+/* ---------- dashboard ---------- */
+function hbars(rows,{unit=''}={}){ if(!rows.length) return '<div class="note">No data yet.</div>'; const max=Math.max(...rows.map(r=>r.v),1);
+  return `<div class="hbars" role="list">${rows.map(r=>`<div class="hb" role="listitem" title="${h(r.l)}: ${r.v}${unit}"><span class="hl">${h(r.l)}</span><span class="ht"><i style="width:${Math.max(2,r.v/max*100)}%"></i></span><span class="hv">${r.v}${unit}</span></div>`).join('')}</div>`; }
+async function renderDash(a){ const now=Date.now(), d30=new Date(now-30*864e5).toISOString();
+  const sent=Object.entries(SHARED).map(([id,s])=>({id,s,p:getPart(id)})).filter(x=>x.p), open=sent.filter(x=>waitingEng(x.id));
+  const rel=Object.entries(RELEASED).map(([id,r])=>({id,r,prev:SHARED[revId(parseId(id).base,parseId(id).k-1)]})).filter(x=>x.prev);
+  const lead=rel.length?(rel.reduce((t,x)=>t+daysBetween(x.prev.at,x.r.at),0)/rel.length):null, over=sent.filter(x=>isOverdue(x.id)).length, rel30=rel.filter(x=>x.r.at>=d30).length;
+  const perVeh={}; open.forEach(x=>perVeh[x.p.v]=(perVeh[x.p.v]||0)+1);
+  const perPart={}; sent.forEach(x=>{ const b=BYID[baseOf(x.p)]; if(b) perPart[b.n]=(perPart[b.n]||0)+1; });
+  const perResp={}; open.forEach(x=>{ const k=x.s.responsible||'Nobody'; perResp[k]=(perResp[k]||0)+1; });
+  const sortR=o=>Object.entries(o).map(([l,v])=>({l,v})).sort((x,y)=>y.v-x.v);
+  a.innerHTML=topbar('Dashboard','Engineering & workshop at a glance',true)+`<main>
+   <div class="kpis"><div class="kpi"><b>${open.length}</b><span>Open changes</span></div><div class="kpi"><b>${over}</b><span>Overdue</span></div><div class="kpi"><b>${rel30}</b><span>Released (30 days)</span></div>
+    <div class="kpi"><b>${lead===null?'–':lead.toFixed(1)}</b><span>Avg. days report → release</span></div><div class="kpi"><b id="kn">…</b><span>Open problems</span></div><div class="kpi"><b id="ki">…</b><span>Inspections (30 days)</span></div></div>
+   <div class="card dcard"><h3>Open changes per vehicle</h3>${hbars(sortR(perVeh))}</div>
+   <div class="card dcard"><h3>Open changes per responsible person</h3>${hbars(sortR(perResp))}</div>
+   <div class="card dcard"><h3>Most changed parts</h3>${hbars(sortR(perPart).slice(0,8).filter(x=>x.v>1).concat(sortR(perPart).filter(x=>x.v===1).slice(0,Math.max(0,8-sortR(perPart).filter(x=>x.v>1).length))))}</div>
+   <div class="card dcard"><h3>Problem reports by category</h3><div id="dn"><div class="note">Loading…</div></div></div>
+   <button class="btn ghost" id="dboard" style="display:block;width:100%;margin-top:10px">Open the change board</button></main>`;
+  $('#dboard').onclick=()=>go({name:'board'});
+  try{ const [n,i]=await Promise.all([api('ncr'),api('insp')]); const on=n.ncr.filter(x=>x.status!=='closed'); if(!$('#kn')) return; $('#kn').textContent=on.length; $('#ki').textContent=i.insp.filter(x=>x.at>=d30).length;
+    const pc={}; n.ncr.forEach(x=>pc[x.cat||'Other']=(pc[x.cat||'Other']||0)+1); $('#dn').innerHTML=hbars(sortR(pc)); translateUI(a); }catch(e){ const el=$('#dn'); if(el) el.innerHTML=`<div class="note" style="color:var(--chg)">${h(e.message)}</div>`; } }
+
+/* ---------- stock & labels ---------- */
+let stockTab='order';
+function renderStock(a){ const rows=Object.entries(META.stock).map(([id,s])=>({p:getPart(id),s})).filter(x=>x.p), order=rows.filter(x=>x.s.min&&x.s.qty<=x.s.min);
+  a.innerHTML=topbar('Stock & labels','Order list and QR stickers',true)+`<main>
+   <div class="chips" style="padding:0 0 8px">${[['order',`Order list (${order.length})`],['all',`All tracked (${rows.length})`],['labels','Print QR labels']].map(([k,l])=>`<button class="chip" data-t="${k}" aria-pressed="${stockTab===k}">${l}</button>`).join('')}</div><div id="skb"></div></main>`;
+  const draw=()=>{ const b=$('#skb');
+    if(stockTab==='labels'){ b.innerHTML=`<div class="card"><p class="note" style="margin-top:0">Choose which parts to print a QR sticker for. Scanning a sticker with the phone camera opens the part in the app.</p>
+        <div class="field"><label for="lv">Vehicle</label><select id="lv">${Object.keys(VEH).map(k=>`<option>${k}</option>`).join('')}</select></div><div class="field"><label for="lc">Category</label><select id="lc"></select></div>
+        <label class="check"><input type="checkbox" id="lrev"> Latest revision of each part (instead of the listed number)</label><button class="btn" id="lgo" style="display:block;width:100%;margin-top:12px">Show labels</button></div>`;
+      const fill=()=>{ $('#lc').innerHTML='<option value="">All categories</option>'+[...new Set(PARTS.filter(p=>p.v===$('#lv').value).map(p=>p.c))].map(c=>`<option>${h(c)}</option>`).join(''); }; fill(); $('#lv').onchange=fill;
+      $('#lgo').onclick=()=>{ let ps=PARTS.filter(p=>p.v===$('#lv').value&&(!$('#lc').value||p.c===$('#lc').value)); if($('#lrev').checked) ps=ps.map(p=>chain(p).at(-1)); if(ps.length>300) return toast('Too many – choose a category.'); printLabels(ps); }; translateUI(b); return; }
+    const list=stockTab==='order'?order:rows;
+    b.innerHTML=list.length?`<div class="list">${list.map(({p,s})=>`<div class="skrow${s.min&&s.qty<=s.min?' low':''}"><button class="skn" data-id="${p.id}"><b>${h(p.n)}</b><span>${p.v} · ${h(p.c)}${s.loc?' · 📍 '+h(s.loc):''}</span></button><span class="skq"><button data-d="-1" data-id="${p.id}">−</button><b>${s.qty}</b><button data-d="1" data-id="${p.id}">+</button></span><span class="skm">min ${s.min||0}</span></div>`).join('')}</div>
+      ${stockTab==='order'&&order.length?`<button class="btn ghost" id="skx" style="display:block;width:100%;margin-top:10px">⬇ Download order list (Excel)</button>`:''}`:`<div class="empty" style="padding:18px">${stockTab==='order'?'Nothing to order. 👍 Set a minimum on a part (Part tools → Stock) to get it on this list.':'No stock tracked yet. Open a part → Part tools → Stock.'}</div>`;
+    b.querySelectorAll('.skn').forEach(x=>x.onclick=()=>go({name:'part',id:x.dataset.id}));
+    b.querySelectorAll('[data-d]').forEach(x=>x.onclick=async()=>{ try{ const r=await api('stock/'+x.dataset.id,{method:'POST',body:{delta:+x.dataset.d}}); META.stock[x.dataset.id]=r.stock; renderStock(a); bind(); translateUI(a); }catch(e){ toast(e.message); } });
+    const sx=$('#skx'); if(sx) sx.onclick=()=>{ const X=window.XLSX_MINI; const bytes=X.build([{name:'Order list',freeze:2,cols:[{w:26},{w:9},{w:18},{w:10},{w:10},{w:12},{w:22}],rows:[{h:28,cells:[{v:'BLIX – order list '+fmtD(todayISO()),s:4}]},{h:24,cells:['Part','Vehicle','Category','In stock','Minimum','Location','Supplier'].map(v=>({v,s:1}))},...order.map(({p,s})=>({cells:[{v:p.n,s:3},{v:p.v,s:0},{v:p.c,s:0},{v:s.qty,s:0},{v:s.min,s:0},{v:s.loc||'',s:0},{v:((META.partx[baseOf(p)]||{}).supplier||{}).name||'',s:0}]}))]}]);
+      const u=URL.createObjectURL(new Blob([bytes],{type:XMIME})), el=document.createElement('a'); el.href=u; el.download=`BLIX_order_list_${todayISO()}.xlsx`; document.body.appendChild(el); el.click(); el.remove(); };
+    translateUI(b); };
+  a.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ stockTab=c.dataset.t; a.querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed',x===c)); draw(); }); draw(); }
+
+/* ---------- parts manager (Engineering + Admin) ---------- */
+let pmShowHidden=false;
+function renderParts(a){ if(!EA()){ go({name:'home'},true); return; }
+  a.innerHTML=topbar('Parts','Add, edit, hide or import parts',true)+`<main><div class="ovbtns" style="margin-top:0"><button class="btn" id="padd">+ Add part</button><button class="btn ghost" id="pimp">⬇ Import from Excel</button></div>
+   <div class="search" style="padding:10px 0 0"><input id="pq" type="search" placeholder="Search part number…"></div><label class="check"><input type="checkbox" id="phid" ${pmShowHidden?'checked':''}> Show hidden parts</label><div id="pl" style="margin-top:8px"></div></main>`;
+  const draw=()=>{ const t=$('#pq').value.trim().toUpperCase(); const hidden=BASE_PARTS.filter(p=>META.partx[p.id]&&META.partx[p.id].hidden).map(p=>({...p,hidden:true})).concat(Object.entries(META.partx).filter(([id,x])=>x.custom&&x.hidden).map(([id,x])=>({id,n:x.n,v:x.v,c:x.c,t:x.t,img:x.img||NOIMG,hidden:true})));
+    const all=(pmShowHidden?PARTS.concat(hidden):PARTS).filter(p=>!t||p.n.toUpperCase().includes(t)).slice(0,t?200:60);
+    $('#pl').innerHTML=`<div class="list">${all.map(p=>`<button class="item pm${p.hidden?' hid':''}" data-id="${p.id}"><img src="${p.img}" alt="" loading="lazy"><span class="t"><span class="pn">${h(p.n)}</span><span class="m">${p.v} · ${h(p.c)}${p.custom||(META.partx[p.id]||{}).custom?' · added in app':''}${p.hidden?' · hidden':''}</span></span></button>`).join('')}</div>${!t&&PARTS.length>60?`<p class="note">Showing 60 of ${PARTS.length} – search to find others.</p>`:''}`;
+    a.querySelectorAll('.pm').forEach(b=>b.onclick=()=>editPart(b.dataset.id)); translateUI(a); };
+  $('#pq').oninput=draw; $('#phid').onchange=e=>{ pmShowHidden=e.target.checked; draw(); }; $('#padd').onclick=()=>editPart(null); $('#pimp').onclick=importSheet; draw(); }
+function editPart(id){ const isNew=!id, x=id?(BYID[id]||{...(META.partx[id]||{}),id,img:(META.partx[id]||{}).img||NOIMG,hidden:true}):{id:'p'+rnd(5),n:'',v:Object.keys(VEH)[0],c:'',t:'P',img:NOIMG}; const hidden=!!(META.partx[x.id]&&META.partx[x.id].hidden); let img=null;
+  const cats=[...new Set(PARTS.map(p=>p.c))].sort();
+  const s=sheet(isNew?'Add part':'Edit part',`<div class="pmimg"><img id="pmi" src="${x.img}" alt="Picture"><button class="btn ghost" id="pmph">📷 ${isNew?'Add':'Change'} picture</button></div>
+    <div class="field"><label for="pmn">Part number</label><input class="txt" id="pmn" value="${h(x.n)}" autocapitalize="characters" placeholder="e.g. CPF-I-LA300"></div>
+    <div class="grid2"><div class="field" style="margin:0"><label for="pmv">Vehicle</label><select id="pmv">${Object.entries(VEH).map(([k,n])=>`<option value="${k}" ${k===x.v?'selected':''}>${k}</option>`).join('')}<option value="__new">+ New vehicle…</option></select></div>
+    <div class="field" style="margin:0"><label for="pmt">Type</label><select id="pmt"><option value="P" ${x.t!=='A'?'selected':''}>Part</option><option value="A" ${x.t==='A'?'selected':''}>Assembly</option></select></div></div>
+    <div class="grid2" id="pmnv" hidden><div class="field" style="margin:0"><label for="pmvc">New vehicle code</label><input class="txt" id="pmvc" autocapitalize="characters" placeholder="e.g. MBVI2"></div><div class="field" style="margin:0"><label for="pmvn">Vehicle name</label><input class="txt" id="pmvn" placeholder="e.g. Mercedes Vito"></div></div>
+    <div class="field"><label for="pmc">Category</label><input class="txt" id="pmc" value="${h(x.c)}" list="pmcl" placeholder="e.g. Instap"><datalist id="pmcl">${cats.map(c=>`<option value="${h(c)}">`).join('')}</datalist></div>
+    <div id="pmer" class="note" style="color:var(--chg)" hidden></div>
+    <div class="ovbtns">${isNew?'':`<button class="btn ghost ${hidden?'':'dangerline'}" id="pmhide" style="flex:0 0 auto">${hidden?'Show again':'Hide part'}</button>`}<button class="btn" id="pmsave">${isNew?'Add part':'Save'}</button></div>
+    ${isNew?'':'<p class="note">Hiding removes the part from all lists (for everyone) without deleting its history. It can be shown again.</p>'}`);
+  s.$('#pmv').onchange=e=>{ s.$('#pmnv').hidden=e.target.value!=='__new'; };
+  s.$('#pmph').onclick=async()=>{ const [f]=await pickFiles({multiple:false}); if(!f) return; try{ const c=await compress(f,420,.72); img=await new Promise(r=>{ const fr=new FileReader(); fr.onload=()=>r(fr.result); fr.readAsDataURL(c); }); if(img.length>115000){ const c2=await compress(f,300,.6); img=await new Promise(r=>{ const fr=new FileReader(); fr.onload=()=>r(fr.result); fr.readAsDataURL(c2); }); } s.$('#pmi').src=img; }catch(e){ toast("This picture couldn't be read."); } };
+  const save=async extra=>{ const er=s.$('#pmer'); er.hidden=true; let v=s.$('#pmv').value, vehName=''; if(v==='__new'){ v=s.$('#pmvc').value.trim().toUpperCase(); vehName=s.$('#pmvn').value.trim(); if(!v||!vehName){ er.textContent='Enter the new vehicle code and name.'; er.hidden=false; return; } }
+    const n=s.$('#pmn').value.trim(); if(!n){ er.textContent='Enter the part number.'; er.hidden=false; return; }
+    if(isNew&&PARTS.some(p=>p.n.toUpperCase()===n.toUpperCase()&&p.v===v)){ er.textContent='This part number already exists for this vehicle.'; er.hidden=false; return; }
+    try{ const body={n,v,c:s.$('#pmc').value.trim()||'Other',t:s.$('#pmt').value,...(img?{img}:{}),...(vehName?{vehName}:{}),...(isNew?{isNew:true}:{}),...extra};
+      const r=await api('partx/'+x.id,{method:'PUT',body}); META.partx[x.id]=r.part; if(vehName) META.veh[v]=vehName; applyMeta(META); s.close(); toast(isNew?'Part added':'Part saved'); render(); sync(); }catch(e){ er.textContent=e.message; er.hidden=false; } };
+  s.$('#pmsave').onclick=()=>save({}); const hd=s.$('#pmhide'); if(hd) hd.onclick=()=>save({hidden:!hidden}); }
+function importSheet(){ const s=sheet('Import parts from Excel',`<p class="note" style="margin-top:0">In Excel, select the rows with the columns <b>Part number · Vehicle · Category · Type</b> (Type: Part or Assembly, optional), copy (Ctrl+C) and paste them below.</p>
+    <textarea id="imt" style="min-height:160px;font-family:var(--mono);font-size:13px" placeholder="CPF-I-LA300	CPF	Instap	Part"></textarea><div id="imp" class="note"></div><div id="imnv"></div><div id="imer" class="note" style="color:var(--chg)" hidden></div><div class="ovbtns"><button class="btn" id="imgo" disabled>Import</button></div>`,{wide:true});
+  let rows=[], newVeh=[]; const parse=()=>{ rows=s.$('#imt').value.split(/\r?\n/).map(l=>l.split(/\t|;/).map(c=>c.trim())).filter(c=>c[0]&&!/^part ?(number|nr)?$/i.test(c[0])).map(c=>({n:c[0],v:(c[1]||'').toUpperCase(),c:c[2]||'Other',t:c[3]||'P'}));
+    const bad=rows.filter(r=>!r.v), dup=rows.filter(r=>PARTS.some(p=>p.n.toUpperCase()===r.n.toUpperCase()&&p.v===r.v)); newVeh=[...new Set(rows.map(r=>r.v).filter(v=>v&&!VEH[v]))];
+    s.$('#imp').innerHTML=rows.length?`<b>${rows.length-dup.length-bad.length}</b> new part${rows.length-dup.length-bad.length===1?'':'s'} to import${dup.length?` · ${dup.length} already exist (skipped)`:''}${bad.length?` · ${bad.length} without vehicle (skipped)`:''}`:'';
+    s.$('#imnv').innerHTML=newVeh.map(v=>`<div class="field"><label>Name for new vehicle ${h(v)}</label><input class="txt" data-nv="${h(v)}" placeholder="e.g. Mercedes Vito"></div>`).join('');
+    rows=rows.filter(r=>r.v&&!dup.includes(r)); s.$('#imgo').toggleAttribute('disabled',!rows.length); translateUI(s.ov); };
+  s.$('#imt').oninput=parse;
+  s.$('#imgo').onclick=async()=>{ const vehNames={}; s.ov.querySelectorAll('[data-nv]').forEach(i=>vehNames[i.dataset.nv]=i.value.trim()||i.dataset.nv);
+    try{ const r=await api('partx/import',{method:'POST',body:{rows,vehNames}}); s.close(); toast(`${r.added} part${r.added===1?'':'s'} imported`); await sync(); render(); }catch(e){ const er=s.$('#imer'); er.textContent=e.message; er.hidden=false; } }; }
+
+Object.assign(VIEWS,{board:renderBoard,ncr:renderNcrList,ncrd:renderNcrDetail,chk:renderChk,insp:renderInspList,inspd:renderInspDetail,vehicles:renderVehicles,vehd:renderVehDetail,dash:renderDash,stock:renderStock,parts:renderParts});
+
+/* ---------- Dutch / English ---------- */
+const getLang=()=>{ try{ return localStorage.getItem('blixLang')||'en'; }catch(e){ return 'en'; } };
+const NL={"Parts Review":"Onderdelen Review","Sign in":"Inloggen","Username":"Gebruikersnaam","Password":"Wachtwoord","Sign in with the account you received":"Log in met het account dat je hebt gekregen","No account yet? Ask Engineering.":"Nog geen account? Vraag het Engineering.",
+"My drafts":"Mijn concepten","Team sent":"Team verstuurd","To do":"Te doen","Vehicles":"Voertuigen","Search part number in all vehicles…":"Zoek onderdeelnummer in alle voertuigen…","Send to Engineering":"Versturen naar Engineering","Workshop & Engineering":"Werkplaats & Engineering",
+"Problems":"Problemen","Inspections":"Inspecties","Change board":"Wijzigingsbord","Dashboard":"Dashboard","Stock & labels":"Voorraad & labels","Parts":"Onderdelen","Checklists":"Checklists",
+"All":"Alles","Sent":"Verstuurd","Waiting for Eng.":"Wacht op Eng.","Released":"Vrijgegeven","My parts":"Mijn onderdelen","Overdue":"Te laat","Change needed":"Wijziging nodig","No change":"Geen wijziging","In progress":"Bezig","Changed":"Gewijzigd",
+"Status":"Status","Photos":"Foto's","What to change":"Wat moet er veranderen","Priority":"Prioriteit","High":"Hoog","Medium":"Middel","Low":"Laag","Responsible":"Verantwoordelijke","Planned date":"Geplande datum","— Choose a person —":"— Kies een persoon —","— Choose a workday —":"— Kies een werkdag —",
+"Workdays only (Mon–Fri), until 31-12-2026.":"Alleen werkdagen (ma–vr), t/m 31-12-2026.","Cancel":"Annuleren","Save draft":"Concept opslaan","Remove my draft":"Mijn concept verwijderen","Take photo":"Foto maken","From gallery":"Uit galerij","Add photo":"Foto toevoegen",
+"🔒 Sent and locked":"🔒 Verstuurd en vergrendeld","Change":"Wijziging","Photos:":"Foto's:","Clear changes…":"Wijzigingen wissen…","💬 Discuss this part":"💬 Bespreek dit onderdeel","💬 Message a mechanic about this part":"💬 Bericht aan monteur over dit onderdeel",
+"⏳ Waiting for Engineering":"⏳ Wacht op Engineering","Part tools":"Onderdeel-tools","📄 Drawing":"📄 Tekening","🔧 Assembly instructions":"🔧 Montage-instructie","📦 Stock":"📦 Voorraad","🏭 Supplier":"🏭 Leverancier","🏷 QR label":"🏷 QR-label","🕘 History":"🕘 Geschiedenis",
+"tap to open":"tik om te openen","print a sticker":"print een sticker","everything that happened":"alles wat er gebeurd is","none yet":"nog geen","not tracked":"niet bijgehouden","not set":"niet ingesteld","In stock":"Op voorraad","Minimum":"Minimum","Location":"Locatie","Save stock":"Voorraad opslaan",
+"Print label":"Label printen","Print":"Printen","Close":"Sluiten","Send":"Versturen","Save":"Opslaan","Settings":"Instellingen","Messages":"Berichten","New message":"Nieuw bericht","✉ New message":"✉ Nieuw bericht","Conversations":"Gesprekken","Updates from Engineering":"Updates van Engineering",
+"Download overview":"Overzicht downloaden","Vehicle":"Voertuig","Category":"Categorie","All vehicles":"Alle voertuigen","All categories":"Alle categorieën","Download Excel":"Excel downloaden","App":"App","Refresh data now":"Gegevens nu verversen","Sync":"Sync","App version":"App-versie","Language":"Taal",
+"Maintenance – reset list":"Onderhoud – lijst resetten","Maintenance history":"Onderhoudsgeschiedenis","Backup":"Back-up","Send a backup now":"Nu een back-up sturen","Accounts & “Responsible” names":"Accounts & namen “Verantwoordelijke”","Open":"Openen",
+"My account":"Mijn account","Sign out":"Uitloggen","Manage accounts & names":"Accounts & namen beheren","Problem reports":"Probleemmeldingen","⚠️ Report a problem":"⚠️ Probleem melden","Report a problem":"Probleem melden","Assigned to me":"Aan mij toegewezen","Closed":"Gesloten","Title":"Titel","Severity":"Ernst",
+"Description":"Omschrijving","Assigned to":"Toegewezen aan","Assign to (optional)":"Toewijzen aan (optioneel)","— Nobody —":"— Niemand —","Cause":"Oorzaak","Action taken":"Genomen actie","Timeline":"Tijdlijn","Add a comment":"Opmerking toevoegen","Add comment":"Opmerking toevoegen","📷 Photo":"📷 Foto",
+"Submit problem report":"Probleemmelding versturen","Chassis no. (optional)":"Chassisnr. (optioneel)","Chassis no.":"Chassisnr.","Part (optional)":"Onderdeel (optioneel)","Supplier error":"Fout leverancier","Damage":"Schade","Missing part":"Ontbrekend onderdeel","Assembly issue":"Montageprobleem","Design issue":"Ontwerpprobleem","Other":"Overig",
+"✅ Start an inspection":"✅ Inspectie starten","Start an inspection":"Inspectie starten","Checklist":"Checklist","Start":"Starten","✓ OK":"✓ OK","✗ Not OK":"✗ Niet OK","Sign off":"Aftekenen","Reopen":"Heropenen","⬇ Excel report":"⬇ Excel-rapport","Value":"Waarde","What is not OK?":"Wat is niet OK?",
+"+ Add vehicle":"+ Voertuig toevoegen","Add vehicle":"Voertuig toevoegen","Vehicle type":"Voertuigtype","Customer (optional)":"Klant (optioneel)","Customer":"Klant","Start of build":"Start bouw","Delivered":"Afgeleverd","Notes":"Notities","Save vehicle":"Voertuig opslaan","In build":"In aanbouw","Built":"Gebouwd",
+"Open changes":"Open wijzigingen","Released (30 days)":"Vrijgegeven (30 dagen)","Avg. days report → release":"Gem. dagen melding → vrijgave","Open problems":"Open problemen","Inspections (30 days)":"Inspecties (30 dagen)","Open changes per vehicle":"Open wijzigingen per voertuig","Open changes per responsible person":"Open wijzigingen per verantwoordelijke","Most changed parts":"Meest gewijzigde onderdelen","Problem reports by category":"Probleemmeldingen per categorie","Open the change board":"Wijzigingsbord openen",
+"New – to review":"Nieuw – te beoordelen","Approved – in CAD":"Goedgekeurd – in CAD","Released – to fit":"Vrijgegeven – te monteren","Fitted – done":"Gemonteerd – klaar","Rejected":"Afgewezen","Engineering review":"Beoordeling Engineering","Approve":"Goedkeuren","Reject":"Afwijzen","Cost estimate":"Kostenraming","Deadline":"Deadline","Old stock":"Oude voorraad","Use up old stock":"Oude voorraad opmaken","Scrap old stock":"Oude voorraad afkeuren","Rework old stock":"Oude voorraad nabewerken","Note / reason":"Notitie / reden",
+"🚚 Fitted on vehicles":"🚚 Gemonteerd op voertuigen","Mark as fitted":"Markeer als gemonteerd","Note (optional)":"Notitie (optioneel)","Add, edit, hide or import parts":"Onderdelen toevoegen, bewerken, verbergen of importeren","+ Add part":"+ Onderdeel toevoegen","⬇ Import from Excel":"⬇ Importeren uit Excel","Show hidden parts":"Verborgen onderdelen tonen","Add part":"Onderdeel toevoegen","Edit part":"Onderdeel bewerken","Part number":"Onderdeelnummer","Type":"Type","Part":"Onderdeel","Assembly":"Samenstelling","Hide part":"Onderdeel verbergen","Show again":"Weer tonen","Import":"Importeren",
+"Order list and QR stickers":"Bestellijst en QR-stickers","Print QR labels":"QR-labels printen","Show labels":"Labels tonen","+ New checklist":"+ Nieuwe checklist","New checklist":"Nieuwe checklist","Edit checklist":"Checklist bewerken","Name":"Naam","Items":"Punten","+ Item":"+ Punt","Load example":"Voorbeeld laden","Save checklist":"Checklist opslaan","Delete":"Verwijderen",
+"Nothing here.":"Niets hier.","Loading…":"Laden…","New revision":"Nieuwe revisie","⏳ Engineering":"⏳ Engineering","✓ Released in CAD":"✓ Vrijgegeven in CAD","✗ Rejected":"✗ Afgewezen","✓ Approved · in CAD":"✓ Goedgekeurd · in CAD","My draft":"Mijn concept","Waiting to send":"Wacht op verzenden","Synced":"Gesynchroniseerd","Not synced yet":"Nog niet gesynchroniseerd",
+"Open drawing":"Tekening openen","Save supplier":"Leverancier opslaan","✉ Send to supplier":"✉ Naar leverancier sturen","Send to supplier":"Naar leverancier sturen","Edit instructions":"Instructie bewerken","Add instructions":"Instructie toevoegen","+ Add step":"+ Stap toevoegen","Save instructions":"Instructie opslaan","Search a part number…":"Zoek een onderdeelnummer…","Search chassis or customer…":"Zoek chassis of klant…","Search part number…":"Zoek onderdeelnummer…",
+"Write your message…":"Schrijf je bericht…","Message…":"Bericht…","To":"Aan","About part (optional)":"Over onderdeel (optioneel)","Message":"Bericht","Send to Engineering ":"Versturen naar Engineering ","Tip: install as an app":"Tip: installeer als app","Engineering":"Engineering","Mechanic":"Monteur","Admin":"Beheerder","Draw":"Tekenen","Arrow":"Pijl","Circle":"Cirkel","Text":"Tekst","Number":"Nummer","↶ Undo":"↶ Ongedaan","Done":"Klaar"};
+Object.assign(NL,{"Download an Excel overview of the list: every part with its revisions, status, what to change, who sent it, and whether it's released in CAD.": "Download een Excel-overzicht van de lijst: elk onderdeel met revisies, status, wat er moet veranderen, wie het verstuurde en of het is vrijgegeven in CAD.", "Include part pictures": "Met afbeeldingen van onderdelen", "(bigger file)": "(groter bestand)", "Path to reset": "Pad om te resetten", "Send to Engineering": "Versturen naar Engineering", "Sent straight to the Engineering mailbox": "Direct naar de mailbox van Engineering", "In this send": "In deze verzending", "Parts": "Onderdelen", "Changes": "Wijzigingen", "Your drafts are saved to your account. Sign in on another phone and they appear there too.": "Je concepten worden in je account bewaard. Log in op een andere telefoon en ze staan daar ook.", "Signed in as": "Ingelogd als", "Created after the change below was sent. The picture shows the original part.": "Gemaakt nadat de wijziging hieronder is verstuurd. De afbeelding toont het oorspronkelijke onderdeel.", "Change not correct? Clear it, unlock the part and make the right change. Engineering is notified.": "Wijziging niet goed? Wis hem, ontgrendel het onderdeel en maak de juiste wijziging. Engineering krijgt bericht.", "Earlier revisions": "Eerdere revisies", "Changes that led to this revision": "Wijzigingen die tot deze revisie leidden", "No report yet": "Nog geen melding", "Waiting for you": "Wacht op jou", "Reports": "Meldingen", "Waiting for Engineering": "Wacht op Engineering", "Nothing waiting – all sent changes are released. 🎉": "Niets wachtend – alle verstuurde wijzigingen zijn vrijgegeven. 🎉", "Scanning the sticker with the phone camera opens this part in the app.": "Scan de sticker met de camera van je telefoon om dit onderdeel in de app te openen.", "No drawing uploaded yet.": "Nog geen tekening geüpload.", "No supplier recorded.": "Geen leverancier vastgelegd.", "No instructions yet. Anyone can add them – share what you know.": "Nog geen instructie. Iedereen kan die toevoegen – deel wat je weet.", "Chat about parts and changes": "Chat over onderdelen en wijzigingen", "From report to fitted on the vehicle": "Van melding tot gemonteerd op het voertuig", "Issues during assembly and quality": "Problemen bij montage en kwaliteit", "Checklists per vehicle": "Checklists per voertuig", "Build record per chassis number": "Bouwdossier per chassisnummer", "Engineering & workshop at a glance": "Engineering & werkplaats in één oogopslag", "Build record": "Bouwdossier", "Not fitted on a vehicle yet.": "Nog niet op een voertuig gemonteerd.", "Last change:": "Laatste wijziging:", "Take one": "Eén eraf", "Add one": "Eén erbij", "Approve the change (then make it in CAD) or reject it.": "Keur de wijziging goed (en maak hem in CAD) of wijs hem af.", "Effective from (chassis no. / date)": "Geldig vanaf (chassisnr. / datum)", "Required when rejecting": "Verplicht bij afwijzen", "Mark as released in CAD": "Markeer als vrijgegeven in CAD", "Undo release": "Vrijgave ongedaan maken", "Open new revision": "Nieuwe revisie openen"});
+const NL_RE=[[/^Signed in as (.+)$/,'Ingelogd als $1'],[/^(\d+) of (\d+) sent$/,'$1 van $2 verstuurd'],[/^Synced (.+)$/,'Gesynchroniseerd $1'],[/^Send to Engineering \((\d+)\)$/,'Versturen naar Engineering ($1)'],[/^Engineering: (\d+) released in CAD · (\d+) waiting$/,'Engineering: $1 vrijgegeven in CAD · $2 wachtend'],[/^(\d+) in stock/,'$1 op voorraad'],[/^(\d+) to order$/,'$1 bestellen'],[/^(\d+) for you$/,'$1 voor jou'],[/^(\d+) open$/,'$1 open'],[/^Order list \((\d+)\)$/,'Bestellijst ($1)'],[/^All tracked \((\d+)\)$/,'Alles bijgehouden ($1)'],[/^Saved to your account$/,'Opgeslagen in je account'],[/^Sent to Engineering \((.+)\)$/,'Verstuurd naar Engineering ($1)'],[/^Mark (.+) as released in CAD$/,'Markeer $1 als vrijgegeven in CAD'],[/^Open new revision (.+)$/,'Nieuwe revisie $1 openen'],[/^(.+) has not been released in CAD yet\.$/,'$1 is nog niet vrijgegeven in CAD.'],[/^(.+) sent this part to Engineering on (.+)\. It can't be changed any more\.$/,'$1 heeft dit onderdeel op $2 naar Engineering gestuurd. Het kan niet meer worden gewijzigd.'],[/^Reset (.+)…$/,'$1 resetten…'],[/^(\d+) parts$/,'$1 onderdelen']];
+function trNL(t){ const k=t.trim(); if(!k) return t; if(NL[k]) return t.replace(k,NL[k]); for(const [re,to] of NL_RE) if(re.test(k)) return t.replace(k,k.replace(re,to)); return t; }
+function translateUI(root){ if(getLang()!=='nl'||!root) return; const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT); const nodes=[]; while(w.nextNode()) nodes.push(w.currentNode);
+  for(const n of nodes){ if(n.parentElement&&/^(SCRIPT|STYLE|TEXTAREA)$/.test(n.parentElement.tagName)) continue; const v=trNL(n.nodeValue); if(v!==n.nodeValue) n.nodeValue=v; }
+  root.querySelectorAll&&root.querySelectorAll('[placeholder],[aria-label]').forEach(e=>{ for(const at of ['placeholder','aria-label']) if(e.hasAttribute(at)){ const v=trNL(e.getAttribute(at)); if(v!==e.getAttribute(at)) e.setAttribute(at,v); } }); }
+{ const _toast=toast; toast=msg=>_toast(getLang()==='nl'?trNL(String(msg)):msg); }
 
 /* ================= start ================= */
 if('serviceWorker' in navigator && location.protocol==='https:') navigator.serviceWorker.register('sw.js').catch(()=>{});

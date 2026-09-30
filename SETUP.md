@@ -76,3 +76,54 @@ They open the link, sign in, and install it: Android Chrome ⋮ → **Install ap
 - **Someone leaves:** Accounts → **Block**. He is signed out everywhere.
 - **Keep `ADMIN_PASSWORD` and `SESSION_SECRET` private.** Changing `SESSION_SECRET` signs everyone out.
 - **Updating the app:** upload the new files to GitHub (Add file → Upload files); Netlify publishes automatically.
+
+## Revisions and locking
+- When a report is sent, every part in it is **locked** (🔒 Sent) – it can't be changed or sent again.
+- Directly below it a **new revision** opens with the same number plus the next letter: `CPF-I-LA200` → `CPF-I-LA200-A` → `-B` … (a part that already ends in `-B` continues with `-C`). New changes go there, so the list matches the engineering folder once the part is updated in CAD.
+- The e-mail and Excel show the new revision number next to each part.
+- If two mechanics work on the same part and one sends first, the other's draft is moved to the new revision automatically.
+
+## Clearing changes
+- Any account can open a part and tap **Clear changes…** (on a locked part or a new revision). A full-screen warning shows exactly what will be removed; choose *only the last sent revision* or *everything*, write a reason and tap **Clear and notify Engineering**.
+- Admin accounts also see **Clear section** next to each category heading in a vehicle list, to clear all sent changes in that section at once.
+- Clearing removes the sent reports (the part is unlocked and its revisions disappear) and deletes unsent drafts of all users on that part – for everyone.
+- Engineering first receives an e-mail (who, when, reason, what was removed). If the e-mail can't be sent, nothing is cleared.
+- The part then shows a line "⟲ Changes cleared on … by … – reason" so everyone sees it before making the new change.
+
+## Settings (gear icon, Admin accounts only)
+- **Maintenance – reset list:** choose 1 · vehicle (or all vehicles) → 2 · category (or all) → 3 · check the path and counts → **Reset…** → type **CONFIRM** → **Reset list**.
+- Removes all sent reports, revisions, drafts of every user and "cleared" notes in that path. **No e-mail** – every reset is logged under **Maintenance history**, and users see a notice on the home screen for a few days.
+- Also here: Accounts & names, Refresh data now, app version.
+
+## Engineering account and "Released in CAD"
+- Create an account with role **Engineering** (Accounts page; the role of any account can now be changed there with the drop-down).
+- Engineering sees a **Waiting for Engineering** list on the home screen. On a sent part (or its new revision) tap **Mark …-A as released in CAD** (optional note). **Undo release** is possible.
+- Everyone sees the result: "✓ …-A released" / "⏳ Engineering" tags, a green "Released in CAD" line on the revision, filters *Waiting for Eng.* and *Released*, and a progress line on the home screen.
+- Engineering accounts can't create drafts or send reports; release buttons are only visible to them.
+
+## Download overview (gear icon, every account)
+- Choose vehicle and category (or all), optionally with pictures, and tap **Download Excel**. On a phone the share sheet opens (save to Files, e-mail, WhatsApp …).
+
+## Weekly backup
+- `netlify/functions/backup.mjs` runs every **Monday 05:00 UTC** (07:00 summer / 06:00 winter, Amsterdam) and e-mails an Excel overview plus a full .json data file to MAIL_TO.
+- Admins can also tap **Send a backup now** under Settings → Backup. Netlify → **Logs → Functions → backup** shows each run.
+
+## Draw on photos
+- After taking a photo the drawing screen opens (tap **Done** to skip). Tap any photo later to draw on it again.
+- Tools: **Draw** (finger), **Arrow**, **Circle**, **Text**, **Number** (①②③ – refer to them in "What to change"), 6 colours, **Undo**. The marked-up photo is what goes in the e-mail/Excel.
+
+## Messages (envelope icon)
+- Every account (not the built-in `admin` login) has an envelope icon with a red counter for unread messages and new releases.
+- **New message:** choose one or more people, optionally link a part, write, add photos (with drawing) and send. From a part: **💬 Discuss this part** (mechanics → Engineering is preselected; Engineering → the mechanic who sent it).
+- Conversations update every few seconds while open; only the people in a conversation can read it. "Updates from Engineering" shows releases of parts you sent.
+
+## v12 – full engineering & workshop tool
+- **Credit saving:** the app syncs every 3 minutes (and when opened), chats refresh every 20 s. Settings shows server requests per day (Admin).
+- **Change process:** Engineering approves or rejects a sent change (cost, old stock, effective from, deadline); after release the mechanic records **Fitted on vehicle** (chassis no.). The **Change board** shows every change in its column: New → Approved → Released → Fitted (or Rejected).
+- **Part tools** on every part: PDF **drawing** (Engineering uploads, everyone opens), **assembly instructions** with photos and torque values (anyone), **stock** with minimum and location, **supplier** with "send drawing to supplier" (Engineering), printable **QR label**, full **history**.
+- **Parts** (Engineering/Admin, Settings or home tile): add a part with picture, edit, hide, or paste rows from Excel to import.
+- **Problems:** problem reports with category, severity, chassis, part, photos, assignee, cause/action and timeline.
+- **Checklists & inspections:** Engineering makes checklist templates; mechanics run them per chassis (OK / Not OK, values, photos) and sign off; Excel report per inspection.
+- **Vehicles:** build record per chassis number with fitted changes, inspections and problem reports.
+- **Dashboard**, **Stock & labels** (order list + label sheets), filters **My parts** / **Overdue**, weekly **overdue e-mail** (Monday, also "Send now" in Settings), **Nederlands/English** switch.
+- Note: e-mails to suppliers only work once your own domain is verified in Resend (in test mode Resend only delivers to your own address).
