@@ -177,7 +177,7 @@ export async function runBackup(env, trigger = 'weekly') {
 }
 
 /* ---------- v12 helpers: combined meta docs, audit log ---------- */
-const META = ['partx', 'stock', 'dwg', 'appr', 'fit', 'veh'];
+const META = ['partx', 'stock', 'dwg', 'appr', 'fit', 'veh', 'done'];
 const getMeta = async (store, k) => (await store.get(`meta/${k}`, { type: 'json' })) || {};
 async function updMeta(store, k, fn) { const m = await getMeta(store, k); const r = fn(m); await store.setJSON(`meta/${k}`, m); return r; }
 async function audit(store, id, me, act, detail = '') {
@@ -207,7 +207,7 @@ export async function runOverdue(env, trigger = 'weekly') {
 /* ---------- chat ---------- */
 const TID_RE = /^t[0-9a-f]{12}$/;
 async function myThreads(store, u) {
-  return (await listJSON(store, 'thread/')).filter((t) => t && (t.members || []).includes(u))
+  return (await listJSON(store, 'thread/')).filter((t) => t && (t.members || []).includes(u) && !(t.hidden && t.hidden[u] && String(t.hidden[u]) >= String((t.last || {}).at || t.created)))
     .map((t) => ({ ...t, unread: !!(t.last && t.last.u !== u && String(t.last.at) > String((t.read || {})[u] || '')) }))
     .sort((a, b) => String((b.last || {}).at || b.created).localeCompare(String((a.last || {}).at || a.created)));
 }
@@ -300,7 +300,7 @@ export default async (req) => {
       if (used > 0 && me.u) await store.setJSON(`usage/${today()}/${me.u}`, { n: Math.min(used, 1e6), at: new Date().toISOString() });
       const ncrOpen = await getMeta(store, 'ncrindex');
       return json(200, { user: me, drafts, parts, team: team.names, cleared: await clearedMap(store), maint, released: await releasedMap(store), unread: me.u === 'admin' ? 0 : (await myThreads(store, me.u)).filter((t) => t.unread).length,
-        meta, ncrMine: Object.values(ncrOpen).filter((n) => n.status !== 'closed' && n.assignee === me.u).length, ncrOpen: Object.values(ncrOpen).filter((n) => n.status !== 'closed').length });
+        prefs: me.u === 'admin' ? { clr: {}, hide: {} } : ((await store.get(`prefs/${me.u}`, { type: 'json' })) || { clr: {}, hide: {} }), meta, ncrMine: Object.values(ncrOpen).filter((n) => n.status !== 'closed' && n.assignee === me.u).length, ncrOpen: Object.values(ncrOpen).filter((n) => n.status !== 'closed').length });
     }
 
     /* drafts */
@@ -323,6 +323,13 @@ export default async (req) => {
     }
     if (seg[0] === 'threads' && me.u !== 'admin') {
       if (seg.length === 1 && M === 'GET') return json(200, { threads: await myThreads(store, me.u) });
+      if (seg.length === 2 && TID_RE.test(seg[1]) && M === 'DELETE') {   /* remove a conversation from my list (comes back if a new message arrives) */
+        const key = `thread/${seg[1]}`, t = await store.get(key, { type: 'json' }); if (!t || !(t.members || []).includes(me.u)) return err(404, 'Conversation not found.');
+        t.hidden = { ...(t.hidden || {}), [me.u]: new Date().toISOString() }; t.read = { ...(t.read || {}), [me.u]: (t.last || {}).at || t.read?.[me.u] };
+        if (t.members.every((m) => t.hidden[m])) { const { blobs } = await store.list({ prefix: `msg/${t.id}/` }); await Promise.all(blobs.map((x) => store.delete(x.key))); const { blobs: ph } = await PHOTOS().list({ prefix: `chat/${t.id}/` }); await Promise.all(ph.map((x) => PHOTOS().delete(x.key))); await store.delete(key); }
+        else await store.setJSON(key, t);
+        return json(200, { ok: true });
+      }
       if (seg.length === 1 && M === 'POST') {
         const b = await req.json().catch(() => ({}));
         const to = [...new Set((Array.isArray(b.to) ? b.to : []).map(String).filter((x) => USER_RE.test(x) && x !== me.u))].slice(0, 10);
@@ -424,7 +431,7 @@ export default async (req) => {
         const rec = { id, name: clip(b.name, 80), note: clip(String(b.note || '').trim(), 300), at: new Date().toISOString(), by: me.name, u: me.u };
         await store.setJSON(key, rec); await audit(store, id, me, `Released ${rec.name} in CAD`, rec.note); return json(200, { release: rec });
       }
-      if (M === 'DELETE') { await store.delete(key); await audit(store, id, me, 'Release undone'); return json(200, { ok: true }); }
+      if (M === 'DELETE') { await store.delete(key); for (const k of ['fit', 'done']) await updMeta(store, k, (m) => { delete m[id]; }); await audit(store, id, me, 'Release undone'); return json(200, { ok: true }); }
     }
 
     /* clear changes of one part (any account) or a whole section (Admin): unlocks for everyone, e-mails Engineering first */
@@ -457,7 +464,7 @@ export default async (req) => {
         rec.rows = rec.rows.filter((r) => !inScope(r.id)); if (rec.rows.length) await store.setJSON(x.key, rec); else await store.delete(x.key); }
       await Promise.all(drafts.map((k) => deleteDraft(k[1], k[2])));
       await updMeta(store, 'appr', (m) => { for (const k of Object.keys(m)) if (inScope(k)) delete m[k]; });
-      await updMeta(store, 'fit', (m) => { for (const k of Object.keys(m)) { const q = parseId(k), w = q && want.get(q.base); if (w && q.k > w.from) delete m[k]; } });
+      for (const mk of ['fit', 'done']) await updMeta(store, mk, (m) => { for (const k of Object.keys(m)) { const q = parseId(k), w = q && want.get(q.base); if (w && q.k > w.from) delete m[k]; } });
       for (const p of ev.parts) await audit(store, p.id, me, 'Changes cleared', `${p.from ? 'From ' + p.fromName + ' onwards' : 'Everything'} – ${reason}`);
       const { blobs: rl } = await store.list({ prefix: 'release/' }); // revisions created by removed reports no longer exist
       for (const x of rl) { const q = parseId(x.key.slice(8)); const w = q && want.get(q.base); if (w && q.k > w.from) await store.delete(x.key); }
@@ -553,14 +560,37 @@ export default async (req) => {
       if (M === 'DELETE') { await updMeta(store, 'appr', (m) => { delete m[id]; }); await audit(store, id, me, 'Approval undone'); return json(200, { ok: true }); }
     }
     /* fitted on vehicle (after release) */
-    if (seg[0] === 'fit' && seg.length === 2 && PART_RE.test(seg[1]) && M === 'POST') {
+    if (seg[0] === 'fit' && seg.length === 2 && PART_RE.test(seg[1]) && M === 'POST') {   /* fit check by the workshop after release */
       const id = seg[1], b = await req.json().catch(() => ({}));
-      if (b.remove) { await updMeta(store, 'fit', (m) => { m[id] = (m[id] || []).filter((x) => !(x.at === b.remove && (x.u === me.u || isEA(me)))); }); await audit(store, id, me, 'Fitted entry removed'); return json(200, { ok: true }); }
+      if (b.remove) { if (!isEA(me)) return err(403, 'Only Engineering can ask for a new fit check.'); await updMeta(store, 'fit', (m) => { delete m[id]; }); await updMeta(store, 'done', (m) => { delete m[id]; }); await audit(store, id, me, 'New fit check requested', clip(b.note, 300)); return json(200, { ok: true }); }
       const released = await releasedMap(store); if (!released[id]) return err(400, 'This revision is not released in CAD yet.');
-      const chassis = String(b.chassis || '').trim(); if (!CHASSIS_RE.test(chassis)) return err(400, 'Enter a chassis number (letters, digits, - or .).');
-      const rec = { chassis, note: clip(String(b.note || '').trim(), 200), at: new Date().toISOString(), by: me.name, u: me.u };
-      await updMeta(store, 'fit', (m) => { m[id] = [...(m[id] || []), rec].slice(-200); });
-      await audit(store, id, me, `Fitted on vehicle ${chassis}`, rec.note); return json(200, { fit: rec });
+      if (!['ok', 'work'].includes(b.result)) return err(400, 'Choose “Fits OK” or “Extra work needed”.');
+      if (b.result === 'work' && String(b.note || '').trim().length < 3) return err(400, 'Describe the extra work that is needed.');
+      const chassis = String(b.chassis || '').trim();
+      const rec = { result: b.result, note: clip(String(b.note || '').trim(), 1000), chassis: CHASSIS_RE.test(chassis) ? chassis : '', at: new Date().toISOString(), by: me.name, u: me.u };
+      await updMeta(store, 'fit', (m) => { m[id] = rec; });
+      await audit(store, id, me, rec.result === 'ok' ? 'Fit check: fits OK' : 'Fit check: extra work needed', [rec.note, rec.chassis && 'chassis ' + rec.chassis].filter(Boolean).join(' · '));
+      return json(200, { fit: rec });
+    }
+    /* final approval by Engineering: drawing, CAD and fitment OK → change completed */
+    if (seg[0] === 'done' && seg.length === 2 && PART_RE.test(seg[1])) {
+      if (me.role !== 'engineer') return err(403, 'Only an Engineering account can give the final approval.');
+      const id = seg[1];
+      if (M === 'POST') {
+        const fit = (await getMeta(store, 'fit'))[id]; if (!fit || Array.isArray(fit)) return err(400, 'The workshop has not done the fit check yet.');
+        const b = await req.json().catch(() => ({}));
+        const rec = { note: clip(String(b.note || '').trim(), 500), name: clip(b.name, 80), at: new Date().toISOString(), by: me.name, u: me.u };
+        await updMeta(store, 'done', (m) => { m[id] = rec; }); await audit(store, id, me, `Final approval – ${rec.name || 'revision'} completed`, rec.note); return json(200, { done: rec });
+      }
+      if (M === 'DELETE') { await updMeta(store, 'done', (m) => { delete m[id]; }); await audit(store, id, me, 'Final approval undone'); return json(200, { ok: true }); }
+    }
+    /* personal preferences: cleared / hidden lists (per account, on every phone) */
+    if (path === 'prefs' && M === 'PUT' && me.u !== 'admin') {
+      const b = await req.json().catch(() => ({})), key = `prefs/${me.u}`, pr = (await store.get(key, { type: 'json' })) || { clr: {}, hide: {} };
+      for (const [k, v] of Object.entries(b.clr || {})) if (/^[a-z]{2,20}$/.test(k)) pr.clr[k] = v ? new Date().toISOString() : undefined;
+      for (const [k, obj] of Object.entries(b.hide || {})) { if (!/^[a-z]{2,20}$/.test(k)) continue; pr.hide[k] = pr.hide[k] || {}; for (const [id, sig] of Object.entries(obj || {})) { if (!PART_RE.test(id)) continue; if (sig === null) delete pr.hide[k][id]; else pr.hide[k][id] = clip(sig, 40); } const e = Object.entries(pr.hide[k]); if (e.length > 800) pr.hide[k] = Object.fromEntries(e.slice(-800)); }
+      if (b.reset) pr.hide = {}, pr.clr = {};
+      await store.setJSON(key, pr); return json(200, { prefs: pr });
     }
     /* per-part history */
     if (seg[0] === 'audit' && seg.length === 2 && /^p[0-9a-f]{10}$|^general$/.test(seg[1]) && M === 'GET') {
@@ -738,7 +768,7 @@ export default async (req) => {
         for (const x of cl.filter((x) => ids.has(x.key.slice(6)))) { await store.delete(x.key); notes++; }
         const { blobs: rl } = await store.list({ prefix: 'release/' });
         for (const x of rl) { const q = parseId(x.key.slice(8)); if (q && ids.has(q.base)) await store.delete(x.key); }
-        for (const k of ['appr', 'fit']) await updMeta(store, k, (m) => { for (const id of Object.keys(m)) if (inScope(id)) delete m[id]; });
+        for (const k of ['appr', 'fit', 'done']) await updMeta(store, k, (m) => { for (const id of Object.keys(m)) if (inScope(id)) delete m[id]; });
         const ev = { at: new Date().toISOString(), by: me.name, u: me.u, scope: clip(b.scope, 160), parts: ids.size, reports, drafts, notes };
         await store.setJSON(`maint/${ev.at}-${crypto.randomBytes(3).toString('hex')}`, ev);
         return json(200, { ok: true, ...ev });

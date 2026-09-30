@@ -217,6 +217,15 @@ label.check{display:flex;gap:8px;align-items:center;margin-top:12px;font-size:14
 .printwrap{position:fixed;inset:0;z-index:95;background:#fff;overflow:auto}.printbar{position:sticky;top:0;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:calc(var(--safe-t) + 10px) 16px 10px;background:var(--navy);color:#fff}.printbar span{display:flex;gap:8px}.printbar .btn{flex:0 0 auto;padding:10px 16px}.printbar .btn.ghost{background:#fff;color:var(--navy);border-color:#fff}.fitc{box-shadow:inset 4px 0 0 #0b7fa6}
 .labels{display:grid;grid-template-columns:repeat(auto-fill,minmax(62mm,1fr));gap:4mm;padding:8mm}.label{display:flex;gap:3mm;align-items:center;border:1px dashed #9aa;border-radius:2mm;padding:2mm;break-inside:avoid}.label svg{width:24mm;height:24mm;flex:none}.label b{display:block;font:700 12pt Consolas,monospace;color:#000;word-break:break-all}.label span{display:block;font-size:9pt;color:#333}
 @media print{body.printing>*:not(.printwrap){display:none!important}.printbar{display:none}.printwrap{position:static}.label{border-color:#ccc}}
+.sec{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.secact{display:flex;gap:10px;text-transform:none;letter-spacing:0}
+.linkbtn{all:unset;cursor:pointer;color:var(--blue);font-size:13px;font-weight:600;text-decoration:underline}
+.hwrap{position:relative}.hwrap .item{width:100%;padding-right:34px}.ihide{all:unset;cursor:pointer;position:absolute;top:6px;right:8px;width:26px;height:26px;border-radius:50%;text-align:center;line-height:26px;font-size:18px;color:var(--muted);background:rgba(255,255,255,.9)}
+.thr{position:relative}.thx{position:absolute;top:6px;right:8px;font-size:16px;color:var(--muted);padding:2px 6px;border-radius:8px;cursor:pointer}.thx.sure{background:var(--chg);color:#fff;font-size:12px;font-weight:700}
+.sent.fittag{color:#fff;background:#0b7fa6}.sent.worktag{color:#fff;background:#c26a00}
+.wfcard{margin-top:12px;border-left:5px solid #d9a441}.wf-fit{border-left-color:#0b7fa6}.wf-final{border-left-color:#7a5cc2}.wf-done{border-left-color:var(--ok)}.wf-rej{border-left-color:var(--chg)}
+.wfbar{display:flex;gap:4px;margin-bottom:10px}.wfbar span{flex:1;font-size:10.5px;font-weight:700;text-align:center;padding:5px 2px;border-radius:6px;background:#eef3f6;color:#7c8f99}.wfbar span.on{background:var(--ok);color:#fff}.wfbar span.cur{background:#d9a441;color:#fff}
+.wfcard .seg button.s-ok[aria-pressed=true]{background:var(--ok);color:#fff;border-color:var(--ok)}.wfcard .seg button.s-chg[aria-pressed=true]{background:var(--chg);color:#fff;border-color:var(--chg)}
+.wfcard .linkbtn{display:block;margin:10px auto 0}.bc-wait{border-top:4px solid #d9a441}.bc-fit{border-top:4px solid #0b7fa6}.bc-final{border-top:4px solid #7a5cc2}.bc-done{border-top:4px solid var(--ok)}
 </style>
 </head>
 <body>
@@ -338,8 +347,8 @@ const PRIO = [["h","High"],["m","Medium"],["l","Low"]];
 const SL = Object.fromEntries(STATUS), PL = Object.fromEntries(PRIO);
 const BASE_PARTS = DATA.parts, BASE_VEH = DATA.veh;
 let PARTS = BASE_PARTS.slice(), VEH = {...BASE_VEH}, BYID = Object.fromEntries(PARTS.map(p=>[p.id,p]));
-let META = {partx:{},stock:{},dwg:{},appr:{},fit:{},veh:{}}, NCR_MINE=0, NCR_OPEN=0;
-function applyMeta(m){ META={partx:{},stock:{},dwg:{},appr:{},fit:{},veh:{},...(m||{})};
+let META = {partx:{},stock:{},dwg:{},appr:{},fit:{},veh:{},done:{}}, NCR_MINE=0, NCR_OPEN=0;
+function applyMeta(m){ META={partx:{},stock:{},dwg:{},appr:{},fit:{},veh:{},done:{},...(m||{})};
   VEH={...BASE_VEH,...META.veh}; const px=META.partx;
   PARTS=BASE_PARTS.filter(p=>!(px[p.id]&&px[p.id].hidden)).map(p=>px[p.id]?{...p,...Object.fromEntries(['n','v','c','t','img'].filter(k=>px[p.id][k]).map(k=>[k,px[p.id][k]]))}:p);
   for(const [id,x] of Object.entries(px)) if(x.custom&&!x.hidden&&!BASE_PARTS.some(b=>b.id===id)) PARTS.push({id,n:x.n,v:x.v,c:x.c||'Other',t:x.t||'P',s:'',d:1,img:x.img||NOIMG,custom:true});
@@ -373,7 +382,7 @@ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().cat
 /* ================= state ================= */
 let SESSION=null;           // {token, user:{u,name,role}}
 let DRAFTS={};              // partId -> {id,status,priority,note,resp,date,photos:[{id?,key,blob?}],updatedAt,dirty,queued}
-let SHARED={}, CLEARED={}, RELEASED={}, MAINT=null, UNREAD=0, PEOPLE=[], peopleAt=0, TEAM=[], online=navigator.onLine, lastSync=0, syncing=false;
+let SHARED={}, CLEARED={}, RELEASED={}, PREFS={clr:{},hide:{}}, MAINT=null, UNREAD=0, PEOPLE=[], peopleAt=0, TEAM=[], online=navigator.onLine, lastSync=0, syncing=false;
 
 /* ================= helpers ================= */
 const $=s=>document.querySelector(s);
@@ -430,14 +439,14 @@ async function sync(){
   try{
     for(const d of Object.values(DRAFTS).filter(x=>x.dirty)) await pushOne(d);
     const st=await api('state?used='+usedToday()); setOnline(true);
-    SHARED=st.parts||{}; applyMeta(st.meta); NCR_MINE=st.ncrMine||0; NCR_OPEN=st.ncrOpen||0; CLEARED=st.cleared||{}; MAINT=st.maint||null; RELEASED=st.released||{}; if((st.unread||0)>UNREAD&&view.name!=='thread') toast('💬 New message'); UNREAD=st.unread||0; TEAM=st.team||[]; setBadge(); SESSION.user=st.user; await dev.set('session',SESSION);
+    SHARED=st.parts||{}; applyMeta(st.meta); NCR_MINE=st.ncrMine||0; PREFS={clr:{},hide:{},...(st.prefs||{})}; NCR_OPEN=st.ncrOpen||0; CLEARED=st.cleared||{}; MAINT=st.maint||null; RELEASED=st.released||{}; if((st.unread||0)>UNREAD&&view.name!=='thread') toast('💬 New message'); UNREAD=st.unread||0; TEAM=st.team||[]; setBadge(); SESSION.user=st.user; await dev.set('session',SESSION);
     const server=Object.fromEntries((st.drafts||[]).map(d=>[d.id,d]));
     for(const id of Object.keys(DRAFTS)) if(!server[id]&&!DRAFTS[id].dirty){ await loc.delDraft(id); delete DRAFTS[id]; }   // sent or removed on another phone
     for(const s of Object.values(server)){ const l=DRAFTS[s.id]; if(l&&l.dirty) continue;
       const d={id:s.id,status:s.status,priority:s.priority,note:s.note,resp:s.resp,date:s.date,photos:(s.photos||[]).map(pid=>({id:pid,key:pid})),updatedAt:s.updatedAt,dirty:false,queued:l?l.queued:false};
       DRAFTS[s.id]=d; await loc.putDraft(d); }
     if(Date.now()-peopleAt>600000){ try{ PEOPLE=(await api('people')).people; peopleAt=Date.now(); await loc.set('people',PEOPLE); }catch(e){} }
-    await loc.set('shared',SHARED); await loc.set('cleared',CLEARED); await loc.set('maint',MAINT); await loc.set('released',RELEASED); await loc.set('meta',META); await loc.set('team',TEAM); lastSync=Date.now();
+    await loc.set('shared',SHARED); await loc.set('cleared',CLEARED); await loc.set('maint',MAINT); await loc.set('released',RELEASED); await loc.set('meta',META); await loc.set('prefs',PREFS); await loc.set('team',TEAM); lastSync=Date.now();
     if(['home','veh'].includes(view.name)&&!document.querySelector('input:focus,textarea:focus')) render();
     flushQueue();
   }catch(e){ if(e.status===0) setOnline(false); else console.warn(e); }
@@ -456,7 +465,7 @@ function shown(id){ const m=DRAFTS[id], s=SHARED[id];
 
 /* ================= session ================= */
 async function signIn(token,user){ SESSION={token,user}; await dev.set('session',SESSION); userp=null; DRAFTS={};
-  (await loc.drafts()).forEach(d=>DRAFTS[d.id]=d); SHARED=(await loc.get('shared'))||{}; CLEARED=(await loc.get('cleared'))||{}; MAINT=(await loc.get('maint'))||null; PEOPLE=(await loc.get('people'))||[]; peopleAt=0; RELEASED=(await loc.get('released'))||{}; applyMeta(await loc.get('meta')); TEAM=(await loc.get('team'))||[]; }
+  (await loc.drafts()).forEach(d=>DRAFTS[d.id]=d); SHARED=(await loc.get('shared'))||{}; CLEARED=(await loc.get('cleared'))||{}; MAINT=(await loc.get('maint'))||null; PEOPLE=(await loc.get('people'))||[]; peopleAt=0; RELEASED=(await loc.get('released'))||{}; applyMeta(await loc.get('meta')); PREFS=(await loc.get('prefs'))||{clr:{},hide:{}}; TEAM=(await loc.get('team'))||[]; }
 async function signOut(expired){ SESSION=null; userp=null; DRAFTS={}; SHARED={}; CLEARED={}; RELEASED={}; UNREAD=0; draft=null; await dev.del('session'); urlCache.clear();
   go({name:'home'},true); if(expired) toast('Please sign in again.'); }
 
@@ -471,11 +480,14 @@ const isEng=()=>!!SESSION&&SESSION.user.role==='engineer';
 const ROLE_L={mechanic:'Mechanic',engineer:'Engineering',admin:'Admin'};
 const waitingEng=id=>!!SHARED[id]&&!RELEASED[nextPart(getPart(id)).id]&&!(META.appr[id]&&META.appr[id].status==='rejected');   // sent, new revision not yet released in CAD
 function updSeen(){ try{ return localStorage.getItem('blixUpd::'+SESSION.user.u)||''; }catch(e){ return ''; } }
-function myUpdates(){ if(!SESSION) return []; const seen=updSeen(), out=[], cut=new Date(Date.now()-30*864e5).toISOString();
-  for(const [id,r] of Object.entries(RELEASED)){ const rev=getPart(id); if(!rev||r.at<cut) continue; const q=parseId(id), sh=SHARED[revId(q.base,q.k-1)];
-    if(sh&&sh.u===SESSION.user.u) out.push({rev,r,isNew:String(r.at)>seen}); }
-  for(const [id,ap] of Object.entries(META.appr||{})){ const sh=SHARED[id], p=getPart(id); if(!p||!sh||sh.u!==SESSION.user.u||ap.at<cut) continue; out.push({rev:p,r:ap,appr:ap.status,isNew:String(ap.at)>seen}); }
-  return out.sort((a,b)=>String(b.r.at).localeCompare(String(a.r.at))).slice(0,20); }
+function myUpdates(){ if(!SESSION) return []; const seen=updSeen(), out=[], cut=new Date(Date.now()-30*864e5).toISOString(), clr=(PREFS.clr||{}).updates||'', me=SESSION.user.u;
+  const add=(id,title,sub,at,cls)=>{ if(!at||at<cut||at<=clr) return; out.push({id,title,sub,at,cls,isNew:String(at)>seen}); };
+  const mineSent=rev=>{ const q=parseId(rev.id), sh=q&&SHARED[revId(q.base,q.k-1)]; return sh&&sh.u===me; };
+  if(isEng()){ for(const [id,f] of Object.entries(META.fit||{})){ const rev=getPart(id), fo=fitOf(id); if(!rev||!fo||META.done[id]) continue; add(id,fo.result==='ok'?`🔧 Fit check ${rev.n}: fits OK`:`⚠ Fit check ${rev.n}: extra work needed`,`${fo.by} · ${fmtDT(fo.at)}${fo.note?` – “${fo.note}”`:''}`,fo.at,fo.result==='ok'?'':'rej'); } }
+  else { for(const [id,r] of Object.entries(RELEASED)){ const rev=getPart(id); if(!rev||!mineSent(rev)) continue; add(id,`✓ ${rev.n} released in CAD – please check the fit`,`${r.by} · ${fmtDT(r.at)}${r.note?` – “${r.note}”`:''}`,r.at,''); }
+    for(const [id,d] of Object.entries(META.done||{})){ const rev=getPart(id); if(!rev||!mineSent(rev)) continue; add(id,`✓ ${rev.n} completed`,`${d.by} · ${fmtDT(d.at)}${d.note?` – “${d.note}”`:''}`,d.at,''); }
+    for(const [id,ap] of Object.entries(META.appr||{})){ const sh=SHARED[id], p=getPart(id); if(!p||!sh||sh.u!==me||ap.status!=='rejected') continue; add(id,`✗ Change on ${p.n} rejected`,`${ap.by} · ${fmtDT(ap.at)} – “${ap.reason}”`,ap.at,'rej'); } }
+  return out.sort((a,b)=>String(b.at).localeCompare(String(a.at))).slice(0,25); }
 const badgeCount=()=>UNREAD+myUpdates().filter(u=>u.isNew).length;
 const badgeHTML=()=>{ const n=badgeCount(); return n?`<span class="badge">${n>9?'9+':n}</span>`:''; };
 function setBadge(){ const m=$('#mail'); if(!m) return; const b=m.querySelector('.badge'); if(b) b.remove(); m.insertAdjacentHTML('beforeend',badgeHTML()); }
@@ -509,15 +521,17 @@ function renderHome(a){
   myDrafts().forEach(d=>{ const p=getPart(d.id); if(p) dr[p.v]=(dr[p.v]||0)+1; });
   const drafts=myDrafts().length, sentTotal=PARTS.filter(p=>SHARED[p.id]).length;
   const waiting=Object.keys(SHARED).filter(id=>getPart(id)&&waitingEng(id)).sort((x,y)=>String(SHARED[x].at).localeCompare(String(SHARED[y].at))), relN=Object.keys(RELEASED).filter(id=>getPart(id)).length;
-  const statHTML=isEng()?`<div class="stat" style="margin-top:0"><div><b>${waiting.length}</b><span>Waiting for you</span></div><div><b>${relN}</b><span>Released</span></div><div><b>${Object.keys(SHARED).length}</b><span>Reports</span></div></div>`
+  const statHTML=isEng()?`<div class="stat" style="margin-top:0"><div><b>${waiting.length}</b><span>To release</span></div><div><b>${Object.keys(META.fit).filter(id=>getPart(id)&&fitOf(id)&&RELEASED[id]&&!META.done[id]).length}</b><span>Final approval</span></div><div><b>${Object.keys(META.done).filter(id=>getPart(id)).length}</b><span>Completed</span></div></div>`
     :`<div class="stat" style="margin-top:0"><div><b>${drafts}</b><span>My drafts</span></div><div><b>${sentTotal}</b><span>Team sent</span></div><div><b>${PARTS.length-sentTotal}</b><span>To do</span></div></div>
-      ${Object.keys(SHARED).length?`<div class="engline">Engineering: <b>${relN}</b> released in CAD · <b>${waiting.length}</b> waiting</div>`:''}`;
-  const recent=Object.entries(SHARED).filter(([id,x])=>getPart(id)&&Date.now()-new Date(x.at)<14*864e5).sort((a,b)=>String(b[1].at).localeCompare(String(a[1].at))).slice(0,8).map(([id])=>id);
+      ${Object.keys(SHARED).length?`<div class="engline">Engineering: <b>${waiting.length}</b> waiting · <b>${Object.keys(RELEASED).filter(id=>getPart(id)&&!fitOf(id)&&!META.done[id]).length}</b> to fit-check · <b>${Object.keys(META.done).filter(id=>getPart(id)).length}</b> completed</div>`:''}`;
+  const recent=Object.entries(SHARED).filter(([id,x])=>getPart(id)&&Date.now()-new Date(x.at)<14*864e5).sort((a,b)=>String(b[1].at).localeCompare(String(a[1].at))).map(([id])=>id);
   const mine=myDrafts().filter(d=>getPart(d.id)).sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt)));
-  const waitHTML=isEng()?`<div class="section-t">In progress – changed, not released yet (${waiting.length})</div>${waiting.length?`<div class="list">${waiting.slice(0,30).map(id=>itemHTML(getPart(id))).join('')}</div>${waiting.length>30?`<p class="note">+ ${waiting.length-30} more – see the Change board.</p>`:''}`:'<div class="empty" style="padding:18px">Nothing waiting – all sent changes are released. 🎉</div>'}
-      ${Object.keys(RELEASED).length?`<div class="section-t">Recently released</div><div class="list">${Object.entries(RELEASED).filter(([id])=>getPart(id)).sort((a,b)=>String(b[1].at).localeCompare(String(a[1].at))).slice(0,5).map(([id])=>itemHTML(getPart(id))).join('')}</div>`:''}`
-    :`<div class="section-t">Work in progress – my drafts (${mine.length})</div>${mine.length?`<div class="list">${mine.slice(0,20).map(d=>itemHTML(getPart(d.id))).join('')}</div>${mine.length>20?`<p class="note">+ ${mine.length-20} more</p>`:''}`:'<div class="empty" style="padding:14px">No drafts open. Pick a vehicle below to start on a part.</div>'}
-      ${recent.length?`<div class="section-t">Recently changed by the team</div><div class="list">${recent.map(id=>itemHTML(getPart(id))).join('')}</div>`:''}`;
+  const fitNeed=Object.keys(RELEASED).filter(id=>getPart(id)&&!fitOf(id)&&!META.done[id]).sort((a,b)=>String(RELEASED[b].at).localeCompare(String(RELEASED[a].at)));
+  const toFinal=Object.keys(META.fit).filter(id=>getPart(id)&&fitOf(id)&&RELEASED[id]&&!META.done[id]).sort((a,b)=>String(fitOf(b).at).localeCompare(String(fitOf(a).at)));
+  const doneRecent=Object.entries(META.done).filter(([id,x])=>getPart(id)&&Date.now()-new Date(x.at)<30*864e5).sort((a,b)=>String(b[1].at).localeCompare(String(a[1].at))).map(([id])=>id);
+  const waitHTML=isEng()
+    ? secHTML('wait','To release in CAD',waiting,id=>SHARED[id].at,'Nothing waiting – all sent changes are released. 🎉')+secHTML('final','Fit checked – final approval',toFinal,id=>fitOf(id).at,'')+secHTML('done','Recently completed',doneRecent,id=>META.done[id].at,'')
+    : secHTML('fit','Fit check needed',fitNeed,id=>RELEASED[id].at,'')+secHTML('drafts','Work in progress – my drafts',mine.map(d=>d.id),id=>(DRAFTS[id]||{}).updatedAt,'No drafts open. Pick a vehicle below to start on a part.')+secHTML('recent','Recently changed by the team',recent,id=>SHARED[id].at,'');
   a.innerHTML=topbar('Parts Review',`Signed in as ${SESSION.user.name}`,false,`<div class="search"><input id="q" type="search" placeholder="Search part number in all vehicles…" enterkeyhint="search"></div>`)+
   `<main><div id="res"></div><div id="homebody">${maintNotice()}
    ${statHTML}
@@ -525,18 +539,18 @@ function renderHome(a){
    <p class="note">${lastSync?`Synced ${new Date(lastSync).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`:'Not synced yet'}</p>
   </div></main>
   ${isEng()?'':`<div class="bar"><button class="btn cyan" id="send" ${drafts?'':'disabled'}>Send to Engineering${drafts?` (${drafts})`:''}</button></div>`}`;
-  bindItems(a); bindTools(a);
+  bindItems(a); bindTools(a); bindSecs(a);
   a.querySelectorAll('.veh').forEach(b=>b.onclick=()=>go({name:'veh',vc:b.dataset.vc}));
   const mx=$('#mx'); if(mx) mx.onclick=()=>{ try{ localStorage.setItem('blixMaintSeen',MAINT.at); }catch(e){} $('#mnote').remove(); };
   const sb=$('#send'); if(sb) sb.onclick=()=>go({name:'send'});
   const q=$('#q'); q.oninput=()=>{ const t=q.value.trim().toUpperCase(); const res=$('#res'), hb=$('#homebody');
     if(t.length<2){res.innerHTML='';hb.hidden=false;return;} hb.hidden=true;
-    const hits=PARTS.filter(p=>p.n.toUpperCase().includes(t)).slice(0,60).flatMap(chain);
+    const hits=PARTS.filter(p=>p.n.toUpperCase().includes(t)).slice(0,60).flatMap(activeChain);
     res.innerHTML=hits.length?`<div class="list">${hits.map(itemHTML).join('')}</div>`:`<div class="empty">No part matches “${h(q.value)}”.</div>`; bindItems(res); };
 }
 const isStandalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
 function itemHTML(p){ const s=shown(p.id); const st=s&&s.status, rv=revOf(p);
-  const tag=(!s?'':s.draft?`<span class="sent" style="color:var(--wip);background:var(--wip-bg)">${s.queued?'Waiting to send':'My draft'}</span>`:`<span class="sent">🔒 Sent · ${h(s.by)} · ${ddmm(s.at)}</span>`)+(s&&s.sent?(RELEASED[nextPart(p).id]?`<span class="sent reltag">✓ ${h(nextPart(p).n)} released</span>`:engTag(p)):'')+(rv&&!(s&&s.sent)?(RELEASED[p.id]?`<span class="sent reltag">✓ Released in CAD</span>`:`<span class="sent rvtag">New revision</span>`):'')+(!(s&&s.sent)&&CLEARED[baseOf(p)]&&!SHARED[revId(baseOf(p),revOf(p)+1)]?`<span class="sent clrtag">⟲ Cleared ${ddmm(CLEARED[baseOf(p)].at)}</span>`:'');
+  const tag=(!s?'':s.draft?`<span class="sent" style="color:var(--wip);background:var(--wip-bg)">${s.queued?'Waiting to send':'My draft'}</span>`:`<span class="sent">🔒 Sent · ${h(s.by)} · ${ddmm(s.at)}</span>`)+(s&&s.sent?wfTag(nextPart(p),true):'')+(rv&&!(s&&s.sent)?wfTag(p,false):'')+(!(s&&s.sent)&&CLEARED[baseOf(p)]&&!SHARED[revId(baseOf(p),revOf(p)+1)]?`<span class="sent clrtag">⟲ Cleared ${ddmm(CLEARED[baseOf(p)].at)}</span>`:'');
   return `<button class="item ${st?'s-'+st:''}${rv?' rev':''}${s&&s.sent?' locked':''}" data-id="${p.id}"><img src="${p.img}" alt="" loading="lazy"><span class="t"><span class="pn">${h(p.n)}</span><span class="m">${p.v} · ${h(p.c)}${p.t==='A'?' · Assembly':''}</span>${st?`<span class="pill">${SL[st]}</span>`:''}${tag}</span>${s&&s.photos?`<span class="cam">📷 ${s.photos}</span>`:''}</button>`; }
 function bindItems(root){ root.querySelectorAll('.item[data-id]').forEach(b=>b.onclick=()=>go({name:'part',id:b.dataset.id})); }
 
@@ -544,9 +558,9 @@ let vehFilter='all';
 function renderVeh(a){
   const vc=view.vc, list=PARTS.filter(p=>p.v===vc);
   a.innerHTML=topbar(vc,VEH[vc],true,`<div class="search"><input id="q" type="search" placeholder="Search in ${h(vc)}…" enterkeyhint="search"></div>`)+
-   `<div class="chips">${[['all','All'],['todo','To do'],...(isEng()?[]:[['mine','My drafts']]),['sent','Sent'],['wait','Waiting for Eng.'],['rel','Released'],['myp','My parts'],['late','Overdue'],...STATUS].map(([k,l])=>`<button class="chip" data-f="${k}" aria-pressed="${vehFilter===k}">${l}</button>`).join('')}</div><main id="lst"></main>`;
+   `<div class="chips">${[['all','All'],['todo','To do'],...(isEng()?[]:[['mine','My drafts']]),['sent','Sent'],['wait','Waiting for Eng.'],['fitc','Fit check'],['done','Completed'],['myp','My parts'],['late','Overdue'],...STATUS].map(([k,l])=>`<button class="chip" data-f="${k}" aria-pressed="${vehFilter===k}">${l}</button>`).join('')}</div><main id="lst"></main>`;
   const draw=()=>{ const t=$('#q').value.trim().toUpperCase(); let rows=list.filter(p=>!t||p.n.toUpperCase().includes(t));
-    rows=rows.flatMap(chain).filter(p=>{const e=shown(p.id); if(vehFilter==='all')return true; if(vehFilter==='wait')return waitingEng(p.id); if(vehFilter==='myp'){ const x=SHARED[p.id]; return !!x&&x.responsible===SESSION.user.name; } if(vehFilter==='late') return isOverdue(p.id); if(vehFilter==='rel')return revOf(p)>0&&!!RELEASED[p.id]; if(vehFilter==='todo')return !e; if(vehFilter==='mine')return e&&e.draft; if(vehFilter==='sent')return e&&e.sent; return e&&e.status===vehFilter;});
+    rows=rows.flatMap(activeChain).filter(p=>{const e=shown(p.id); if(vehFilter==='all')return true; if(vehFilter==='wait')return waitingEng(p.id); if(vehFilter==='myp'){ const x=SHARED[p.id]; return !!x&&x.responsible===SESSION.user.name; } if(vehFilter==='late') return isOverdue(p.id); if(vehFilter==='fitc')return revOf(p)>0&&!!RELEASED[p.id]&&!fitOf(p.id); if(vehFilter==='done')return !!META.done[p.id]; if(vehFilter==='todo')return !e; if(vehFilter==='mine')return e&&e.draft; if(vehFilter==='sent')return e&&e.sent; return e&&e.status===vehFilter;});
     let html='',cat=null; rows.forEach(p=>{ if(p.c!==cat){ if(cat!==null) html+='</div>'; cat=p.c; const sentIn=list.filter(q=>q.c===cat&&SHARED[q.id]).length; html+=`<div class="cat"><span>${h(cat)}</span>${SESSION.user.role==='admin'&&sentIn?`<button class="catclr" data-cat="${h(cat)}">Clear section</button>`:''}</div><div class="list">`; } html+=itemHTML(p); }); if(cat!==null) html+='</div>';
     $('#lst').innerHTML=html||'<div class="empty">No parts match this filter.</div>'; bindItems($('#lst'));
     $('#lst').querySelectorAll('.catclr').forEach(b=>b.onclick=()=>{ const ps=list.filter(q=>q.c===b.dataset.cat&&SHARED[q.id]); openClear(ps.map(q=>({p:q,from:0})),`${vc} · section “${b.dataset.cat}” – ${ps.length} part${ps.length>1?'s':''} with sent changes`); }); };
@@ -565,7 +579,7 @@ function renderPart(a){
   a.innerHTML=topbar(p.n,`${p.v} · ${p.c}`,true)+`<main>
    <div class="hero"><img src="${p.img}" alt="Preview of ${h(p.n)}"><div class="info"><div class="pn">${h(p.n)}</div><div class="m">${h(VEH[p.v])} · ${h(p.c)} · ${p.t==='A'?'Assembly':'Part'}${revOf(p)?` · Revision of ${h(BYID[p.base].n)}`:(p.s?' · '+h(p.s):'')}</div></div></div>
    ${clearedHTML(p)}
-   ${revOf(p)?`<div class="card" style="margin-top:12px;border-left:5px solid var(--cyan)"><b>New revision ${h(p.n)}</b><div class="note" style="margin:4px 0 0">Created after the change below was sent. The picture shows the original part.</div>${RELEASED[p.id]?`<div class="relbadge">✓ Released in CAD · ${h(RELEASED[p.id].by)} · ${fmtDT(RELEASED[p.id].at)}${RELEASED[p.id].note?` – “${h(RELEASED[p.id].note)}”`:''}</div>`:''}${historyHTML(p)}</div>`:''}
+   ${revOf(p)?`<div class="card" style="margin-top:12px;border-left:5px solid var(--cyan)"><b>New revision ${h(p.n)}</b><div class="note" style="margin:4px 0 0">Created after the change below was sent. The picture shows the original part.</div>${historyHTML(p)}</div>${wfHTML(p)}`:''}
    ${mine?`<div class="note" style="margin-top:10px">📝 Your draft · last saved ${new Date(mine.updatedAt).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).replace(/\//g,'-')}${mine.dirty?' · not synced yet':' · saved to your account'}</div>`:''}
    <div class="field"><span class="lab">Status</span><div class="seg" id="st">${STATUS.map(([k,l])=>`<button class="s-${k}" data-v="${k}" aria-pressed="${draft.status===k}">${l}</button>`).join('')}</div></div>
    <div class="field"><span class="lab">Photos</span><div class="photos" id="ph"></div></div>
@@ -574,7 +588,7 @@ function renderPart(a){
    <div class="field"><label for="resp">Responsible</label><select id="resp"><option value="">— Choose a person —</option>${team.map(n=>`<option ${n===draft.resp?'selected':''}>${h(n)}</option>`).join('')}</select></div>
    <div class="field"><label for="date">Planned date</label><input class="txt" id="date" type="date" min="${todayISO()}" max="${LAST_DATE}" value="${h(draft.date||'')}"><div class="note">Tap to open the calendar · workdays (Mon–Fri) until ${fmtD(LAST_DATE)}.</div></div>
    ${mine?`<div class="field"><div id="delzone"><button class="btn danger" id="del" style="display:block">Remove my draft</button></div></div>`:''}
-   ${fittedHTML(p)}${partExtrasHTML(p)}
+   ${partExtrasHTML(p)}
    <div class="field"><button class="btn ghost" id="disc" style="display:block;width:100%">💬 Discuss this part</button></div>
    ${revOf(p)?`<div class="field"><button class="btn ghost dangerline" id="clr" style="display:block;width:100%">Clear changes…</button></div>`:''}
   </main><div class="bar"><button class="btn ghost" id="cancel" style="flex:0 0 auto;padding:14px 18px">Cancel</button><button class="btn" id="save">Save draft</button></div>`;
@@ -584,7 +598,7 @@ function renderPart(a){
     $('#ph').querySelectorAll('img[data-i]').forEach(async im=>{ im.onclick=()=>markPh(+im.dataset.i); im.src=await photoURL(draft.photos[+im.dataset.i])||''; });
     $('#ph').querySelectorAll('.ph button').forEach(b=>b.onclick=()=>{draft.photos.splice(+b.dataset.i,1);drawPh();});
     $('#take').onclick=()=>$('#camIn').click(); $('#pick').onclick=()=>$('#galIn').click(); };
-  drawPh(); bindHist(a); $('#disc').onclick=()=>{ draft=null; discuss(p); }; bindPartExtras(p,a); bindFitted(p,a); const cb=$('#clr'); if(cb) cb.onclick=()=>openClear([{p:BYID[baseOf(p)],from:0}],BYID[baseOf(p)].n);
+  drawPh(); bindHist(a); $('#disc').onclick=()=>{ draft=null; discuss(p); }; bindPartExtras(p,a); if(revOf(p)) bindWf(p,a); const cb=$('#clr'); if(cb) cb.onclick=()=>openClear([{p:BYID[baseOf(p)],from:0}],BYID[baseOf(p)].n);
   const onFiles=async files=>{ for(const f of files){ try{ draft.photos.push({key:rid(),blob:await compress(f)}); }catch(err){ toast("This photo couldn't be read. Try another one."); } } drawPh();
     if(files.length===1&&draft.photos.length) await markPh(draft.photos.length-1); else if(files.length>1) toast('Tap a photo to draw on it'); };
   $('#camIn').onchange=ev=>{onFiles([...ev.target.files]);ev.target.value='';}; $('#galIn').onchange=ev=>{onFiles([...ev.target.files]);ev.target.value='';};
@@ -651,15 +665,15 @@ function renderLocked(a,p,sh){ const nx=nextPart(p), nxLocked=!!SHARED[nx.id];
    <div class="hero"><img src="${p.img}" alt="Preview of ${h(p.n)}"><div class="info"><div class="pn">${h(p.n)}</div><div class="m">${h(VEH[p.v])} · ${h(p.c)} · ${p.t==='A'?'Assembly':'Part'}${revOf(p)?` · Revision of ${h(BYID[p.base].n)}`:''}</div></div></div>
    <div class="card lockcard"><b>🔒 Sent and locked</b><div class="note" style="margin:4px 0 0">${h(sh.by)} sent this part to Engineering on ${fmtDate(sh.at)}. It can't be changed any more.</div>
     <div class="cred" style="margin-top:10px"><div>Status</div><b style="font-family:inherit">${h(sh.status||'–')}</b>${sh.note?`<div>Change</div><b style="font-family:inherit;font-weight:500">${h(sh.note)}</b>`:''}${sh.priority?`<div>Priority</div><b style="font-family:inherit">${h(sh.priority)}</b>`:''}${sh.responsible?`<div>Responsible</div><b style="font-family:inherit">${h(sh.responsible)}</b>`:''}${sh.date?`<div>Planned</div><b style="font-family:inherit">${h(sh.date)}</b>`:''}<div>Photos</div><b style="font-family:inherit">${sh.photos||0} (in the e-mail)</b></div></div>
-   ${apprHTML(p)}${engHTML(nx)}
+   ${wfHTML(nx)}
    <div class="field"><button class="btn" id="nx" style="display:block;width:100%">${nxLocked?`Go to ${h(nx.n)}`:`Open new revision ${h(nx.n)}`}</button></div>
    ${revOf(p)?`<div class="section-t">Earlier revisions</div>${historyHTML(p)}`:''}
    ${clearedHTML(p)}
-   ${fittedHTML(p)}${partExtrasHTML(p)}
+   ${partExtrasHTML(p)}
    <div class="field"><button class="btn ghost" id="disc" style="display:block;width:100%">💬 Discuss this part</button></div>
    <div class="field"><button class="btn ghost dangerline" id="clr" style="display:block;width:100%">Clear changes…</button><div class="note">Change not correct? Clear it, unlock the part and make the right change. Engineering is notified.</div></div>
   </main>`;
-  $('#nx').onclick=()=>go({name:'part',id:nx.id}); bindHist(a); bindEng(nx,a); bindAppr(p,a); $('#disc').onclick=()=>discuss(p); bindPartExtras(p,a); bindFitted(p,a);
+  $('#nx').onclick=()=>go({name:'part',id:nx.id}); bindHist(a); bindWf(nx,a); $('#disc').onclick=()=>discuss(p); bindPartExtras(p,a);
   $('#clr').onclick=()=>openClear([{p:BYID[baseOf(p)],from:0}],BYID[baseOf(p)].n);
 }
 
@@ -667,12 +681,12 @@ function renderEngOpen(a,p){ const rv=revOf(p);
   a.innerHTML=topbar(p.n,`${p.v} · ${p.c}`,true)+`<main>
    <div class="hero"><img src="${p.img}" alt="Preview of ${h(p.n)}"><div class="info"><div class="pn">${h(p.n)}</div><div class="m">${h(VEH[p.v])} · ${h(p.c)} · ${p.t==='A'?'Assembly':'Part'}${rv?` · Revision of ${h(BYID[p.base].n)}`:''}</div></div></div>
    ${clearedHTML(p)}
-   ${rv?`${engHTML(p)}<div class="section-t">Changes that led to this revision</div>${historyHTML(p)}`:`<div class="card" style="margin-top:12px"><b>No report yet</b><div class="note" style="margin:4px 0 0">The mechanics haven't sent a change for this part.</div></div>`}
-   ${fittedHTML(p)}${partExtrasHTML(p)}
+   ${rv?`${wfHTML(p)}<div class="section-t">Changes that led to this revision</div>${historyHTML(p)}`:`<div class="card" style="margin-top:12px"><b>No report yet</b><div class="note" style="margin:4px 0 0">The mechanics haven't sent a change for this part.</div></div>`}
+   ${partExtrasHTML(p)}
    <div class="field"><button class="btn ghost" id="disc" style="display:block;width:100%">💬 Message a mechanic about this part</button></div>
    ${rv?`<div class="field"><button class="btn ghost dangerline" id="clr" style="display:block;width:100%">Clear changes…</button></div>`:''}
   </main>`;
-  bindHist(a); bindEng(p,a); $('#disc').onclick=()=>discuss(p); bindPartExtras(p,a); bindFitted(p,a); const cb=$('#clr'); if(cb) cb.onclick=()=>openClear([{p:BYID[baseOf(p)],from:0}],BYID[baseOf(p)].n); }
+  bindHist(a); if(rv) bindWf(p,a); $('#disc').onclick=()=>discuss(p); bindPartExtras(p,a); const cb=$('#clr'); if(cb) cb.onclick=()=>openClear([{p:BYID[baseOf(p)],from:0}],BYID[baseOf(p)].n); }
 
 let sending=false;
 function renderSend(a){
@@ -809,13 +823,17 @@ async function renderInbox(a){
   const ups=myUpdates();
   a.innerHTML=topbar('Messages','Chat about parts and changes',true)+`<main>
    <button class="btn" id="nm" style="display:block;width:100%">✉ New message</button>
-   ${ups.length?`<div class="section-t">Updates from Engineering</div><div class="updlist">${ups.map(u=>`<button class="upd${u.isNew?' new':''}${u.appr==='rejected'?' rej':''}" data-id="${u.rev.id}"><b>${u.appr?(u.appr==='approved'?`✓ Change on ${h(u.rev.n)} approved`:`✗ Change on ${h(u.rev.n)} rejected`):`✓ ${h(u.rev.n)} released in CAD`}</b><span>${h(u.r.by)} · ${fmtDT(u.r.at)}${u.r.note?` – “${h(u.r.note)}”`:''}</span></button>`).join('')}</div>`:''}
-   <div class="section-t">Conversations</div><div id="thl"><div class="note">Loading…</div></div></main>`;
+   ${ups.length?`<div class="section-t sec"><span>${isEng()?'Updates from the workshop':'Updates from Engineering'}</span><span class="secact"><button class="linkbtn" id="updclr">Clear updates</button></span></div><div class="updlist">${ups.map(u=>`<button class="upd${u.isNew?' new':''}${u.cls?' '+u.cls:''}" data-id="${u.id}"><b>${h(u.title)}</b><span>${h(u.sub)}</span></button>`).join('')}</div>`:''}
+   <div class="section-t sec"><span>Conversations</span><span class="secact"><button class="linkbtn" id="thclr" hidden>Clear read conversations</button></span></div><div id="thl"><div class="note">Loading…</div></div></main>`;
+  const uc=$('#updclr'); if(uc) uc.onclick=()=>savePrefs({clr:{updates:true}});
   try{ localStorage.setItem('blixUpd::'+SESSION.user.u,new Date().toISOString()); }catch(e){}
   $('#nm').onclick=()=>go({name:'newmsg'}); a.querySelectorAll('.upd').forEach(b=>b.onclick=()=>go({name:'part',id:b.dataset.id}));
   try{ const r=await api('threads'); const el=$('#thl'); if(!el) return; UNREAD=r.threads.filter(t=>t.unread).length;
     el.innerHTML=r.threads.map(t=>`<button class="thr${t.unread?' unread':''}" data-id="${t.id}"><span class="av">${h(initials(others(t)[0]))}</span><span class="tt"><span class="tn">${h(others(t).join(', '))}${t.part?` <span class="pchip">${h(t.part.name)}</span>`:''}</span><span class="tl">${t.last?`${t.last.u===SESSION.user.u?'You: ':''}${h(t.last.text)}`:'No messages yet'}</span></span><span class="tm">${t.last?tstamp(t.last.at):''}${t.unread?'<i></i>':''}</span></button>`).join('')||'<div class="empty" style="padding:18px">No conversations yet. Start one with “New message”, or from a part with “💬 Discuss this part”.</div>';
-    el.querySelectorAll('.thr').forEach(b=>b.onclick=()=>go({name:'thread',id:b.dataset.id})); }
+    el.querySelectorAll('.thr').forEach(b=>{ b.onclick=()=>go({name:'thread',id:b.dataset.id}); const x=document.createElement('span'); x.className='thx'; x.setAttribute('role','button'); x.setAttribute('aria-label','Remove conversation'); x.textContent='×';
+      x.onclick=async e=>{ e.stopPropagation(); if(!x.dataset.sure){ x.dataset.sure=1; x.textContent='Remove?'; x.classList.add('sure'); setTimeout(()=>{ if(x.isConnected){ delete x.dataset.sure; x.textContent='×'; x.classList.remove('sure'); } },4000); return; } try{ await api('threads/'+b.dataset.id,{method:'DELETE'}); b.remove(); toast('Conversation removed'); }catch(err){ toast(err.message); } }; b.appendChild(x); });
+    const tc=$('#thclr'), read=r.threads.filter(t=>!t.unread); if(tc&&read.length){ tc.hidden=false; tc.textContent=`Clear read conversations (${read.length})`; tc.onclick=async()=>{ if(!tc.dataset.sure){ tc.dataset.sure=1; tc.textContent='Tap again to clear'; return; } for(const t of read){ try{ await api('threads/'+t.id,{method:'DELETE'}); }catch(e){} } toast('Read conversations cleared'); renderInbox(a); bind(); }; }
+    translateUI(el); }
   catch(e){ const el=$('#thl'); if(el) el.innerHTML=`<div class="note" style="color:var(--chg)">${h(e.message)}</div>`; }
 }
 async function renderNewMsg(a){
@@ -888,7 +906,8 @@ async function downloadOverview(ps,btn){
     const sheetRows=[{h:30,cells:[{v:title,s:4}]},{h:26,cells:hdr.map(v=>({v,s:1}))}], images=[]; const day=iso=>iso?X.dateSerial(new Date(iso).toLocaleDateString('sv-SE')):null;
     for(let i=0;i<rows.length;i++){ const p=rows[i], sh=SHARED[p.id], rv=revOf(p), nx=nextPart(p), rel=RELEASED[p.id], nrel=RELEASED[nx.id], cl=!sh&&!SHARED[nx.id]?CLEARED[baseOf(p)]:null;
       if(i%25===0){ btn.textContent=`Building… ${Math.round(i/rows.length*100)}%`; await new Promise(r=>setTimeout(r)); }
-      const state=sh?(nrel?`Sent – ${nx.n} released`:'Sent – waiting for Engineering'):(rv?(rel?'Released in CAD – open':'New revision – open'):'Open – to do');
+      const WL={wait:'waiting for Engineering',rej:'rejected',fit:'released – fit check',final:'fit checked – final approval',done:'completed'}, wN=sh?wfState(nx):null, wS=rv?wfState(p):null;
+      const state=sh?`Sent – ${nx.n} ${WL[wN&&wN.st]||''}`:(rv?`Revision – ${WL[wS&&wS.st]||'open'}`:'Open – to do');
       const c=[{v:p.v,s:3},{v:p.c,s:0},{v:p.n,s:3},{v:p.t==='A'?'Assembly':'Part',s:0},{v:rv?BYID[p.base].n:'',s:0},{v:state,s:0},{v:sh?sh.status||'':'',s:3},{v:sh?sh.priority||'':'',s:0},{v:sh?sh.note||'':'',s:0},{v:sh?sh.responsible||'':'',s:0},
         sh&&sh.dateIso?{v:X.dateSerial(sh.dateIso),t:'d',s:2}:{s:0},{v:sh?sh.by:'',s:0},sh?{v:day(sh.at),t:'d',s:2}:{s:0},{v:sh?nx.n:'',s:0},
         (sh?nrel:rel)?{v:day((sh?nrel:rel).at),t:'d',s:2}:{s:0},{v:(sh?nrel:rel)?(sh?nrel:rel).by:'',s:0},{v:cl?`${fmtDT(cl.at)} by ${cl.by} – ${cl.reason}`:'',s:0}];
@@ -943,7 +962,7 @@ async function renderSettings(a){
     ${EA()?`<div class="setrow"><span>Parts (add / edit / import)</span><button class="btn ghost" id="toparts" style="flex:0 0 auto;padding:10px 14px">Open</button></div>`:''}
     ${adm?`<div class="setrow"><span>Server requests (Netlify credits)<br><span class="note" style="margin:0" id="usage">Loading…</span></span></div><div class="setrow"><span>Overdue summary e-mail<br><span class="note" style="margin:0">Also sent automatically every Monday</span></span><button class="btn ghost" id="ovd" style="flex:0 0 auto;padding:10px 14px">Send now</button></div>`:''}
     <div class="setrow"><span>This phone today</span><b>${usedToday()} server requests</b></div>
-    <div class="setrow"><span>App version</span><b>v13 · ${PARTS.length} parts · ${Object.keys(VEH).length} vehicles</b></div></div>
+    <div class="setrow"><span>App version</span><b>v14 · ${PARTS.length} parts · ${Object.keys(VEH).length} vehicles</b></div></div>
   </main>`;
   $('#dv').onchange=e=>{ dlVeh=e.target.value; dlCat=''; renderSettings(a); bind(); };
   $('#dc').onchange=e=>{ dlCat=e.target.value; renderSettings(a); bind(); };
@@ -1180,17 +1199,74 @@ function toolsHTML(){ const t=[['ncr','⚠️','Problems',NCR_MINE?`${NCR_MINE} 
   return `<div class="section-t">Workshop & Engineering</div><div class="tgrid">${t.map(([k,i,l,b])=>`<button class="tile" data-go="${k}"><span class="ti">${i}</span><span class="tl">${l}</span>${b?`<span class="tb">${h(b)}</span>`:''}</button>`).join('')}</div>`; }
 function bindTools(a){ a.querySelectorAll('.tile[data-go]').forEach(b=>b.onclick=()=>go({name:b.dataset.go})); }
 
+
+/* ---------- v14 workflow: send → release in CAD → fit check (workshop) → final approval (Engineering) → completed ---------- */
+function fitOf(id){ const f=META.fit[id]; if(!f) return null; if(Array.isArray(f)) return f.length?{result:'ok',...f[f.length-1]}:null; return f; }
+function wfState(rev){ if(!rev||!revOf(rev)) return null; const prev=revId(baseOf(rev),revOf(rev)-1), sh=SHARED[prev]; if(!sh) return null;
+  const a=META.appr[prev]; if(a&&a.status==='rejected') return {st:'rej',a,prev,sh};
+  const rel=RELEASED[rev.id]; if(!rel) return {st:'wait',prev,sh};
+  const fit=fitOf(rev.id), done=META.done[rev.id];
+  if(done) return {st:'done',rel,fit,done,prev,sh}; if(fit) return {st:'final',rel,fit,prev,sh}; return {st:'fit',rel,prev,sh}; }
+function activeChain(p){ return chain(p).filter(q=>!(SHARED[q.id]&&META.done[nextPart(q).id])); }
+function wfTag(rev,onLocked){ const w=wfState(rev); if(!w) return onLocked?'':`<span class="sent rvtag">New revision</span>`;
+  const late=onLocked&&w.st==='wait'&&isOverdue(w.prev)?`<span class="sent latetag">Overdue</span>`:'';
+  const t=w.st==='wait'?`<span class="sent waittag">⏳ Engineering</span>`:w.st==='rej'?`<span class="sent rejtag">✗ Rejected</span>`:w.st==='fit'?`<span class="sent fittag">🔧 Fit check${onLocked?' '+h(rev.n):''}</span>`
+    :w.st==='final'?(w.fit.result==='ok'?`<span class="sent apptag">✓ Fits · final approval</span>`:`<span class="sent worktag">⚠ Extra work · Engineering</span>`):`<span class="sent reltag">✓ Completed</span>`;
+  return t+late; }
+function wfHTML(rev){ const w=wfState(rev); if(!w) return ''; const E=isEng(), M=!isEng()&&SESSION.user.u!=='admin';
+  const steps=['Sent','Released in CAD','Fit check','Final approval'], at={wait:1,rej:1,fit:2,final:3,done:4}[w.st];
+  const bar=`<div class="wfbar">${steps.map((t,i)=>`<span class="${i<at?'on':''}${i===at&&w.st!=='done'&&w.st!=='rej'?' cur':''}">${t}</span>`).join('')}</div>`;
+  let body='';
+  if(w.st==='rej') body=`<b>✗ Change rejected by Engineering</b><div class="note" style="margin:4px 0 0">${h(w.a.by)} · ${fmtDT(w.a.at)} – “${h(w.a.reason)}”</div>${E?`<button class="btn ghost" id="wfunrej" style="display:block;width:100%;margin-top:10px">Undo rejection</button>`:''}`;
+  else if(w.st==='wait') body=`<b>⏳ Waiting for Engineering</b><div class="note" style="margin:4px 0 0">${h(rev.n)} has to be made and released in CAD.</div>${E?`<div class="field" style="margin-top:10px"><label for="wfnote">Note (optional)</label><input class="txt" id="wfnote" placeholder="e.g. hole changed to Ø10, drawing updated"></div>
+      <button class="btn" id="wfrel" style="display:block;width:100%;margin-top:10px;background:var(--ok)">Release ${h(rev.n)} in CAD</button><button class="linkbtn" id="wfrejopen">No change needed? Reject…</button><div id="wfrejbox" hidden><div class="field"><label for="wfrej">Reason</label><textarea id="wfrej" placeholder="Why is no change needed?"></textarea></div><button class="btn" id="wfrejgo" style="display:block;width:100%;background:var(--chg)">Reject change</button></div>`:''}`;
+  else if(w.st==='fit') body=`<b>✓ Released in CAD – fit check needed</b><div class="note" style="margin:4px 0 0">${h(w.rel.by)} · ${fmtDT(w.rel.at)}${w.rel.note?` – “${h(w.rel.note)}”`:''}</div>
+      ${M?`<div class="note">When you work with ${h(rev.n)}: does it fit?</div><div class="seg" id="wfres"><button data-v="ok" class="s-ok">✓ Fits OK</button><button data-v="work" class="s-chg">⚠ Extra work needed</button></div>
+      <div class="field"><label for="wfnote">Note</label><textarea id="wfnote" placeholder="Required for extra work: what has to change?"></textarea></div><div class="field"><label for="wfch">Chassis no. (optional)</label><input class="txt" id="wfch" autocapitalize="characters"></div>
+      <button class="btn" id="wffit" style="display:block;width:100%;margin-top:10px">Send fit check to Engineering</button>`:`<div class="note">Waiting for the workshop to check the fit.</div>`}${E?`<button class="btn ghost" id="wfunrel" style="display:block;width:100%;margin-top:10px">Undo release</button>`:''}`;
+  else if(w.st==='final') body=`<b>${w.fit.result==='ok'?'✓ Fit check: fits OK':'⚠ Fit check: extra work needed'}</b><div class="note" style="margin:4px 0 0">${h(w.fit.by)} · ${fmtDT(w.fit.at)}${w.fit.chassis?' · chassis '+h(w.fit.chassis):''}${w.fit.note?` – “${h(w.fit.note)}”`:''}</div>
+      ${E?`<div class="field" style="margin-top:10px"><label for="wfnote">Note (optional)</label><input class="txt" id="wfnote" placeholder="${w.fit.result==='ok'?'e.g. all good':'e.g. extra work done, drawing updated'}"></div>
+      <button class="btn" id="wfdone" style="display:block;width:100%;margin-top:10px;background:var(--ok)">Final approval – drawing, CAD & fitment OK</button><button class="btn ghost" id="wfrecheck" style="display:block;width:100%;margin-top:8px">Ask the workshop for a new fit check</button>`:`<div class="note">Waiting for the final approval of Engineering.</div>`}`;
+  else body=`<b>✓ Completed</b><div class="note" style="margin:4px 0 0">Final approval by ${h(w.done.by)} · ${fmtDT(w.done.at)}${w.done.note?` – “${h(w.done.note)}”`:''}<br>Fit check: ${w.fit?(w.fit.result==='ok'?'fits OK':'extra work – '+h(w.fit.note)):'–'}${w.fit?` (${h(w.fit.by)})`:''}</div>${E?`<button class="btn ghost" id="wfundone" style="display:block;width:100%;margin-top:10px">Undo final approval</button>`:''}`;
+  return `<div class="card wfcard wf-${w.st}">${bar}${body}</div>`; }
+function bindWf(rev,a){ const w=wfState(rev); if(!w) return; const q=s=>a.querySelector(s), note=()=>(q('#wfnote')||{}).value||'';
+  const run=async(fn,msg)=>{ try{ await fn(); if(msg) toast(msg); await sync(); render(); }catch(e){ toast(e.message); } };
+  const twice=(b,fn)=>{ if(!b) return; b.onclick=()=>{ if(!b.dataset.sure){ b.dataset.sure=1; b.dataset.l=b.textContent; b.textContent='Tap again to confirm'; setTimeout(()=>{ if(b.isConnected){ delete b.dataset.sure; b.textContent=b.dataset.l; } },4000); return; } fn(); }; };
+  const r=q('#wfrel'); if(r) r.onclick=()=>run(async()=>{ const x=await api('release/'+rev.id,{method:'POST',body:{name:rev.n,note:note()}}); RELEASED[rev.id]=x.release; },`${rev.n} released – the workshop can check the fit`);
+  const ro=q('#wfrejopen'); if(ro) ro.onclick=()=>{ q('#wfrejbox').hidden=false; ro.hidden=true; q('#wfrej').focus(); };
+  const rg=q('#wfrejgo'); if(rg) rg.onclick=()=>run(async()=>{ const x=await api('appr/'+w.prev,{method:'POST',body:{status:'rejected',reason:q('#wfrej').value}}); META.appr[w.prev]=x.appr; },'Change rejected');
+  twice(q('#wfunrej'),()=>run(async()=>{ await api('appr/'+w.prev,{method:'DELETE'}); delete META.appr[w.prev]; },'Rejection undone'));
+  twice(q('#wfunrel'),()=>run(async()=>{ await api('release/'+rev.id,{method:'DELETE'}); delete RELEASED[rev.id]; },'Release undone'));
+  let res=''; a.querySelectorAll('#wfres button').forEach(b=>b.onclick=()=>{ res=b.dataset.v; a.querySelectorAll('#wfres button').forEach(x=>x.setAttribute('aria-pressed',x===b)); });
+  const f=q('#wffit'); if(f) f.onclick=()=>{ if(!res) return toast('Choose “Fits OK” or “Extra work needed”.'); run(async()=>{ const x=await api('fit/'+rev.id,{method:'POST',body:{result:res,note:note(),chassis:(q('#wfch')||{}).value||''}}); META.fit[rev.id]=x.fit; },'Fit check sent to Engineering'); };
+  const d=q('#wfdone'); if(d) d.onclick=()=>run(async()=>{ const x=await api('done/'+rev.id,{method:'POST',body:{note:note(),name:rev.n}}); META.done[rev.id]=x.done; },`${rev.n} completed`);
+  twice(q('#wfrecheck'),()=>run(async()=>{ await api('fit/'+rev.id,{method:'POST',body:{remove:true,note:note()}}); delete META.fit[rev.id]; },'New fit check requested'));
+  twice(q('#wfundone'),()=>run(async()=>{ await api('done/'+rev.id,{method:'DELETE'}); delete META.done[rev.id]; },'Final approval undone')); }
+
+/* ---------- home sections with Clear / hide (saved per account) ---------- */
+function secHidden(key,id,sig){ const hs=(PREFS.hide||{})[key]||{}, c=(PREFS.clr||{})[key]; return (hs[id]&&hs[id]===String(sig))||(c&&sig&&String(sig)<=c); }
+function secHTML(key,title,ids,sigOf,empty){ const vis=ids.filter(id=>!secHidden(key,id,sigOf(id))), hid=ids.length-vis.length;
+  if(!ids.length&&!empty) return '';
+  return `<div class="section-t sec"><span>${h(title)} (${vis.length})</span><span class="secact">${hid?`<button class="linkbtn" data-unhide="${key}">Show ${hid} hidden</button>`:''}${vis.length?`<button class="linkbtn" data-clr="${key}">Clear</button>`:''}</span></div>`+
+    (vis.length?`<div class="list">${vis.slice(0,30).map(id=>`<div class="hwrap">${itemHTML(getPart(id))}<button class="ihide" data-hide="${key}" data-id="${id}" data-sig="${h(String(sigOf(id)||''))}" aria-label="Hide from this list">×</button></div>`).join('')}</div>${vis.length>30?`<p class="note">+ ${vis.length-30} more</p>`:''}`
+      :`<div class="empty" style="padding:12px">${h(ids.length?'All cleared. New items will appear here.':empty)}</div>`); }
+async function savePrefs(patch){ try{ const r=await api('prefs',{method:'PUT',body:patch}); PREFS=r.prefs; await loc.set('prefs',PREFS); }catch(e){ toast(e.message); } render(); }
+function bindSecs(a){ a.querySelectorAll('[data-clr]').forEach(b=>b.onclick=()=>savePrefs({clr:{[b.dataset.clr]:true}}));
+  a.querySelectorAll('[data-unhide]').forEach(b=>b.onclick=()=>{ const k=b.dataset.unhide; savePrefs({clr:{[k]:false},hide:{[k]:Object.fromEntries(Object.keys((PREFS.hide||{})[k]||{}).map(id=>[id,null]))}}); });
+  a.querySelectorAll('.ihide').forEach(b=>b.onclick=e=>{ e.stopPropagation(); savePrefs({hide:{[b.dataset.hide]:{[b.dataset.id]:b.dataset.sig}}}); }); }
+
 /* ---------- change board ---------- */
 let boardVeh='';
-function boardData(){ const cols={new:[],appr:[],rel:[],fit:[],rej:[]};
-  for(const [id,s] of Object.entries(SHARED)){ const p=getPart(id); if(!p||(boardVeh&&p.v!==boardVeh)) continue; const nx=nextPart(p), a=META.appr[id], rel=RELEASED[nx.id], fit=(META.fit[nx.id]||[]).length;
-    const c=a&&a.status==='rejected'?'rej':fit?'fit':rel?'rel':a?'appr':'new'; cols[c].push({p,s,a,nx,rel,fit}); }
-  for(const k of Object.keys(cols)) cols[k].sort((x,y)=>String((x.a&&x.a.deadline)||x.s.dateIso||'9').localeCompare(String((y.a&&y.a.deadline)||y.s.dateIso||'9'))||String(x.s.at).localeCompare(String(y.s.at)));
-  return cols; }
-function renderBoard(a){ const cols=boardData(), L={new:'New – to review',appr:'Approved – in CAD',rel:'Released – to fit',fit:'Fitted – done',rej:'Rejected'};
-  a.innerHTML=topbar('Change board','From report to fitted on the vehicle',true)+`<main class="boardmain"><div class="field" style="margin-top:0"><select id="bveh"><option value="">All vehicles</option>${Object.keys(VEH).map(k=>`<option ${k===boardVeh?'selected':''}>${k}</option>`).join('')}</select></div>
-   <div class="board">${Object.entries(L).map(([k,l])=>`<section class="bcol bc-${k}"><h3>${l} <span>${cols[k].length}</span></h3>${cols[k].map(({p,s,a,nx,rel,fit})=>{ const dl=(a&&a.deadline)||s.dateIso||'', late=dl&&dl<todayISO()&&!rel&&k!=='rej';
-     return `<button class="bcard${late?' late':''}" data-id="${p.id}"><b>${h(p.n)}</b><span class="bm">${p.v} · ${h(s.status||'')}${s.priority?' · '+h(s.priority):''}</span>${s.note?`<span class="bn">${h(s.note)}</span>`:''}<span class="bf">${h(s.by)} · ${ddmm(s.at)}${dl?` · ${late?'⚠ ':''}due ${fmtD(dl)}`:''}${fit?` · 🚚 ${fit}`:''}</span></button>`; }).join('')||'<div class="bempty">—</div>'}</section>`).join('')}</div></main>`;
+function boardData(){ const cols={wait:[],fit:[],final:[],done:[],rej:[]};
+  for(const [id,sh] of Object.entries(SHARED)){ const p=getPart(id); if(!p||(boardVeh&&p.v!==boardVeh)) continue; const nx=nextPart(p), w=wfState(nx); if(!w) continue; cols[w.st].push({p,nx,w}); }
+  const t=x=>({wait:x.w.sh.at,fit:(x.w.rel||{}).at,final:(x.w.fit||{}).at,done:(x.w.done||{}).at,rej:(x.w.a||{}).at})[x.w.st]||'';
+  for(const k of Object.keys(cols)) cols[k].sort((x,y)=>k==='wait'?String(x.w.sh.dateIso||'9').localeCompare(String(y.w.sh.dateIso||'9'))||String(t(x)).localeCompare(String(t(y))):String(t(y)).localeCompare(String(t(x))));
+  cols.done=cols.done.slice(0,25); return cols; }
+function renderBoard(a){ const cols=boardData(), L={wait:'To release in CAD',fit:'Released – fit check',final:'Fit checked – final approval',done:'Completed',rej:'Rejected'};
+  a.innerHTML=topbar('Change board','From report to completed',true)+`<main class="boardmain"><div class="field" style="margin-top:0"><select id="bveh"><option value="">All vehicles</option>${Object.keys(VEH).map(k=>`<option ${k===boardVeh?'selected':''}>${k}</option>`).join('')}</select></div>
+   <div class="board">${Object.entries(L).map(([k,l])=>`<section class="bcol bc-${k}"><h3>${l} <span>${cols[k].length}</span></h3>${cols[k].map(({p,nx,w})=>{ const s=w.sh, dl=s.dateIso||'', late=k==='wait'&&dl&&dl<todayISO();
+     const sub=k==='fit'?`released ${ddmm(w.rel.at)}`:k==='final'?(w.fit.result==='ok'?'✓ fits':'⚠ extra work')+` · ${h(w.fit.by)}`:k==='done'?`completed ${ddmm(w.done.at)}`:k==='rej'?h(w.a.reason):`${h(s.by)} · ${ddmm(s.at)}${dl?` · ${late?'⚠ ':''}due ${fmtD(dl)}`:''}`;
+     return `<button class="bcard${late?' late':''}" data-id="${k==='wait'||k==='rej'?p.id:nx.id}"><b>${h(k==='wait'||k==='rej'?p.n:nx.n)}</b><span class="bm">${p.v} · ${h(s.status||'')}${s.priority?' · '+h(s.priority):''}</span>${s.note?`<span class="bn">${h(s.note)}</span>`:''}<span class="bf">${sub}</span></button>`; }).join('')||'<div class="bempty">—</div>'}</section>`).join('')}</div></main>`;
   $('#bveh').onchange=e=>{ boardVeh=e.target.value; renderBoard(a); bind(); translateUI(a); };
   a.querySelectorAll('.bcard').forEach(b=>b.onclick=()=>go({name:'part',id:b.dataset.id})); }
 
@@ -1343,6 +1419,7 @@ function hbars(rows,{unit=''}={}){ if(!rows.length) return '<div class="note">No
   return `<div class="hbars" role="list">${rows.map(r=>`<div class="hb" role="listitem" title="${h(r.l)}: ${r.v}${unit}"><span class="hl">${h(r.l)}</span><span class="ht"><i style="width:${Math.max(2,r.v/max*100)}%"></i></span><span class="hv">${r.v}${unit}</span></div>`).join('')}</div>`; }
 async function renderDash(a){ const now=Date.now(), d30=new Date(now-30*864e5).toISOString();
   const sent=Object.entries(SHARED).map(([id,s])=>({id,s,p:getPart(id)})).filter(x=>x.p), open=sent.filter(x=>waitingEng(x.id));
+  const fitOpen=Object.keys(RELEASED).filter(id=>getPart(id)&&!fitOf(id)&&!META.done[id]).length, finalOpen=Object.keys(META.fit).filter(id=>getPart(id)&&fitOf(id)&&RELEASED[id]&&!META.done[id]).length;
   const rel=Object.entries(RELEASED).map(([id,r])=>({id,r,prev:SHARED[revId(parseId(id).base,parseId(id).k-1)]})).filter(x=>x.prev);
   const lead=rel.length?(rel.reduce((t,x)=>t+daysBetween(x.prev.at,x.r.at),0)/rel.length):null, over=sent.filter(x=>isOverdue(x.id)).length, rel30=rel.filter(x=>x.r.at>=d30).length;
   const perVeh={}; open.forEach(x=>perVeh[x.p.v]=(perVeh[x.p.v]||0)+1);
@@ -1350,7 +1427,7 @@ async function renderDash(a){ const now=Date.now(), d30=new Date(now-30*864e5).t
   const perResp={}; open.forEach(x=>{ const k=x.s.responsible||'Nobody'; perResp[k]=(perResp[k]||0)+1; });
   const sortR=o=>Object.entries(o).map(([l,v])=>({l,v})).sort((x,y)=>y.v-x.v);
   a.innerHTML=topbar('Dashboard','Engineering & workshop at a glance',true)+`<main>
-   <div class="kpis"><div class="kpi"><b>${open.length}</b><span>Open changes</span></div><div class="kpi"><b>${over}</b><span>Overdue</span></div><div class="kpi"><b>${rel30}</b><span>Released (30 days)</span></div>
+   <div class="kpis"><div class="kpi"><b>${open.length}</b><span>To release in CAD</span></div><div class="kpi"><b>${over}</b><span>Overdue</span></div><div class="kpi"><b>${fitOpen}</b><span>Fit checks open</span></div><div class="kpi"><b>${finalOpen}</b><span>Awaiting final approval</span></div><div class="kpi"><b>${Object.values(META.done).filter(x=>x.at>=d30).length}</b><span>Completed (30 days)</span></div>
     <div class="kpi"><b>${lead===null?'–':lead.toFixed(1)}</b><span>Avg. days report → release</span></div><div class="kpi"><b id="kn">…</b><span>Open problems</span></div><div class="kpi"><b id="ki">…</b><span>Inspections (30 days)</span></div></div>
    <div class="card dcard"><h3>Open changes per vehicle</h3>${hbars(sortR(perVeh))}</div>
    <div class="card dcard"><h3>Open changes per responsible person</h3>${hbars(sortR(perResp))}</div>
@@ -1450,8 +1527,8 @@ const NL={"Parts Review":"Onderdelen Review","Sign in":"Inloggen","Username":"Ge
 "Nothing here.":"Niets hier.","Loading…":"Laden…","New revision":"Nieuwe revisie","⏳ Engineering":"⏳ Engineering","✓ Released in CAD":"✓ Vrijgegeven in CAD","✗ Rejected":"✗ Afgewezen","✓ Approved · in CAD":"✓ Goedgekeurd · in CAD","My draft":"Mijn concept","Waiting to send":"Wacht op verzenden","Synced":"Gesynchroniseerd","Not synced yet":"Nog niet gesynchroniseerd",
 "Open drawing":"Tekening openen","Save supplier":"Leverancier opslaan","✉ Send to supplier":"✉ Naar leverancier sturen","Send to supplier":"Naar leverancier sturen","Edit instructions":"Instructie bewerken","Add instructions":"Instructie toevoegen","+ Add step":"+ Stap toevoegen","Save instructions":"Instructie opslaan","Search a part number…":"Zoek een onderdeelnummer…","Search chassis or customer…":"Zoek chassis of klant…","Search part number…":"Zoek onderdeelnummer…",
 "Write your message…":"Schrijf je bericht…","Message…":"Bericht…","To":"Aan","About part (optional)":"Over onderdeel (optioneel)","Message":"Bericht","Send to Engineering ":"Versturen naar Engineering ","Tip: install as an app":"Tip: installeer als app","Engineering":"Engineering","Mechanic":"Monteur","Admin":"Beheerder","Draw":"Tekenen","Arrow":"Pijl","Circle":"Cirkel","Text":"Tekst","Number":"Nummer","↶ Undo":"↶ Ongedaan","Done":"Klaar"};
-Object.assign(NL,{"Work in progress – my drafts":"Onderhanden – mijn concepten","Recently changed by the team":"Recent gewijzigd door het team","Recently released":"Recent vrijgegeven","No drafts open. Pick a vehicle below to start on a part.":"Geen open concepten. Kies hieronder een voertuig om te beginnen.","Download an Excel overview of the list: every part with its revisions, status, what to change, who sent it, and whether it's released in CAD.": "Download een Excel-overzicht van de lijst: elk onderdeel met revisies, status, wat er moet veranderen, wie het verstuurde en of het is vrijgegeven in CAD.", "Include part pictures": "Met afbeeldingen van onderdelen", "(bigger file)": "(groter bestand)", "Path to reset": "Pad om te resetten", "Send to Engineering": "Versturen naar Engineering", "Sent straight to the Engineering mailbox": "Direct naar de mailbox van Engineering", "In this send": "In deze verzending", "Parts": "Onderdelen", "Changes": "Wijzigingen", "Your drafts are saved to your account. Sign in on another phone and they appear there too.": "Je concepten worden in je account bewaard. Log in op een andere telefoon en ze staan daar ook.", "Signed in as": "Ingelogd als", "Created after the change below was sent. The picture shows the original part.": "Gemaakt nadat de wijziging hieronder is verstuurd. De afbeelding toont het oorspronkelijke onderdeel.", "Change not correct? Clear it, unlock the part and make the right change. Engineering is notified.": "Wijziging niet goed? Wis hem, ontgrendel het onderdeel en maak de juiste wijziging. Engineering krijgt bericht.", "Earlier revisions": "Eerdere revisies", "Changes that led to this revision": "Wijzigingen die tot deze revisie leidden", "No report yet": "Nog geen melding", "Waiting for you": "Wacht op jou", "Reports": "Meldingen", "Waiting for Engineering": "Wacht op Engineering", "Nothing waiting – all sent changes are released. 🎉": "Niets wachtend – alle verstuurde wijzigingen zijn vrijgegeven. 🎉", "Scanning the sticker with the phone camera opens this part in the app.": "Scan de sticker met de camera van je telefoon om dit onderdeel in de app te openen.", "No drawing uploaded yet.": "Nog geen tekening geüpload.", "No supplier recorded.": "Geen leverancier vastgelegd.", "No instructions yet. Anyone can add them – share what you know.": "Nog geen instructie. Iedereen kan die toevoegen – deel wat je weet.", "Chat about parts and changes": "Chat over onderdelen en wijzigingen", "From report to fitted on the vehicle": "Van melding tot gemonteerd op het voertuig", "Issues during assembly and quality": "Problemen bij montage en kwaliteit", "Checklists per vehicle": "Checklists per voertuig", "Build record per chassis number": "Bouwdossier per chassisnummer", "Engineering & workshop at a glance": "Engineering & werkplaats in één oogopslag", "Build record": "Bouwdossier", "Not fitted on a vehicle yet.": "Nog niet op een voertuig gemonteerd.", "Last change:": "Laatste wijziging:", "Take one": "Eén eraf", "Add one": "Eén erbij", "Approve the change (then make it in CAD) or reject it.": "Keur de wijziging goed (en maak hem in CAD) of wijs hem af.", "Effective from (chassis no. / date)": "Geldig vanaf (chassisnr. / datum)", "Required when rejecting": "Verplicht bij afwijzen", "Mark as released in CAD": "Markeer als vrijgegeven in CAD", "Undo release": "Vrijgave ongedaan maken", "Open new revision": "Nieuwe revisie openen"});
-const NL_RE=[[/^Work in progress – my drafts \((\d+)\)$/,'Onderhanden – mijn concepten ($1)'],[/^In progress – changed, not released yet \((\d+)\)$/,'Onderhanden – gewijzigd, nog niet vrijgegeven ($1)'],[/^Tap to open the calendar · workdays \(Mon–Fri\) until (.+)\.$/,'Tik voor de kalender · werkdagen (ma–vr) t/m $1.'],[/^Signed in as (.+)$/,'Ingelogd als $1'],[/^(\d+) of (\d+) sent$/,'$1 van $2 verstuurd'],[/^Synced (.+)$/,'Gesynchroniseerd $1'],[/^Send to Engineering \((\d+)\)$/,'Versturen naar Engineering ($1)'],[/^Engineering: (\d+) released in CAD · (\d+) waiting$/,'Engineering: $1 vrijgegeven in CAD · $2 wachtend'],[/^(\d+) in stock/,'$1 op voorraad'],[/^(\d+) to order$/,'$1 bestellen'],[/^(\d+) for you$/,'$1 voor jou'],[/^(\d+) open$/,'$1 open'],[/^Order list \((\d+)\)$/,'Bestellijst ($1)'],[/^All tracked \((\d+)\)$/,'Alles bijgehouden ($1)'],[/^Saved to your account$/,'Opgeslagen in je account'],[/^Sent to Engineering \((.+)\)$/,'Verstuurd naar Engineering ($1)'],[/^Mark (.+) as released in CAD$/,'Markeer $1 als vrijgegeven in CAD'],[/^Open new revision (.+)$/,'Nieuwe revisie $1 openen'],[/^(.+) has not been released in CAD yet\.$/,'$1 is nog niet vrijgegeven in CAD.'],[/^(.+) sent this part to Engineering on (.+)\. It can't be changed any more\.$/,'$1 heeft dit onderdeel op $2 naar Engineering gestuurd. Het kan niet meer worden gewijzigd.'],[/^Reset (.+)…$/,'$1 resetten…'],[/^(\d+) parts$/,'$1 onderdelen']];
+Object.assign(NL,{"To release in CAD":"Vrij te geven in CAD","Fit checked – final approval":"Pascontrole gedaan – eindgoedkeuring","Recently completed":"Recent afgerond","Fit check needed":"Pascontrole nodig","Released – fit check":"Vrijgegeven – pascontrole","Completed":"Afgerond","Clear":"Wissen","Sent":"Verstuurd","Released in CAD":"Vrijgegeven in CAD","Fit check":"Pascontrole","Final approval":"Eindgoedkeuring","✓ Fits OK":"✓ Past goed","⚠ Extra work needed":"⚠ Extra werk nodig","Send fit check to Engineering":"Pascontrole naar Engineering sturen","Final approval – drawing, CAD & fitment OK":"Eindgoedkeuring – tekening, CAD & passing OK","Ask the workshop for a new fit check":"Werkplaats om nieuwe pascontrole vragen","Undo release":"Vrijgave ongedaan maken","Undo final approval":"Eindgoedkeuring ongedaan maken","No change needed? Reject…":"Geen wijziging nodig? Afwijzen…","Reject change":"Wijziging afwijzen","✓ Completed":"✓ Afgerond","To release":"Vrij te geven","All cleared. New items will appear here.":"Alles gewist. Nieuwe items verschijnen hier.","Clear updates":"Updates wissen","Clear read conversations":"Gelezen gesprekken wissen","From report to completed":"Van melding tot afgerond","Work in progress – my drafts":"Onderhanden – mijn concepten","Recently changed by the team":"Recent gewijzigd door het team","Recently released":"Recent vrijgegeven","No drafts open. Pick a vehicle below to start on a part.":"Geen open concepten. Kies hieronder een voertuig om te beginnen.","Download an Excel overview of the list: every part with its revisions, status, what to change, who sent it, and whether it's released in CAD.": "Download een Excel-overzicht van de lijst: elk onderdeel met revisies, status, wat er moet veranderen, wie het verstuurde en of het is vrijgegeven in CAD.", "Include part pictures": "Met afbeeldingen van onderdelen", "(bigger file)": "(groter bestand)", "Path to reset": "Pad om te resetten", "Send to Engineering": "Versturen naar Engineering", "Sent straight to the Engineering mailbox": "Direct naar de mailbox van Engineering", "In this send": "In deze verzending", "Parts": "Onderdelen", "Changes": "Wijzigingen", "Your drafts are saved to your account. Sign in on another phone and they appear there too.": "Je concepten worden in je account bewaard. Log in op een andere telefoon en ze staan daar ook.", "Signed in as": "Ingelogd als", "Created after the change below was sent. The picture shows the original part.": "Gemaakt nadat de wijziging hieronder is verstuurd. De afbeelding toont het oorspronkelijke onderdeel.", "Change not correct? Clear it, unlock the part and make the right change. Engineering is notified.": "Wijziging niet goed? Wis hem, ontgrendel het onderdeel en maak de juiste wijziging. Engineering krijgt bericht.", "Earlier revisions": "Eerdere revisies", "Changes that led to this revision": "Wijzigingen die tot deze revisie leidden", "No report yet": "Nog geen melding", "Waiting for you": "Wacht op jou", "Reports": "Meldingen", "Waiting for Engineering": "Wacht op Engineering", "Nothing waiting – all sent changes are released. 🎉": "Niets wachtend – alle verstuurde wijzigingen zijn vrijgegeven. 🎉", "Scanning the sticker with the phone camera opens this part in the app.": "Scan de sticker met de camera van je telefoon om dit onderdeel in de app te openen.", "No drawing uploaded yet.": "Nog geen tekening geüpload.", "No supplier recorded.": "Geen leverancier vastgelegd.", "No instructions yet. Anyone can add them – share what you know.": "Nog geen instructie. Iedereen kan die toevoegen – deel wat je weet.", "Chat about parts and changes": "Chat over onderdelen en wijzigingen", "From report to fitted on the vehicle": "Van melding tot gemonteerd op het voertuig", "Issues during assembly and quality": "Problemen bij montage en kwaliteit", "Checklists per vehicle": "Checklists per voertuig", "Build record per chassis number": "Bouwdossier per chassisnummer", "Engineering & workshop at a glance": "Engineering & werkplaats in één oogopslag", "Build record": "Bouwdossier", "Not fitted on a vehicle yet.": "Nog niet op een voertuig gemonteerd.", "Last change:": "Laatste wijziging:", "Take one": "Eén eraf", "Add one": "Eén erbij", "Approve the change (then make it in CAD) or reject it.": "Keur de wijziging goed (en maak hem in CAD) of wijs hem af.", "Effective from (chassis no. / date)": "Geldig vanaf (chassisnr. / datum)", "Required when rejecting": "Verplicht bij afwijzen", "Mark as released in CAD": "Markeer als vrijgegeven in CAD", "Undo release": "Vrijgave ongedaan maken", "Open new revision": "Nieuwe revisie openen"});
+const NL_RE=[[/^Show (\d+) hidden$/,'Toon $1 verborgen'],[/^Release (.+) in CAD$/,'$1 vrijgeven in CAD'],[/^(.+) \((\d+)\)$/,(m,a,b)=>(NL[a]||a)+' ('+b+')'],[/^Work in progress – my drafts \((\d+)\)$/,'Onderhanden – mijn concepten ($1)'],[/^In progress – changed, not released yet \((\d+)\)$/,'Onderhanden – gewijzigd, nog niet vrijgegeven ($1)'],[/^Tap to open the calendar · workdays \(Mon–Fri\) until (.+)\.$/,'Tik voor de kalender · werkdagen (ma–vr) t/m $1.'],[/^Signed in as (.+)$/,'Ingelogd als $1'],[/^(\d+) of (\d+) sent$/,'$1 van $2 verstuurd'],[/^Synced (.+)$/,'Gesynchroniseerd $1'],[/^Send to Engineering \((\d+)\)$/,'Versturen naar Engineering ($1)'],[/^Engineering: (\d+) released in CAD · (\d+) waiting$/,'Engineering: $1 vrijgegeven in CAD · $2 wachtend'],[/^(\d+) in stock/,'$1 op voorraad'],[/^(\d+) to order$/,'$1 bestellen'],[/^(\d+) for you$/,'$1 voor jou'],[/^(\d+) open$/,'$1 open'],[/^Order list \((\d+)\)$/,'Bestellijst ($1)'],[/^All tracked \((\d+)\)$/,'Alles bijgehouden ($1)'],[/^Saved to your account$/,'Opgeslagen in je account'],[/^Sent to Engineering \((.+)\)$/,'Verstuurd naar Engineering ($1)'],[/^Mark (.+) as released in CAD$/,'Markeer $1 als vrijgegeven in CAD'],[/^Open new revision (.+)$/,'Nieuwe revisie $1 openen'],[/^(.+) has not been released in CAD yet\.$/,'$1 is nog niet vrijgegeven in CAD.'],[/^(.+) sent this part to Engineering on (.+)\. It can't be changed any more\.$/,'$1 heeft dit onderdeel op $2 naar Engineering gestuurd. Het kan niet meer worden gewijzigd.'],[/^Reset (.+)…$/,'$1 resetten…'],[/^(\d+) parts$/,'$1 onderdelen']];
 function trNL(t){ const k=t.trim(); if(!k) return t; if(NL[k]) return t.replace(k,NL[k]); for(const [re,to] of NL_RE) if(re.test(k)) return t.replace(k,k.replace(re,to)); return t; }
 function translateUI(root){ if(getLang()!=='nl'||!root) return; const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT); const nodes=[]; while(w.nextNode()) nodes.push(w.currentNode);
   for(const n of nodes){ if(n.parentElement&&/^(SCRIPT|STYLE|TEXTAREA)$/.test(n.parentElement.tagName)) continue; const v=trNL(n.nodeValue); if(v!==n.nodeValue) n.nodeValue=v; }
