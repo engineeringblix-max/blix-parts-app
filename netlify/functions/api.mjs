@@ -158,7 +158,8 @@ export async function runBackup(env, trigger = 'weekly') {
       rows: [T('Accounts (no passwords)'), H(['Name', 'Username', 'Role', 'Active', 'Created', 'Last sign-in', 'Unsent drafts']), ...users.map((u) => ({ cells: [cell(u.name, 3), cell(u.u), cell(ROLES[u.role] || u.role), cell(u.active ? 'Yes' : 'Blocked'), dcell(u.created), dcell(u.lastLogin), cell(draftUsers[u.u] || 0)] }))] },
   ];
   const xlsx = Buffer.from(X.build(sheets)).toString('base64');
-  const raw = { exportedAt: new Date().toISOString(), trigger, sends, released, clears, maint, users, team, drafts };
+  const threads = await listJSON(store, 'thread/'), messages = await listJSON(store, 'msg/');
+  const raw = { exportedAt: new Date().toISOString(), trigger, sends, released, clears, maint, users, team, drafts, threads, messages };
   const json64 = Buffer.from(JSON.stringify(raw)).toString('base64');
   const html = `<div style="font-family:Segoe UI,Arial,sans-serif;font-size:14px;color:#14232c"><div style="background:#012135;color:#fff;padding:14px 16px;border-bottom:4px solid #0bbbef"><b style="font-size:17px">BLIX Parts Review – ${trigger === 'weekly' ? 'weekly' : 'manual'} backup</b><br><span style="color:#a9dff2">${esc(fmtNL(raw.exportedAt))}</span></div>
     <p>${rows.length} sent report${rows.length === 1 ? '' : 's'} · ${Object.keys(released).length} released in CAD · ${dk.length} unsent draft${dk.length === 1 ? '' : 's'} · ${users.length} account${users.length === 1 ? '' : 's'}.</p>
@@ -166,6 +167,22 @@ export async function runBackup(env, trigger = 'weekly') {
   const d = new Date().toISOString().slice(0, 10);
   return sendMail(env, { subject: `BLIX parts – ${trigger === 'weekly' ? 'weekly' : 'manual'} backup – ${stamp}`, html,
     files: [{ name: `BLIX_Parts_Backup_${d}.xlsx`, b64: xlsx }, { name: `BLIX_Parts_Backup_${d}.json`, b64: json64, type: 'application/json' }] });
+}
+
+/* ---------- chat ---------- */
+const TID_RE = /^t[0-9a-f]{12}$/;
+async function myThreads(store, u) {
+  return (await listJSON(store, 'thread/')).filter((t) => t && (t.members || []).includes(u))
+    .map((t) => ({ ...t, unread: !!(t.last && t.last.u !== u && String(t.last.at) > String((t.read || {})[u] || '')) }))
+    .sort((a, b) => String((b.last || {}).at || b.created).localeCompare(String((a.last || {}).at || a.created)));
+}
+async function addMessage(store, t, me, text, photos) {
+  const at = new Date().toISOString();
+  const m = { at, u: me.u, name: me.name, text: clip(String(text || '').trim(), 4000), photos: (photos || []).filter((x) => /^[0-9a-f]{24}$/.test(x)).slice(0, 10) };
+  await store.setJSON(`msg/${t.id}/${at}-${crypto.randomBytes(3).toString('hex')}`, m);
+  t.last = { at, u: me.u, name: me.name, text: m.text || (m.photos.length ? '📷 Photo' : '') }; t.count = (t.count || 0) + 1;
+  t.read = { ...(t.read || {}), [me.u]: at };
+  await store.setJSON(`thread/${t.id}`, t); return m;
 }
 
 /* ---------- drafts ---------- */
@@ -185,7 +202,7 @@ async function sharedStatus(store) {
   const sends = await listJSON(store, 'send/');
   sends.sort((a, b) => String(a.at).localeCompare(String(b.at)));
   const parts = {};
-  for (const s of sends) for (const r of s.rows || []) parts[r.id] = { ...r, by: s.by, at: s.at };
+  for (const s of sends) for (const r of s.rows || []) parts[r.id] = { ...r, by: s.by, u: s.u, at: s.at };
   return parts;
 }
 /* a sent part is locked: move a draft on it to the part's open revision (the newer draft wins) */
@@ -243,7 +260,7 @@ export default async (req) => {
       if (stale.length) { for (const d of stale) await moveDraft(me.u, d.id, openRev(parts, d.id)); drafts = await listJSON(store, `drafts/${me.u}/`); }
       const team = (await store.get('config/team', { type: 'json' })) || { names: [] };
       const maint = (await listJSON(store, 'maint/')).sort((a, b) => String(b.at).localeCompare(String(a.at)))[0] || null;
-      return json(200, { user: me, drafts, parts, team: team.names, cleared: await clearedMap(store), maint, released: await releasedMap(store) });
+      return json(200, { user: me, drafts, parts, team: team.names, cleared: await clearedMap(store), maint, released: await releasedMap(store), unread: me.u === 'admin' ? 0 : (await myThreads(store, me.u)).filter((t) => t.unread).length });
     }
 
     /* drafts */
@@ -258,6 +275,59 @@ export default async (req) => {
         await store.setJSON(`drafts/${me.u}/${id}`, d); return json(200, { draft: d, moved: id !== seg[1] });
       }
       if (M === 'DELETE') { await deleteDraft(me.u, seg[1]); return json(200, { ok: true }); }
+    }
+
+    /* chat: people, threads, messages, chat photos */
+    if (seg[0] === 'people' && M === 'GET') {
+      return json(200, { people: (await listJSON(store, 'users/')).filter((x) => x.active && x.u !== me.u).map((x) => ({ u: x.u, name: x.name, role: x.role })).sort((a, b) => a.name.localeCompare(b.name)) });
+    }
+    if (seg[0] === 'threads' && me.u !== 'admin') {
+      if (seg.length === 1 && M === 'GET') return json(200, { threads: await myThreads(store, me.u) });
+      if (seg.length === 1 && M === 'POST') {
+        const b = await req.json().catch(() => ({}));
+        const to = [...new Set((Array.isArray(b.to) ? b.to : []).map(String).filter((x) => USER_RE.test(x) && x !== me.u))].slice(0, 10);
+        if (!to.length) return err(400, 'Choose who the message is for.');
+        const recs = await Promise.all(to.map((x) => store.get(`users/${x}`, { type: 'json' })));
+        if (recs.some((r) => !r || !r.active)) return err(400, 'One of the chosen people has no active account.');
+        const part = b.part && PART_RE.test(b.part.id || '') ? { id: b.part.id, name: clip(b.part.name, 80) } : null;
+        const members = [me.u, ...to].sort();
+        let t = (await myThreads(store, me.u)).find((x) => x.members.slice().sort().join() === members.join() && ((x.part && x.part.id) || '') === ((part && part.id) || ''));
+        if (!t) {
+          t = { id: 't' + crypto.randomBytes(6).toString('hex'), members, names: Object.fromEntries([[me.u, me.name], ...recs.map((r) => [r.u, r.name])]), part, created: new Date().toISOString(), by: me.u, read: {}, count: 0 };
+          delete t.unread; await store.setJSON(`thread/${t.id}`, t);
+        } else delete t.unread;
+        if (String(b.text || '').trim()) await addMessage(store, t, me, b.text, []);
+        return json(200, { thread: t });
+      }
+      if (seg.length >= 2 && TID_RE.test(seg[1])) {
+        const t = await store.get(`thread/${seg[1]}`, { type: 'json' });
+        if (!t || !(t.members || []).includes(me.u)) return err(404, 'Conversation not found.');
+        if (seg.length === 2 && M === 'GET') {
+          const since = url.searchParams.get('since') || '';
+          const { blobs } = await store.list({ prefix: `msg/${t.id}/` });
+          const keys = blobs.map((x) => x.key).filter((k) => k.slice(k.lastIndexOf('/') + 1) > since).sort();
+          const msgs = (await Promise.all(keys.map((k) => store.get(k, { type: 'json' })))).filter(Boolean);
+          if (t.last && String((t.read || {})[me.u] || '') < String(t.last.at)) { t.read = { ...(t.read || {}), [me.u]: t.last.at }; await store.setJSON(`thread/${t.id}`, t); }
+          return json(200, { thread: t, messages: msgs });
+        }
+        if (seg.length === 3 && seg[2] === 'messages' && M === 'POST') {
+          const b = await req.json().catch(() => ({}));
+          if (!String(b.text || '').trim() && !(b.photos || []).length) return err(400, 'Write a message or add a photo.');
+          return json(200, { message: await addMessage(store, t, me, b.text, b.photos) });
+        }
+        if (seg.length === 3 && seg[2] === 'photos' && M === 'POST') {
+          const buf = await req.arrayBuffer();
+          if (!buf.byteLength || buf.byteLength > MAX_PHOTO) return err(413, 'Photo is too large.');
+          const id = crypto.randomBytes(12).toString('hex');
+          await PHOTOS().set(`chat/${t.id}/${id}`, buf, { metadata: { type: 'image/jpeg', by: me.u } });
+          return json(200, { id });
+        }
+        if (seg.length === 4 && seg[2] === 'photos' && /^[0-9a-f]{24}$/.test(seg[3]) && M === 'GET') {
+          const buf = await PHOTOS().get(`chat/${t.id}/${seg[3]}`, { type: 'arrayBuffer' });
+          if (!buf) return err(404, 'Photo not found.');
+          return new Response(buf, { status: 200, headers: { 'Content-Type': 'image/jpeg', 'Cache-Control': 'private, max-age=31536000' } });
+        }
+      }
     }
 
     /* photos (stored per account) */

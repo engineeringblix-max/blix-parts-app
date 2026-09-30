@@ -152,6 +152,33 @@ select:disabled{opacity:.5}
 .relbadge{margin-top:8px;font-size:13px;font-weight:600;color:var(--ok);background:var(--ok-bg);border-radius:8px;padding:6px 8px}
 label.check{display:flex;gap:8px;align-items:center;margin-top:12px;font-size:14px}
 .rolesel{font-size:13px;padding:4px 6px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--navy)}
+.iconbtn{position:relative}.badge{position:absolute;top:3px;right:1px;min-width:18px;height:18px;border-radius:9px;background:#ff3b30;color:#fff;font:700 11px/18px Figtree,Arial,sans-serif;text-align:center;padding:0 4px;box-shadow:0 0 0 2px var(--navy)}
+.ph{position:relative}.ph img{cursor:pointer}.phedit{position:absolute;left:4px;bottom:4px;background:rgba(1,33,53,.8);color:#fff;font-size:12px;font-weight:700;border-radius:6px;padding:1px 6px;pointer-events:none}
+.mk{position:fixed;inset:0;z-index:80;background:#0b1620;display:flex;flex-direction:column;touch-action:none;user-select:none;-webkit-user-select:none}
+.mkbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:calc(var(--safe-t) + 8px) 10px 8px;color:#fff}.mkbar b{font-size:15px}
+.mkbar button{all:unset;cursor:pointer;padding:9px 14px;border-radius:10px;font-weight:700;color:#cfe3ec}.mkbar button.ok{background:var(--cyan);color:#012135}
+.mkstage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:4px}.mkstage canvas{touch-action:none;border-radius:6px;background:#000}
+.mktext{display:flex;gap:8px;padding:8px 10px;background:#13222e}.mktext input{flex:1;font-size:16px;padding:10px 12px;border-radius:10px;border:0}.mktext button{all:unset;cursor:pointer;background:var(--cyan);color:#012135;font-weight:700;padding:10px 16px;border-radius:10px}
+.mktools{background:#13222e;padding:8px 8px calc(10px + var(--safe-b))}.mkrow{display:flex;gap:6px;justify-content:center;align-items:center;margin-bottom:6px;flex-wrap:wrap}
+.mkt{all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:54px;padding:6px 4px;border-radius:10px;color:#cfe3ec;font-size:11px;font-weight:600}.mkt span{font-size:20px;line-height:1.1}.mkt[aria-pressed=true]{background:#284356;color:#fff}
+.mkcol{all:unset;cursor:pointer;width:30px;height:30px;border-radius:50%;border:2px solid #45606f}.mkcol[aria-pressed=true]{border-color:#fff;box-shadow:0 0 0 2px var(--cyan)}
+.mku{all:unset;cursor:pointer;color:#cfe3ec;font-weight:700;font-size:13px;padding:6px 10px;margin-left:6px;border:1px solid #45606f;border-radius:10px}.mkhint{color:#8fb0bf;font-size:12px;text-align:center}
+.updlist{display:flex;flex-direction:column;gap:6px}.upd{all:unset;box-sizing:border-box;cursor:pointer;display:block;background:var(--card);border:1px solid var(--line);border-left:5px solid var(--ok);border-radius:12px;padding:9px 12px;font-size:14px}.upd b{color:var(--ok)}.upd span{display:block;color:var(--muted);font-size:12px;margin-top:2px}.upd.new{background:var(--ok-bg)}
+.thr{all:unset;box-sizing:border-box;cursor:pointer;display:flex;gap:10px;align-items:center;width:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:6px}
+.av{flex:none;width:38px;height:38px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:700;font-size:14px}
+.thr .tt{flex:1;min-width:0}.thr .tn{display:block;font-weight:700;color:var(--navy);font-size:15px}.thr .tl{display:block;color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.thr .tm{flex:none;font-size:12px;color:var(--muted);display:flex;flex-direction:column;align-items:flex-end;gap:4px}.thr .tm i{width:10px;height:10px;border-radius:50%;background:#ff3b30}.thr.unread .tl{color:#14232c;font-weight:600}
+.pchip{display:inline-block;font:600 11px var(--mono);color:var(--done);background:var(--ice);border-radius:6px;padding:1px 6px;vertical-align:middle}.pchip.big{font-size:14px;padding:6px 10px}.pchip button{all:unset;cursor:pointer;margin-left:6px;font-weight:700}
+.presl{display:flex;flex-direction:column;gap:4px;margin-top:6px}.presl button{all:unset;cursor:pointer;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:600 14px var(--mono);color:var(--navy);background:#fff}.presl span{font:12px sans-serif;color:var(--muted);margin-left:6px}
+.ppl{display:flex;flex-direction:column;gap:6px}.pp{display:flex;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:14px}.pp input{width:20px;height:20px}
+.chat{padding-bottom:calc(90px + var(--safe-b))}.msg{max-width:82%;margin:6px 0;padding:8px 11px;border-radius:14px 14px 14px 4px;background:#fff;border:1px solid var(--line);font-size:15px;overflow-wrap:anywhere}
+.msg.mine{margin-left:auto;background:var(--navy);color:#fff;border-color:var(--navy);border-radius:14px 14px 4px 14px}.msg .tx{white-space:pre-wrap}.msg .mt{font-size:11px;opacity:.65;margin-top:3px;text-align:right}.msg .who{font-size:12px;font-weight:700;color:var(--blue);margin-bottom:2px}
+.msg .cimg{display:block;max-width:100%;border-radius:10px;margin-bottom:4px;cursor:zoom-in;min-height:60px;background:rgba(0,0,0,.05)}
+.daysep{text-align:center;font-size:12px;color:var(--muted);margin:14px 0 6px}
+.composer{align-items:flex-end}.composer textarea{flex:1;font:inherit;font-size:16px;resize:none;border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-height:44px;height:44px;max-height:120px;box-sizing:border-box}
+.cbtn{all:unset;cursor:pointer;flex:none;width:44px;height:44px;display:grid;place-items:center;border-radius:12px;background:var(--ice)}.cbtn svg{width:22px;height:22px;stroke:var(--navy);fill:none;stroke-width:2}
+.phview{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center}.phview img{max-width:100%;max-height:100%}.phview button{all:unset;position:absolute;top:calc(var(--safe-t) + 10px);right:16px;color:#fff;font-size:34px;cursor:pointer}
+.plink{all:unset;cursor:pointer;color:#a9dff2;text-decoration:underline}
 </style>
 </head>
 <body>
@@ -299,13 +326,14 @@ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().cat
 /* ================= state ================= */
 let SESSION=null;           // {token, user:{u,name,role}}
 let DRAFTS={};              // partId -> {id,status,priority,note,resp,date,photos:[{id?,key,blob?}],updatedAt,dirty,queued}
-let SHARED={}, CLEARED={}, RELEASED={}, MAINT=null, TEAM=[], online=navigator.onLine, lastSync=0, syncing=false;
+let SHARED={}, CLEARED={}, RELEASED={}, MAINT=null, UNREAD=0, TEAM=[], online=navigator.onLine, lastSync=0, syncing=false;
 
 /* ================= helpers ================= */
 const $=s=>document.querySelector(s);
 const h=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2800);}
 const ICON={back:'<svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>',user:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>',
+mail:'<svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg>',
 gear:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>',
 cam:'<svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>',
 img:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>'};
@@ -353,7 +381,7 @@ async function sync(){
   try{
     for(const d of Object.values(DRAFTS).filter(x=>x.dirty)) await pushOne(d);
     const st=await api('state'); setOnline(true);
-    SHARED=st.parts||{}; CLEARED=st.cleared||{}; MAINT=st.maint||null; RELEASED=st.released||{}; TEAM=st.team||[]; SESSION.user=st.user; await dev.set('session',SESSION);
+    SHARED=st.parts||{}; CLEARED=st.cleared||{}; MAINT=st.maint||null; RELEASED=st.released||{}; if((st.unread||0)>UNREAD&&view.name!=='thread') toast('💬 New message'); UNREAD=st.unread||0; TEAM=st.team||[]; setBadge(); SESSION.user=st.user; await dev.set('session',SESSION);
     const server=Object.fromEntries((st.drafts||[]).map(d=>[d.id,d]));
     for(const id of Object.keys(DRAFTS)) if(!server[id]&&!DRAFTS[id].dirty){ await loc.delDraft(id); delete DRAFTS[id]; }   // sent or removed on another phone
     for(const s of Object.values(server)){ const l=DRAFTS[s.id]; if(l&&l.dirty) continue;
@@ -379,26 +407,35 @@ function shown(id){ const m=DRAFTS[id], s=SHARED[id];
 /* ================= session ================= */
 async function signIn(token,user){ SESSION={token,user}; await dev.set('session',SESSION); userp=null; DRAFTS={};
   (await loc.drafts()).forEach(d=>DRAFTS[d.id]=d); SHARED=(await loc.get('shared'))||{}; CLEARED=(await loc.get('cleared'))||{}; MAINT=(await loc.get('maint'))||null; RELEASED=(await loc.get('released'))||{}; TEAM=(await loc.get('team'))||[]; }
-async function signOut(expired){ SESSION=null; userp=null; DRAFTS={}; SHARED={}; CLEARED={}; RELEASED={}; draft=null; await dev.del('session'); urlCache.clear();
+async function signOut(expired){ SESSION=null; userp=null; DRAFTS={}; SHARED={}; CLEARED={}; RELEASED={}; UNREAD=0; draft=null; await dev.del('session'); urlCache.clear();
   go({name:'home'},true); if(expired) toast('Please sign in again.'); }
 
 /* ================= router ================= */
 let view={name:'home'};
-function go(v,replace){ view=v; const hash=v.name==='home'?'#':v.name==='veh'?`#v/${v.vc}`:v.name==='part'?`#p/${v.id}`:`#${v.name}`; replace?history.replaceState(v,'',hash):history.pushState(v,'',hash); render(); window.scrollTo(0,0); }
+function go(v,replace){ view=v; const hash=v.name==='home'?'#':v.name==='veh'?`#v/${v.vc}`:v.name==='part'?`#p/${v.id}`:v.name==='thread'?`#t/${v.id}`:`#${v.name}`; replace?history.replaceState(v,'',hash):history.pushState(v,'',hash); render(); window.scrollTo(0,0); }
 window.addEventListener('popstate',e=>{ view=e.state||{name:'home'}; render(); });
-function parseHash(){ const m=location.hash.match(/^#(v|p)\/(.+)$/); if(m) return m[1]==='v'&&VEH[m[2]]?{name:'veh',vc:m[2]}:(getPart(m[2])?{name:'part',id:m[2]}:{name:'home'}); const n=location.hash.slice(1); if(['send','account','admin','settings'].includes(n)) return {name:n}; return {name:'home'}; }
-function topbar(title,sub,back,extra=''){ return `<header class="top"><div class="row">${back?`<button class="iconbtn" id="back" aria-label="Back">${ICON.back}</button>`:LOGO}<h1>${h(title)}${sub?`<small>${h(sub)}</small>`:''}</h1>${!back&&SESSION?`<button class="iconbtn" id="gear" aria-label="Settings">${ICON.gear}</button>`:''}${!back?`<button class="iconbtn" id="acct" aria-label="Account">${ICON.user}</button>`:''}</div>${extra}</header><div id="net" class="netbar" ${online?'hidden':''}>Offline – your work is saved on this phone and synced when you're back online.</div>`; }
+function parseHash(){ const tm=location.hash.match(/^#t\/(t[0-9a-f]{12})$/); if(tm) return {name:'thread',id:tm[1]}; const m=location.hash.match(/^#(v|p)\/(.+)$/); if(m) return m[1]==='v'&&VEH[m[2]]?{name:'veh',vc:m[2]}:(getPart(m[2])?{name:'part',id:m[2]}:{name:'home'}); const n=location.hash.slice(1); if(['send','account','admin','settings','inbox','newmsg'].includes(n)) return {name:n}; return {name:'home'}; }
+function topbar(title,sub,back,extra=''){ return `<header class="top"><div class="row">${back?`<button class="iconbtn" id="back" aria-label="Back">${ICON.back}</button>`:LOGO}<h1>${h(title)}${sub?`<small>${h(sub)}</small>`:''}</h1>${!back&&SESSION&&SESSION.user.u!=='admin'?`<button class="iconbtn" id="mail" aria-label="Messages">${ICON.mail}${badgeHTML()}</button>`:''}${!back&&SESSION?`<button class="iconbtn" id="gear" aria-label="Settings">${ICON.gear}</button>`:''}${!back?`<button class="iconbtn" id="acct" aria-label="Account">${ICON.user}</button>`:''}</div>${extra}</header><div id="net" class="netbar" ${online?'hidden':''}>Offline – your work is saved on this phone and synced when you're back online.</div>`; }
 const isAdminUser=()=>!!SESSION&&SESSION.user.role==='admin';
 const isEng=()=>!!SESSION&&SESSION.user.role==='engineer';
 const ROLE_L={mechanic:'Mechanic',engineer:'Engineering',admin:'Admin'};
 const waitingEng=id=>!!SHARED[id]&&!RELEASED[nextPart(getPart(id)).id];   // sent, new revision not yet released in CAD
-function bind(){ const gr=$('#gear'); if(gr) gr.onclick=()=>go({name:'settings'}); const b=$('#back'); if(b) b.onclick=()=>history.length>1?history.back():go({name:'home'}); const g=$('#acct'); if(g) g.onclick=()=>go({name:SESSION.user.role==='admin'&&SESSION.user.u==='admin'?'admin':'account'}); }
+function updSeen(){ try{ return localStorage.getItem('blixUpd::'+SESSION.user.u)||''; }catch(e){ return ''; } }
+function myUpdates(){ if(!SESSION) return []; const seen=updSeen(), out=[], cut=new Date(Date.now()-30*864e5).toISOString();
+  for(const [id,r] of Object.entries(RELEASED)){ const rev=getPart(id); if(!rev||r.at<cut) continue; const q=parseId(id), sh=SHARED[revId(q.base,q.k-1)];
+    if(sh&&sh.u===SESSION.user.u) out.push({rev,r,isNew:String(r.at)>seen}); }
+  return out.sort((a,b)=>String(b.r.at).localeCompare(String(a.r.at))).slice(0,20); }
+const badgeCount=()=>UNREAD+myUpdates().filter(u=>u.isNew).length;
+const badgeHTML=()=>{ const n=badgeCount(); return n?`<span class="badge">${n>9?'9+':n}</span>`:''; };
+function setBadge(){ const m=$('#mail'); if(!m) return; const b=m.querySelector('.badge'); if(b) b.remove(); m.insertAdjacentHTML('beforeend',badgeHTML()); }
+function bind(){ const ml=$('#mail'); if(ml) ml.onclick=()=>go({name:'inbox'}); const gr=$('#gear'); if(gr) gr.onclick=()=>go({name:'settings'}); const b=$('#back'); if(b) b.onclick=()=>history.length>1?history.back():go({name:'home'}); const g=$('#acct'); if(g) g.onclick=()=>go({name:SESSION.user.role==='admin'&&SESSION.user.u==='admin'?'admin':'account'}); }
 const myDrafts=()=>Object.values(DRAFTS).filter(d=>!d.deleted);
 function render(){ const a=$('#app');
   if(!SESSION) return renderLogin(a);
   if(SESSION.user.u==='admin'&&!['admin','settings'].includes(view.name)) view={name:'admin'};
   if(['send'].includes(view.name)&&isEng()) view={name:'home'};
-  ({home:renderHome,veh:renderVeh,part:renderPart,send:renderSend,account:renderAccount,admin:renderAdmin,settings:renderSettings})[view.name](a); bind(); }
+  if(['inbox','thread','newmsg'].includes(view.name)&&SESSION.user.u==='admin') view={name:'admin'};
+  ({home:renderHome,veh:renderVeh,part:renderPart,send:renderSend,account:renderAccount,admin:renderAdmin,settings:renderSettings,inbox:renderInbox,thread:renderThread,newmsg:renderNewMsg})[view.name](a); bind(); }
 
 /* ================= screens ================= */
 function renderLogin(a){
@@ -480,15 +517,18 @@ function renderPart(a){
    <div class="field"><label for="resp">Responsible</label><select id="resp"><option value="">— Choose a person —</option>${team.map(n=>`<option ${n===draft.resp?'selected':''}>${h(n)}</option>`).join('')}</select></div>
    <div class="field"><label for="date">Planned date</label><select id="date"><option value="">— Choose a workday —</option>${days.map(d=>`<option value="${d}" ${d===draft.date?'selected':''}>${fmtDate(d)}</option>`).join('')}</select><div class="note">Workdays only (Mon–Fri), until 31-12-2026.</div></div>
    ${mine?`<div class="field"><div id="delzone"><button class="btn danger" id="del" style="display:block">Remove my draft</button></div></div>`:''}
+   <div class="field"><button class="btn ghost" id="disc" style="display:block;width:100%">💬 Discuss this part</button></div>
    ${revOf(p)?`<div class="field"><button class="btn ghost dangerline" id="clr" style="display:block;width:100%">Clear changes…</button></div>`:''}
   </main><div class="bar"><button class="btn ghost" id="cancel" style="flex:0 0 auto;padding:14px 18px">Cancel</button><button class="btn" id="save">Save draft</button></div>`;
-  const drawPh=()=>{ $('#ph').innerHTML=draft.photos.map((r,i)=>`<div class="ph"><img data-i="${i}" alt="Photo ${i+1}"><button data-i="${i}" aria-label="Remove photo">×</button></div>`).join('')+
+  const markPh=async i=>{ const bl=await photoBlob(draft.photos[i]); if(!bl){ toast("This photo couldn't be loaded."); return; } const out=await openMarkup(bl); if(out){ draft.photos[i]={key:rid(),blob:out}; drawPh(); } };
+  const drawPh=()=>{ $('#ph').innerHTML=draft.photos.map((r,i)=>`<div class="ph"><img data-i="${i}" alt="Photo ${i+1} – tap to draw on it"><span class="phedit" aria-hidden="true">✎</span><button data-i="${i}" aria-label="Remove photo">×</button></div>`).join('')+
       `<button class="addph" id="take">${ICON.cam}Take photo</button><button class="addph" id="pick">${ICON.img}From gallery</button>`;
-    $('#ph').querySelectorAll('img[data-i]').forEach(async im=>{ im.src=await photoURL(draft.photos[+im.dataset.i])||''; });
+    $('#ph').querySelectorAll('img[data-i]').forEach(async im=>{ im.onclick=()=>markPh(+im.dataset.i); im.src=await photoURL(draft.photos[+im.dataset.i])||''; });
     $('#ph').querySelectorAll('.ph button').forEach(b=>b.onclick=()=>{draft.photos.splice(+b.dataset.i,1);drawPh();});
     $('#take').onclick=()=>$('#camIn').click(); $('#pick').onclick=()=>$('#galIn').click(); };
-  drawPh(); bindHist(a); const cb=$('#clr'); if(cb) cb.onclick=()=>openClear([{p:BYID[baseOf(p)],from:0}],BYID[baseOf(p)].n);
-  const onFiles=async files=>{ for(const f of files){ try{ draft.photos.push({key:rid(),blob:await compress(f)}); }catch(err){ toast("This photo couldn't be read. Try another one."); } } drawPh(); };
+  drawPh(); bindHist(a); $('#disc').onclick=()=>{ draft=null; discuss(p); }; const cb=$('#clr'); if(cb) cb.onclick=()=>openClear([{p:BYID[baseOf(p)],from:0}],BYID[baseOf(p)].n);
+  const onFiles=async files=>{ for(const f of files){ try{ draft.photos.push({key:rid(),blob:await compress(f)}); }catch(err){ toast("This photo couldn't be read. Try another one."); } } drawPh();
+    if(files.length===1&&draft.photos.length) await markPh(draft.photos.length-1); else if(files.length>1) toast('Tap a photo to draw on it'); };
   $('#camIn').onchange=ev=>{onFiles([...ev.target.files]);ev.target.value='';}; $('#galIn').onchange=ev=>{onFiles([...ev.target.files]);ev.target.value='';};
   const seg=(id,key)=>$(id).querySelectorAll('button').forEach(b=>b.onclick=()=>{draft[key]=draft[key]===b.dataset.v?'':b.dataset.v;$(id).querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.v===draft[key]));});
   seg('#st','status'); seg('#pr','priority');
@@ -557,9 +597,10 @@ function renderLocked(a,p,sh){ const nx=nextPart(p), nxLocked=!!SHARED[nx.id];
    <div class="field"><button class="btn" id="nx" style="display:block;width:100%">${nxLocked?`Go to ${h(nx.n)}`:`Open new revision ${h(nx.n)}`}</button></div>
    ${revOf(p)?`<div class="section-t">Earlier revisions</div>${historyHTML(p)}`:''}
    ${clearedHTML(p)}
+   <div class="field"><button class="btn ghost" id="disc" style="display:block;width:100%">💬 Discuss this part</button></div>
    <div class="field"><button class="btn ghost dangerline" id="clr" style="display:block;width:100%">Clear changes…</button><div class="note">Change not correct? Clear it, unlock the part and make the right change. Engineering is notified.</div></div>
   </main>`;
-  $('#nx').onclick=()=>go({name:'part',id:nx.id}); bindHist(a); bindEng(nx,a);
+  $('#nx').onclick=()=>go({name:'part',id:nx.id}); bindHist(a); bindEng(nx,a); $('#disc').onclick=()=>discuss(p);
   $('#clr').onclick=()=>openClear([{p:BYID[baseOf(p)],from:0}],BYID[baseOf(p)].n);
 }
 
@@ -568,9 +609,10 @@ function renderEngOpen(a,p){ const rv=revOf(p);
    <div class="hero"><img src="${p.img}" alt="Preview of ${h(p.n)}"><div class="info"><div class="pn">${h(p.n)}</div><div class="m">${h(VEH[p.v])} · ${h(p.c)} · ${p.t==='A'?'Assembly':'Part'}${rv?` · Revision of ${h(BYID[p.base].n)}`:''}</div></div></div>
    ${clearedHTML(p)}
    ${rv?`${engHTML(p)}<div class="section-t">Changes that led to this revision</div>${historyHTML(p)}`:`<div class="card" style="margin-top:12px"><b>No report yet</b><div class="note" style="margin:4px 0 0">The mechanics haven't sent a change for this part.</div></div>`}
+   <div class="field"><button class="btn ghost" id="disc" style="display:block;width:100%">💬 Message a mechanic about this part</button></div>
    ${rv?`<div class="field"><button class="btn ghost dangerline" id="clr" style="display:block;width:100%">Clear changes…</button></div>`:''}
   </main>`;
-  bindHist(a); bindEng(p,a); const cb=$('#clr'); if(cb) cb.onclick=()=>openClear([{p:BYID[baseOf(p)],from:0}],BYID[baseOf(p)].n); }
+  bindHist(a); bindEng(p,a); $('#disc').onclick=()=>discuss(p); const cb=$('#clr'); if(cb) cb.onclick=()=>openClear([{p:BYID[baseOf(p)],from:0}],BYID[baseOf(p)].n); }
 
 let sending=false;
 function renderSend(a){
@@ -652,6 +694,128 @@ function renderAccount(a){
   $('#out').onclick=()=>{ const n=myDrafts().filter(d=>d.dirty).length; if(n){ $('#outwarn').innerHTML=`<div class="card" style="margin-top:10px;border-color:var(--chg)"><b>${n} draft${n>1?'s are':' is'} not synced yet.</b><p class="note">Go online first, or they stay only on this phone.</p><button class="btn danger" id="out2" style="display:block">Sign out anyway</button></div>`; $('#out2').onclick=()=>signOut(); } else signOut(); };
 }
 
+/* ---------- photo mark-up: draw, arrows, circles, text, numbered markers ---------- */
+function openMarkup(blob,opt={}){ return new Promise(async resolve=>{
+  const url=URL.createObjectURL(blob); let img; try{ img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url;}); }catch(e){ URL.revokeObjectURL(url); resolve(null); return; }
+  const W=img.naturalWidth,H=img.naturalHeight, lw=Math.max(4,Math.round(Math.max(W,H)/170));
+  const ov=document.createElement('div'); ov.className='mk';
+  ov.innerHTML=`<div class="mkbar"><button id="mkc">Cancel</button><b>${h(opt.title||'Draw on photo')}</b><button id="mkd" class="ok">${h(opt.done||'Done')}</button></div>
+   <div class="mkstage"><canvas id="mkcv"></canvas></div>
+   <div class="mktext" id="mkt" hidden><input id="mkti" placeholder="Type text, e.g. Ø10 or 5 mm" maxlength="60" enterkeyhint="done"><button id="mkta">Add</button></div>
+   <div class="mktools"><div class="mkrow">${[['pen','✎','Draw'],['arrow','➚','Arrow'],['circle','◯','Circle'],['text','T','Text'],['num','①','Number']].map(([k,i,l])=>`<button class="mkt" data-t="${k}" aria-pressed="${k==='pen'}"><span>${i}</span>${l}</button>`).join('')}</div>
+    <div class="mkrow">${['#ff2d2d','#ffd400','#00c0f3','#22c55e','#ffffff','#111111'].map((c,i)=>`<button class="mkcol" data-c="${c}" style="background:${c}" aria-pressed="${i===0}" aria-label="Colour ${i+1}"></button>`).join('')}<button class="mku" id="mku">↶ Undo</button></div>
+    <div class="mkhint" id="mkh">Draw with your finger. Numbers ①②③ can be referred to in “What to change”.</div></div>`;
+  document.body.appendChild(ov); document.body.style.overflow='hidden';
+  const cv=ov.querySelector('#mkcv'), g=cv.getContext('2d'), stage=ov.querySelector('.mkstage'); cv.width=W; cv.height=H;
+  const fit=()=>{ const r=stage.getBoundingClientRect(), sc=Math.min(r.width/W,r.height/H); cv.style.width=Math.floor(W*sc)+'px'; cv.style.height=Math.floor(H*sc)+'px'; }; fit(); window.addEventListener('resize',fit);
+  let tool='pen', color='#ff2d2d', ops=[], cur=null, num=1, pend=null;
+  const hints={pen:'Draw with your finger.',arrow:'Drag from where the arrow starts to where it points.',circle:'Drag across the area to circle it.',text:'Tap where the text should go.',num:'Tap to place ①, ②, ③ … and refer to them in your note.'};
+  const P=e=>{ const r=cv.getBoundingClientRect(); return {x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height}; };
+  function drawOp(o){ g.save(); g.strokeStyle=o.c; g.fillStyle=o.c; g.lineWidth=o.w||lw; g.lineCap='round'; g.lineJoin='round'; g.shadowColor='rgba(0,0,0,.5)'; g.shadowBlur=lw;
+    if(o.t==='pen'){ g.beginPath(); o.p.forEach((q,i)=>i?g.lineTo(q.x,q.y):g.moveTo(q.x,q.y)); if(o.p.length===1) g.lineTo(o.p[0].x+.1,o.p[0].y); g.stroke(); }
+    else if(o.t==='arrow'){ const a=o.a,b=o.b,an=Math.atan2(b.y-a.y,b.x-a.x),hl=lw*4.5; g.beginPath(); g.moveTo(a.x,a.y); g.lineTo(b.x-Math.cos(an)*hl*.6,b.y-Math.sin(an)*hl*.6); g.stroke(); g.beginPath(); g.moveTo(b.x,b.y); g.lineTo(b.x-hl*Math.cos(an-.45),b.y-hl*Math.sin(an-.45)); g.lineTo(b.x-hl*Math.cos(an+.45),b.y-hl*Math.sin(an+.45)); g.closePath(); g.fill(); }
+    else if(o.t==='circle'){ g.beginPath(); g.ellipse((o.a.x+o.b.x)/2,(o.a.y+o.b.y)/2,Math.abs(o.b.x-o.a.x)/2+1,Math.abs(o.b.y-o.a.y)/2+1,0,0,Math.PI*2); g.stroke(); }
+    else if(o.t==='text'){ const fs=lw*7; g.font=`bold ${fs}px Figtree,Arial,sans-serif`; g.textBaseline='middle'; const m=g.measureText(o.txt).width; g.shadowBlur=0; g.fillStyle='rgba(0,0,0,.6)'; g.fillRect(o.x-fs*.3,o.y-fs*.72,m+fs*.6,fs*1.44); g.fillStyle=o.c; g.fillText(o.txt,o.x,o.y); }
+    else if(o.t==='num'){ const r=lw*5; g.beginPath(); g.arc(o.x,o.y,r,0,Math.PI*2); g.fill(); g.shadowBlur=0; g.lineWidth=lw*.6; g.strokeStyle='#fff'; g.stroke(); g.fillStyle=['#ffffff','#ffd400','#22c55e','#00c0f3'].includes(o.c)?'#111':'#fff'; g.font=`bold ${r*1.2}px Figtree,Arial,sans-serif`; g.textAlign='center'; g.textBaseline='middle'; g.fillText(String(o.n),o.x,o.y+r*.06); }
+    g.restore(); }
+  const redraw=()=>{ g.drawImage(img,0,0,W,H); ops.forEach(drawOp); if(cur) drawOp(cur); }; redraw();
+  cv.addEventListener('pointerdown',e=>{ e.preventDefault(); const q=P(e);
+    if(tool==='text'){ pend=q; ov.querySelector('#mkt').hidden=false; setTimeout(()=>ov.querySelector('#mkti').focus(),30); return; }
+    if(tool==='num'){ ops.push({t:'num',c:color,x:q.x,y:q.y,n:num++}); redraw(); return; }
+    try{ cv.setPointerCapture(e.pointerId); }catch(_){} cur=tool==='pen'?{t:'pen',c:color,p:[q]}:{t:tool,c:color,a:q,b:q}; redraw(); });
+  cv.addEventListener('pointermove',e=>{ if(!cur) return; e.preventDefault(); const q=P(e); if(cur.t==='pen') cur.p.push(q); else cur.b=q; redraw(); });
+  const end=()=>{ if(!cur) return; if(cur.t==='pen'||Math.hypot(cur.b.x-cur.a.x,cur.b.y-cur.a.y)>lw*3) ops.push(cur); cur=null; redraw(); };
+  cv.addEventListener('pointerup',end); cv.addEventListener('pointercancel',end);
+  const addText=()=>{ const v=ov.querySelector('#mkti').value.trim(); if(v&&pend){ ops.push({t:'text',c:color,x:pend.x,y:pend.y,txt:v}); redraw(); } ov.querySelector('#mkti').value=''; ov.querySelector('#mkt').hidden=true; pend=null; };
+  ov.querySelector('#mkta').onclick=addText; ov.querySelector('#mkti').onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); addText(); } };
+  ov.querySelectorAll('.mkt').forEach(b=>b.onclick=()=>{ tool=b.dataset.t; ov.querySelectorAll('.mkt').forEach(x=>x.setAttribute('aria-pressed',x===b)); ov.querySelector('#mkh').textContent=hints[tool]; });
+  ov.querySelectorAll('.mkcol').forEach(b=>b.onclick=()=>{ color=b.dataset.c; ov.querySelectorAll('.mkcol').forEach(x=>x.setAttribute('aria-pressed',x===b)); });
+  ov.querySelector('#mku').onclick=()=>{ const o=ops.pop(); if(o&&o.t==='num') num--; redraw(); };
+  const close=v=>{ window.removeEventListener('resize',fit); ov.remove(); document.body.style.overflow=''; URL.revokeObjectURL(url); resolve(v); };
+  ov.querySelector('#mkc').onclick=()=>close(null);
+  ov.querySelector('#mkd').onclick=()=>{ if(pend) addText(); if(!ops.length) return close(opt.keepIfNone?blob:null); redraw(); cv.toBlob(b=>close(b),'image/jpeg',.86); };
+}); }
+
+/* ---------- messages: mailbox, conversations, photos ---------- */
+function discuss(p){ const sent=sentChain(BYID[baseOf(p)]), last=sent[sent.length-1], su=last&&SHARED[last.id].u;
+  go({name:'newmsg',part:p.id,to:(isEng()||isAdminUser())&&su&&su!==SESSION.user.u?[su]:null,toEng:!isEng()&&!isAdminUser()}); }
+const initials=n=>String(n||'?').split(/\s+/).map(x=>x[0]).slice(0,2).join('').toUpperCase();
+const others=t=>t.members.filter(u=>u!==SESSION.user.u).map(u=>(t.names||{})[u]||u);
+const tstamp=iso=>{ const d=new Date(iso); return d.toDateString()===new Date().toDateString()?d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):ddmm(iso); };
+const chatUrls=new Map();
+async function chatPhotoURL(tid,pid){ const k=tid+'/'+pid; if(chatUrls.has(k)) return chatUrls.get(k); try{ const b=await api(`threads/${tid}/photos/${pid}`); const u=URL.createObjectURL(b); chatUrls.set(k,u); return u; }catch(e){ return ''; } }
+function viewPhoto(src){ const ov=document.createElement('div'); ov.className='phview'; ov.innerHTML=`<img src="${src}" alt="Photo"><button aria-label="Close">×</button>`; ov.onclick=()=>ov.remove(); document.body.appendChild(ov); }
+async function renderInbox(a){
+  const ups=myUpdates();
+  a.innerHTML=topbar('Messages','Chat about parts and changes',true)+`<main>
+   <button class="btn" id="nm" style="display:block;width:100%">✉ New message</button>
+   ${ups.length?`<div class="section-t">Updates from Engineering</div><div class="updlist">${ups.map(u=>`<button class="upd${u.isNew?' new':''}" data-id="${u.rev.id}"><b>✓ ${h(u.rev.n)} released in CAD</b><span>${h(u.r.by)} · ${fmtDT(u.r.at)}${u.r.note?` – “${h(u.r.note)}”`:''}</span></button>`).join('')}</div>`:''}
+   <div class="section-t">Conversations</div><div id="thl"><div class="note">Loading…</div></div></main>`;
+  try{ localStorage.setItem('blixUpd::'+SESSION.user.u,new Date().toISOString()); }catch(e){}
+  $('#nm').onclick=()=>go({name:'newmsg'}); a.querySelectorAll('.upd').forEach(b=>b.onclick=()=>go({name:'part',id:b.dataset.id}));
+  try{ const r=await api('threads'); const el=$('#thl'); if(!el) return; UNREAD=r.threads.filter(t=>t.unread).length;
+    el.innerHTML=r.threads.map(t=>`<button class="thr${t.unread?' unread':''}" data-id="${t.id}"><span class="av">${h(initials(others(t)[0]))}</span><span class="tt"><span class="tn">${h(others(t).join(', '))}${t.part?` <span class="pchip">${h(t.part.name)}</span>`:''}</span><span class="tl">${t.last?`${t.last.u===SESSION.user.u?'You: ':''}${h(t.last.text)}`:'No messages yet'}</span></span><span class="tm">${t.last?tstamp(t.last.at):''}${t.unread?'<i></i>':''}</span></button>`).join('')||'<div class="empty" style="padding:18px">No conversations yet. Start one with “New message”, or from a part with “💬 Discuss this part”.</div>';
+    el.querySelectorAll('.thr').forEach(b=>b.onclick=()=>go({name:'thread',id:b.dataset.id})); }
+  catch(e){ const el=$('#thl'); if(el) el.innerHTML=`<div class="note" style="color:var(--chg)">${h(e.message)}</div>`; }
+}
+async function renderNewMsg(a){
+  let part=view.part?getPart(view.part):null; const photos=[];
+  a.innerHTML=topbar('New message',part?part.n:'',true)+`<main>
+   <div class="field" style="margin-top:0"><span class="lab">To</span><div id="ppl" class="ppl"><div class="note">Loading…</div></div></div>
+   <div class="field"><span class="lab">About part (optional)</span><div id="pp"></div></div>
+   <div class="field"><label for="mt">Message</label><textarea id="mt" placeholder="Write your message…"></textarea></div>
+   <div class="field"><span class="lab">Photos</span><div class="photos" id="mph"></div></div>
+   <div id="merr" class="note" style="color:var(--chg)" hidden></div></main>
+   <div class="bar"><button class="btn cyan" id="msend">Send</button></div>`;
+  const drawPart=()=>{ $('#pp').innerHTML=part?`<div class="pchip big">${h(part.n)} <button id="pprm" aria-label="Remove part">×</button></div>`:`<input class="txt" id="pq" type="search" placeholder="Search a part number…"><div id="pres" class="presl"></div>`;
+    if(part){ $('#pprm').onclick=()=>{ part=null; drawPart(); }; return; }
+    $('#pq').oninput=e=>{ const t=e.target.value.trim().toUpperCase(); const hits=t.length<2?[]:PARTS.filter(p=>p.n.toUpperCase().includes(t)).slice(0,8).flatMap(chain);
+      $('#pres').innerHTML=hits.map(p=>`<button data-id="${p.id}">${h(p.n)} <span>${p.v}</span></button>`).join(''); $('#pres').querySelectorAll('button').forEach(b=>b.onclick=()=>{ part=getPart(b.dataset.id); drawPart(); }); }; };
+  drawPart();
+  const drawPh=()=>{ $('#mph').innerHTML=photos.map((b,i)=>`<div class="ph"><img data-i="${i}" alt="Photo ${i+1}"><button data-i="${i}" aria-label="Remove photo">×</button></div>`).join('')+`<button class="addph" id="mtake">${ICON.cam}Take photo</button><button class="addph" id="mpick">${ICON.img}From gallery</button>`;
+    $('#mph').querySelectorAll('img').forEach(im=>im.src=URL.createObjectURL(photos[+im.dataset.i])); $('#mph').querySelectorAll('.ph button').forEach(b=>b.onclick=()=>{ photos.splice(+b.dataset.i,1); drawPh(); });
+    $('#mtake').onclick=()=>$('#camIn').click(); $('#mpick').onclick=()=>$('#galIn').click(); };
+  drawPh();
+  const onF=async ev=>{ const fs=[...ev.target.files]; ev.target.value=''; for(const f of fs){ try{ const c=await compress(f); const out=await openMarkup(c,{title:'Draw on photo (optional)',done:'Add photo',keepIfNone:true}); if(out) photos.push(out); }catch(e){ toast("This photo couldn't be read."); } } drawPh(); };
+  $('#camIn').onchange=onF; $('#galIn').onchange=onF;
+  let people=[]; try{ people=(await api('people')).people.filter(x=>x.u!=='admin'); }catch(e){ $('#ppl').innerHTML=`<div class="note" style="color:var(--chg)">${h(e.message)}</div>`; }
+  const pre=new Set(view.to||people.filter(x=>view.toEng&&x.role==='engineer').map(x=>x.u));
+  if($('#ppl')) $('#ppl').innerHTML=people.map(x=>`<label class="pp"><input type="checkbox" value="${h(x.u)}" ${pre.has(x.u)?'checked':''}><span class="av">${h(initials(x.name))}</span><span><b>${h(x.name)}</b><br><span class="note" style="margin:0">${ROLE_L[x.role]||x.role}</span></span></label>`).join('')||'<div class="note">No other accounts yet.</div>';
+  $('#msend').onclick=async()=>{ const to=[...a.querySelectorAll('#ppl input:checked')].map(x=>x.value), text=$('#mt').value.trim(), er=$('#merr'); er.hidden=true;
+    if(!to.length){ er.textContent='Choose who the message is for.'; er.hidden=false; return; } if(!text&&!photos.length){ er.textContent='Write a message or add a photo.'; er.hidden=false; return; }
+    const b=$('#msend'); b.setAttribute('disabled',''); b.textContent='Sending…';
+    try{ const r=await api('threads',{method:'POST',body:{to,text,part:part?{id:part.id,name:part.n}:null}}); const tid=r.thread.id;
+      if(photos.length){ const ids=[]; for(const ph of photos) ids.push((await api(`threads/${tid}/photos`,{method:'POST',body:ph,raw:true})).id); await api(`threads/${tid}/messages`,{method:'POST',body:{text:'',photos:ids}}); }
+      go({name:'thread',id:tid},true); }
+    catch(e){ er.textContent=e.message; er.hidden=false; b.removeAttribute('disabled'); b.textContent='Send'; } };
+}
+let chatPoll=null;
+async function renderThread(a){
+  const tid=view.id; clearInterval(chatPoll);
+  a.innerHTML=topbar('Conversation','',true)+`<main class="chat" id="chat"><div id="msgs"><div class="note">Loading…</div></div></main>
+   <div class="bar composer"><button class="cbtn" id="cph" aria-label="Add photo">${ICON.cam}</button><textarea id="ctx" rows="1" placeholder="Message…"></textarea><button class="btn cyan" id="csend" style="flex:0 0 auto;padding:12px 16px">Send</button></div>`;
+  let msgs=[], th=null; const seen=new Set();
+  const key=m=>m.at+'|'+m.u;
+  const draw=()=>{ if(view.name!=='thread'||view.id!==tid) return;
+    const hd=a.querySelector('header h1'); if(th&&hd) hd.innerHTML=`${h(others(th).join(', '))}${th.part?`<small><button class="plink" id="plink">🔗 ${h(th.part.name)}</button></small>`:'<small>Conversation</small>'}`;
+    const pl=$('#plink'); if(pl) pl.onclick=()=>{ if(getPart(th.part.id)) go({name:'part',id:th.part.id}); };
+    let lastDay=''; $('#msgs').innerHTML=msgs.map(m=>{ const d=new Date(m.at).toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'2-digit'}); const sep=d!==lastDay?`<div class="daysep">${d}</div>`:''; lastDay=d; const mine=m.u===SESSION.user.u;
+      return `${sep}<div class="msg${mine?' mine':''}">${!mine&&th&&th.members.length>2?`<div class="who">${h(m.name)}</div>`:''}${(m.photos||[]).map(pid=>`<img class="cimg" data-p="${pid}" alt="Photo">`).join('')}${m.text?`<div class="tx">${h(m.text)}</div>`:''}<div class="mt">${!mine&&th&&th.members.length<=2?h(m.name)+' · ':''}${new Date(m.at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</div></div>`; }).join('')||'<div class="empty">No messages yet – say hello.</div>';
+    $('#msgs').querySelectorAll('img.cimg').forEach(async im=>{ im.src=await chatPhotoURL(tid,im.dataset.p); im.onclick=()=>viewPhoto(im.src); im.onload=()=>window.scrollTo(0,document.body.scrollHeight); });
+    window.scrollTo(0,document.body.scrollHeight); };
+  const load=async()=>{ try{ const last=msgs.length?msgs[msgs.length-1].at+'~':''; const r=await api(`threads/${tid}${last?'?since='+encodeURIComponent(last):''}`); th=r.thread;
+      const add=r.messages.filter(m=>!seen.has(key(m))); add.forEach(m=>seen.add(key(m))); if(add.length||!msgs.length){ msgs.push(...add); draw(); } }
+    catch(e){ if(e.status===404){ toast(e.message); go({name:'inbox'},true); } } };
+  await load(); if(UNREAD) sync();
+  chatPoll=setInterval(()=>{ if(view.name!=='thread'||view.id!==tid){ clearInterval(chatPoll); return; } if(document.visibilityState==='visible') load(); },6000);
+  const tx=$('#ctx'); tx.oninput=()=>{ tx.style.height='auto'; tx.style.height=Math.min(120,tx.scrollHeight)+'px'; };
+  const post=async body=>{ const r=await api(`threads/${tid}/messages`,{method:'POST',body}); if(!seen.has(key(r.message))){ seen.add(key(r.message)); msgs.push(r.message); draw(); } };
+  $('#csend').onclick=async()=>{ const t=tx.value.trim(); if(!t) return; const b=$('#csend'); b.setAttribute('disabled',''); try{ await post({text:t}); tx.value=''; tx.style.height='auto'; }catch(e){ toast(e.message); } b.removeAttribute('disabled'); };
+  $('#cph').onclick=()=>$('#galIn').click();
+  $('#galIn').onchange=async ev=>{ const fs=[...ev.target.files]; ev.target.value=''; for(const f of fs){ try{ const c=await compress(f); const out=await openMarkup(c,{title:'Draw on photo (optional)',done:'Send photo',keepIfNone:true}); if(!out) continue;
+      const id=(await api(`threads/${tid}/photos`,{method:'POST',body:out,raw:true})).id; await post({text:'',photos:[id]}); }catch(e){ toast(e.message||"Couldn't send the photo."); } } };
+}
+
 /* ---------- settings (Admin accounts): maintenance & more ---------- */
 let setVeh='', setCat='', dlVeh='', dlCat='', dlPics=true;
 async function downloadOverview(ps,btn){
@@ -715,7 +879,7 @@ async function renderSettings(a){
    <div class="section-t">App</div>
    <div class="card">${adm?`<div class="setrow"><span>Accounts & “Responsible” names</span><button class="btn ghost" id="toadm" style="flex:0 0 auto;padding:10px 14px">Open</button></div>`:''}
     <div class="setrow"><span>Refresh data now<br><span class="note" style="margin:0">${lastSync?'Last synced '+new Date(lastSync).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'Not synced yet'}</span></span><button class="btn ghost" id="syn" style="flex:0 0 auto;padding:10px 14px">Sync</button></div>
-    <div class="setrow"><span>App version</span><b>v10 · ${PARTS.length} parts · ${Object.keys(VEH).length} vehicles</b></div></div>
+    <div class="setrow"><span>App version</span><b>v11 · ${PARTS.length} parts · ${Object.keys(VEH).length} vehicles</b></div></div>
   </main>`;
   $('#dv').onchange=e=>{ dlVeh=e.target.value; dlCat=''; renderSettings(a); bind(); };
   $('#dc').onchange=e=>{ dlCat=e.target.value; renderSettings(a); bind(); };
