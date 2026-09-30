@@ -23,7 +23,10 @@ const PHOTOS = () => getStore({ name: 'parts-photos', consistency: 'strong' });
 const SESSION_DAYS = 120;
 const MAX_PHOTO = 4_000_000;
 const MAX_FILE = 3_300_000;
-const PART_RE = /^p[0-9a-f]{10}$/;
+const PART_RE = /^p[0-9a-f]{10}(-r[1-9]\d?)?$/; // original part, or revision -r1 (= -A), -r2 (= -B) …
+const parseId = (id) => { const m = /^(p[0-9a-f]{10})(?:-r([1-9]\d?))?$/.exec(id || ''); return m ? { base: m[1], k: m[2] ? +m[2] : 0 } : null; };
+const revId = (base, k) => (k ? `${base}-r${k}` : base);
+const openRev = (parts, id) => { const { base } = parseId(id); let k = 0; while (parts[revId(base, k)]) k++; return revId(base, k); };
 const USER_RE = /^[a-z0-9._-]{2,32}$/;
 
 const json = (status, body) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
@@ -64,11 +67,11 @@ async function graphToken(env) {
 }
 function mailHtml(p, reporter) {
   const td = (v, x = '') => `<td style="padding:6px 8px;border-bottom:1px solid #dbe3e8;${x}">${esc(v)}</td>`;
-  const rows = (p.rows || []).map((r) => `<tr>${td(r.vehicle, 'font-weight:600;color:#012135')}${td(r.part, 'font-family:Consolas,monospace;font-weight:600')}${td(r.status)}${td(r.priority)}${td(r.note)}${td(r.responsible)}${td(r.date, 'white-space:nowrap')}${td(r.photos || 0, 'text-align:center')}</tr>`).join('');
+  const rows = (p.rows || []).map((r) => `<tr>${td(r.vehicle, 'font-weight:600;color:#012135')}${td(r.part, 'font-family:Consolas,monospace;font-weight:600')}${td(r.next || '', 'font-family:Consolas,monospace;color:#0b7fa6')}${td(r.status)}${td(r.priority)}${td(r.note)}${td(r.responsible)}${td(r.date, 'white-space:nowrap')}${td(r.photos || 0, 'text-align:center')}</tr>`).join('');
   const th = (t) => `<th style="text-align:left;padding:7px 8px;background:#012135;color:#fff;font-weight:600">${t}</th>`;
   return `<div style="font-family:Segoe UI,Arial,sans-serif;font-size:14px;color:#14232c"><div style="background:#012135;color:#fff;padding:14px 16px;border-bottom:4px solid #0bbbef"><b style="font-size:17px">BLIX Parts Review</b><br><span style="color:#a9dff2">Report from ${esc(reporter)}${p.batches > 1 ? ` · file ${p.batch} of ${p.batches}` : ''}</span></div>
   <p>${(p.rows || []).length} part(s) reported. The attached Excel file contains every report with the part preview and the photos.</p>
-  <table style="border-collapse:collapse;font-size:13px;width:100%"><tr>${th('Vehicle')}${th('Part')}${th('Status')}${th('Priority')}${th('What to change')}${th('Responsible')}${th('Date')}${th('Photos')}</tr>${rows}</table>
+  <table style="border-collapse:collapse;font-size:13px;width:100%"><tr>${th('Vehicle')}${th('Part')}${th('New revision')}${th('Status')}${th('Priority')}${th('What to change')}${th('Responsible')}${th('Date')}${th('Photos')}</tr>${rows}</table>
   <p style="color:#5d6e78;font-size:12px">Sent automatically by the BLIX Parts app.</p></div>`;
 }
 
@@ -91,6 +94,16 @@ async function sharedStatus(store) {
   const parts = {};
   for (const s of sends) for (const r of s.rows || []) parts[r.id] = { ...r, by: s.by, at: s.at };
   return parts;
+}
+/* a sent part is locked: move a draft on it to the part's open revision (the newer draft wins) */
+async function moveDraft(u, from, to) {
+  const store = DATA(), d = await store.get(`drafts/${u}/${from}`, { type: 'json' });
+  if (!d || from === to) return;
+  const t = await store.get(`drafts/${u}/${to}`, { type: 'json' });
+  const [keep, drop] = t && String(t.updatedAt) > String(d.updatedAt) ? [t, d] : [d, t];
+  if (drop) { const k = new Set(keep.photos || []); await Promise.all((drop.photos || []).filter((x) => !k.has(x)).map((pid) => PHOTOS().delete(`${u}/${pid}`))); }
+  await store.setJSON(`drafts/${u}/${to}`, { ...keep, id: to });
+  await store.delete(`drafts/${u}/${from}`);
 }
 async function deleteDraft(u, id) {
   const store = DATA(), key = `drafts/${u}/${id}`;
@@ -131,14 +144,24 @@ export default async (req) => {
 
     /* everything the app needs after login */
     if (path === 'state' && M === 'GET') {
-      const drafts = me.u === 'admin' ? [] : await listJSON(store, `drafts/${me.u}/`);
+      const parts = await sharedStatus(store);
+      let drafts = me.u === 'admin' ? [] : await listJSON(store, `drafts/${me.u}/`);
+      const stale = drafts.filter((d) => parts[d.id]);
+      if (stale.length) { for (const d of stale) await moveDraft(me.u, d.id, openRev(parts, d.id)); drafts = await listJSON(store, `drafts/${me.u}/`); }
       const team = (await store.get('config/team', { type: 'json' })) || { names: [] };
-      return json(200, { user: me, drafts, parts: await sharedStatus(store), team: team.names });
+      return json(200, { user: me, drafts, parts, team: team.names });
     }
 
     /* drafts */
     if (seg[0] === 'drafts' && seg.length === 2 && PART_RE.test(seg[1]) && me.u !== 'admin') {
-      if (M === 'PUT') { const d = cleanDraft(await req.json(), seg[1]); await store.setJSON(`drafts/${me.u}/${seg[1]}`, d); return json(200, { draft: d }); }
+      if (M === 'PUT') {
+        const parts = await sharedStatus(store), q = parseId(seg[1]);
+        if (q.k > 0 && !parts[revId(q.base, q.k - 1)]) return err(400, 'This revision does not exist yet.');
+        const id = openRev(parts, seg[1]); // part already sent → the draft goes to its new revision
+        const d = cleanDraft(await req.json(), id);
+        if (id !== seg[1]) await moveDraft(me.u, seg[1], id);
+        await store.setJSON(`drafts/${me.u}/${id}`, d); return json(200, { draft: d, moved: id !== seg[1] });
+      }
       if (M === 'DELETE') { await deleteDraft(me.u, seg[1]); return json(200, { ok: true }); }
     }
 
@@ -168,6 +191,13 @@ export default async (req) => {
       if (!p || typeof p.file !== 'string' || !/^[\w\-. ()]+\.xlsx$/.test(p.filename || '')) return err(400, 'The report is incomplete.');
       if (p.file.length * 0.75 > MAX_FILE) return err(413, 'The report is too large to e-mail. Send fewer parts at once.');
       const rows = (p.rows || []).filter((r) => r && PART_RE.test(r.id || ''));
+      const parts = await sharedStatus(store);
+      const taken = rows.filter((r) => parts[r.id]);
+      if (taken.length) {
+        for (const r of taken) await moveDraft(me.u, r.id, openRev(parts, r.id));
+        return err(409, `Already sent by someone else: ${taken.map((r) => `${r.part} (${parts[r.id].by})`).join(', ')}. Your change was moved to the new revision – check it and send again.`);
+      }
+      if (rows.some((r) => { const q = parseId(r.id); return q.k > 0 && !parts[revId(q.base, q.k - 1)]; })) return err(400, 'The report contains a revision that does not exist yet.');
       const vehicles = [...new Set(rows.map((r) => r.vehicle))].join(', ');
       const subject = `BLIX parts report – ${me.name} – ${vehicles || 'parts'} (${rows.length} part${rows.length === 1 ? '' : 's'})${p.batches > 1 ? ` [${p.batch}/${p.batches}]` : ''}`;
       const to = env.MAIL_TO.split(',').map((a) => a.trim()).filter(Boolean);
@@ -195,7 +225,7 @@ export default async (req) => {
       const at = new Date().toISOString();
       const rec = rows.map((x) => ({ id: x.id, statusKey: clip(x.statusKey, 6), status: clip(x.status, 40), priorityKey: clip(x.priorityKey, 4), priority: clip(x.priority, 20),
         note: clip(x.note, 4000), responsible: clip(x.responsible, 80), dateIso: /^\d{4}-\d{2}-\d{2}$/.test(x.dateIso || '') ? x.dateIso : '', date: clip(x.date, 30),
-        photos: Number(x.photos) || 0, vehicle: clip(x.vehicle, 10), part: clip(x.part, 80) }));
+        photos: Number(x.photos) || 0, vehicle: clip(x.vehicle, 10), part: clip(x.part, 80), next: clip(x.next, 80) }));
       await store.setJSON(`send/${at}-${crypto.randomBytes(3).toString('hex')}`, { by: me.name, u: me.u, at, rows: rec });
       await Promise.all(rows.map((x) => deleteDraft(me.u, x.id))); // photos went out by e-mail; clear the draft
       return json(200, { ok: true, at });
@@ -234,6 +264,17 @@ export default async (req) => {
         else if (seg[3] === 'active' && M === 'POST') { rec.active = !!b.active; rec.v = (rec.v || 1) + 1; }
         else return err(404, 'Unknown action.');
         await store.setJSON(key, rec); return json(200, { user: publicUser(rec) });
+      }
+      if (seg[1] === 'unlock' && seg.length === 3 && PART_RE.test(seg[2]) && M === 'POST') {
+        const id = seg[2], q = parseId(id), parts = await sharedStatus(store), next = revId(q.base, q.k + 1);
+        if (!parts[id]) return err(400, 'This part is not locked.');
+        if (parts[next]) return err(400, 'The next revision has already been sent. Unlock that one first.');
+        const { blobs } = await store.list({ prefix: 'send/' });
+        for (const b of blobs) { const rec = await store.get(b.key, { type: 'json' }); if (!rec || !(rec.rows || []).some((r) => r.id === id)) continue;
+          rec.rows = rec.rows.filter((r) => r.id !== id); if (rec.rows.length) await store.setJSON(b.key, rec); else await store.delete(b.key); }
+        const { blobs: dr } = await store.list({ prefix: 'drafts/' }); // drafts on the removed revision go back to this part
+        for (const b of dr.filter((x) => x.key.endsWith(`/${next}`))) await moveDraft(b.key.split('/')[1], next, id);
+        return json(200, { ok: true });
       }
       if (path === 'admin/team' && M === 'PUT') {
         const b = await req.json().catch(() => ({}));

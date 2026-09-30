@@ -121,6 +121,13 @@ textarea:focus,select:focus,input.txt:focus{outline:2px solid var(--cyan);outlin
 .cred{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:14px;background:var(--ice);border-radius:10px;padding:10px 12px}.cred div{color:var(--muted)}.cred b{font-family:var(--mono);word-break:break-all}
 .names .nm button{font-size:13px}
 
+.item.rev{margin-left:22px;position:relative}.item.rev::before{content:"↳";position:absolute;left:-18px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:16px}
+.item.locked{background:#f4f7f9}.item.locked img{opacity:.75}
+.sent.rvtag{color:var(--done);background:var(--ice)}
+.lockcard{margin-top:12px;border-left:5px solid var(--done)}
+.histlist{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.hist{all:unset;box-sizing:border-box;cursor:pointer;display:block;background:#f4f7f9;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px;color:var(--ink,#14232c)}
+.hist b{font-family:var(--mono);color:var(--navy)}.hist span{display:block;color:var(--muted);font-size:12px;margin-top:2px}
 </style>
 </head>
 <body>
@@ -241,6 +248,16 @@ const STATUS = [["chg","Change needed"],["ok","No change"],["wip","In progress"]
 const PRIO = [["h","High"],["m","Medium"],["l","Low"]];
 const SL = Object.fromEntries(STATUS), PL = Object.fromEntries(PRIO);
 const PARTS = DATA.parts, VEH = DATA.veh, BYID = Object.fromEntries(PARTS.map(p=>[p.id,p]));
+/* revisions: a sent part is locked; changes continue on a new revision (-A, -B …). Id: base, base-r1, base-r2 … */
+const revId=(base,k)=>k?`${base}-r${k}`:base;
+const parseId=id=>{ const m=/^(p[0-9a-f]{10})(?:-r([1-9]\d?))?$/.exec(id||''); return m?{base:m[1],k:m[2]?+m[2]:0}:null; };
+const letters=n=>{ let s=''; while(n>0){ n--; s=String.fromCharCode(65+n%26)+s; n=Math.floor(n/26); } return s; };
+function getPart(id){ if(BYID[id]) return BYID[id]; const q=parseId(id); if(!q||!BYID[q.base]) return null; const b=BYID[q.base];
+  const m=b.n.match(/^(.*)-([A-Z])$/);   // name already ends in a revision letter (e.g. -B) → continue from there
+  return {...b,id,rev:q.k,base:b.id,n:m?`${m[1]}-${letters(m[2].charCodeAt(0)-64+q.k)}`:`${b.n}-${letters(q.k)}`}; }
+const baseOf=p=>p.base||p.id, revOf=p=>p.rev||0;
+const nextPart=p=>getPart(revId(baseOf(p),revOf(p)+1));
+function chain(p){ const out=[]; for(let k=0;k<60;k++){ const id=revId(p.id,k); out.push(getPart(id)); if(!SHARED[id]) break; } return out; }
 
 /* ================= local storage (cache + offline) ================= */
 const openDB=(name,stores)=>new Promise((res,rej)=>{const r=indexedDB.open(name,2);r.onupgradeneeded=()=>{for(const [s,kp] of stores) if(!r.result.objectStoreNames.contains(s)) r.result.createObjectStore(s,kp?{keyPath:kp}:undefined)};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
@@ -300,8 +317,9 @@ async function saveDraftLocal(d){ d.dirty=true; d.updatedAt=new Date().toISOStri
 async function pushOne(d){
   if(d.deleted){ await api('drafts/'+d.id,{method:'DELETE'}); await loc.delDraft(d.id); delete DRAFTS[d.id]; return; }
   for(const ref of d.photos){ if(!ref.id&&ref.blob){ const r=await api('photos',{method:'POST',body:ref.blob,raw:true}); ref.id=r.id; await loc.putPhoto(r.id,ref.blob); } }
-  await api('drafts/'+d.id,{method:'PUT',body:{status:d.status,priority:d.priority,note:d.note,resp:d.resp,date:d.date,photos:d.photos.map(p=>p.id)}});
-  d.dirty=false; await loc.putDraft(d);
+  const r=await api('drafts/'+d.id,{method:'PUT',body:{status:d.status,priority:d.priority,note:d.note,resp:d.resp,date:d.date,photos:d.photos.map(p=>p.id)}});
+  if(r&&r.draft&&r.draft.id!==d.id){ await loc.delDraft(d.id); delete DRAFTS[d.id]; d.id=r.draft.id; const np=getPart(d.id); toast(`Part was already sent – your draft moved to ${np?np.n:'the new revision'}`); }
+  d.dirty=false; DRAFTS[d.id]=d; await loc.putDraft(d);
 }
 async function sync(){
   if(!SESSION||syncing) return; if(!navigator.onLine){ setOnline(false); return; }
@@ -328,8 +346,8 @@ document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==
 
 /* what a part shows: my draft first, otherwise the newest sent report of the team */
 function shown(id){ const m=DRAFTS[id], s=SHARED[id];
-  if(m&&!m.deleted) return {status:m.status,draft:true,photos:m.photos.length,queued:!!m.queued};
   if(s) return {status:s.statusKey||'',by:s.by,at:s.at,photos:s.photos||0,sent:true};
+  if(m&&!m.deleted) return {status:m.status,draft:true,photos:m.photos.length,queued:!!m.queued};
   return null; }
 
 /* ================= session ================= */
@@ -342,7 +360,7 @@ async function signOut(expired){ SESSION=null; userp=null; DRAFTS={}; SHARED={};
 let view={name:'home'};
 function go(v,replace){ view=v; const hash=v.name==='home'?'#':v.name==='veh'?`#v/${v.vc}`:v.name==='part'?`#p/${v.id}`:`#${v.name}`; replace?history.replaceState(v,'',hash):history.pushState(v,'',hash); render(); window.scrollTo(0,0); }
 window.addEventListener('popstate',e=>{ view=e.state||{name:'home'}; render(); });
-function parseHash(){ const m=location.hash.match(/^#(v|p)\/(.+)$/); if(m) return m[1]==='v'&&VEH[m[2]]?{name:'veh',vc:m[2]}:(BYID[m[2]]?{name:'part',id:m[2]}:{name:'home'}); const n=location.hash.slice(1); if(['send','account','admin'].includes(n)) return {name:n}; return {name:'home'}; }
+function parseHash(){ const m=location.hash.match(/^#(v|p)\/(.+)$/); if(m) return m[1]==='v'&&VEH[m[2]]?{name:'veh',vc:m[2]}:(getPart(m[2])?{name:'part',id:m[2]}:{name:'home'}); const n=location.hash.slice(1); if(['send','account','admin'].includes(n)) return {name:n}; return {name:'home'}; }
 function topbar(title,sub,back,extra=''){ return `<header class="top"><div class="row">${back?`<button class="iconbtn" id="back" aria-label="Back">${ICON.back}</button>`:LOGO}<h1>${h(title)}${sub?`<small>${h(sub)}</small>`:''}</h1>${!back?`<button class="iconbtn" id="acct" aria-label="Account">${ICON.user}</button>`:''}</div>${extra}</header><div id="net" class="netbar" ${online?'hidden':''}>Offline – your work is saved on this phone and synced when you're back online.</div>`; }
 function bind(){ const b=$('#back'); if(b) b.onclick=()=>history.length>1?history.back():go({name:'home'}); const g=$('#acct'); if(g) g.onclick=()=>go({name:SESSION.user.role==='admin'&&SESSION.user.u==='admin'?'admin':'account'}); }
 const myDrafts=()=>Object.values(DRAFTS).filter(d=>!d.deleted);
@@ -364,8 +382,9 @@ function renderLogin(a){
 }
 
 function renderHome(a){
-  const cnt={}, dr={}; PARTS.forEach(p=>{const s=shown(p.id); if(s){ cnt[p.v]=(cnt[p.v]||0)+(s.sent?1:0); if(s.draft) dr[p.v]=(dr[p.v]||0)+1; }});
-  const drafts=myDrafts().length, sentTotal=Object.keys(SHARED).length;
+  const cnt={}, dr={}; PARTS.forEach(p=>{ if(SHARED[p.id]) cnt[p.v]=(cnt[p.v]||0)+1; });
+  myDrafts().forEach(d=>{ const p=getPart(d.id); if(p) dr[p.v]=(dr[p.v]||0)+1; });
+  const drafts=myDrafts().length, sentTotal=PARTS.filter(p=>SHARED[p.id]).length;
   a.innerHTML=topbar('Parts Review',`Signed in as ${SESSION.user.name}`,false,`<div class="search"><input id="q" type="search" placeholder="Search part number in all vehicles…" enterkeyhint="search"></div>`)+
   `<main><div id="res"></div><div id="homebody">
    <div class="stat" style="margin-top:0"><div><b>${drafts}</b><span>My drafts</span></div><div><b>${sentTotal}</b><span>Team sent</span></div><div><b>${PARTS.length-sentTotal}</b><span>To do</span></div></div>
@@ -378,13 +397,13 @@ function renderHome(a){
   $('#send').onclick=()=>go({name:'send'});
   const q=$('#q'); q.oninput=()=>{ const t=q.value.trim().toUpperCase(); const res=$('#res'), hb=$('#homebody');
     if(t.length<2){res.innerHTML='';hb.hidden=false;return;} hb.hidden=true;
-    const hits=PARTS.filter(p=>p.n.toUpperCase().includes(t)).slice(0,60);
+    const hits=PARTS.filter(p=>p.n.toUpperCase().includes(t)).slice(0,60).flatMap(chain);
     res.innerHTML=hits.length?`<div class="list">${hits.map(itemHTML).join('')}</div>`:`<div class="empty">No part matches “${h(q.value)}”.</div>`; bindItems(res); };
 }
 const isStandalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
-function itemHTML(p){ const s=shown(p.id); const st=s&&s.status;
-  const tag=!s?'':s.draft?`<span class="sent" style="color:var(--wip);background:var(--wip-bg)">${s.queued?'Waiting to send':'My draft'}</span>`:`<span class="sent">Sent · ${h(s.by)} · ${ddmm(s.at)}</span>`;
-  return `<button class="item ${st?'s-'+st:''}" data-id="${p.id}"><img src="${p.img}" alt="" loading="lazy"><span class="t"><span class="pn">${h(p.n)}</span><span class="m">${p.v} · ${h(p.c)}${p.t==='A'?' · Assembly':''}</span>${s?`${st?`<span class="pill">${SL[st]}</span>`:''}${tag}`:''}</span>${s&&s.photos?`<span class="cam">📷 ${s.photos}</span>`:''}</button>`; }
+function itemHTML(p){ const s=shown(p.id); const st=s&&s.status, rv=revOf(p);
+  const tag=(!s?'':s.draft?`<span class="sent" style="color:var(--wip);background:var(--wip-bg)">${s.queued?'Waiting to send':'My draft'}</span>`:`<span class="sent">🔒 Sent · ${h(s.by)} · ${ddmm(s.at)}</span>`)+(rv&&!(s&&s.sent)?`<span class="sent rvtag">New revision</span>`:'');
+  return `<button class="item ${st?'s-'+st:''}${rv?' rev':''}${s&&s.sent?' locked':''}" data-id="${p.id}"><img src="${p.img}" alt="" loading="lazy"><span class="t"><span class="pn">${h(p.n)}</span><span class="m">${p.v} · ${h(p.c)}${p.t==='A'?' · Assembly':''}</span>${st?`<span class="pill">${SL[st]}</span>`:''}${tag}</span>${s&&s.photos?`<span class="cam">📷 ${s.photos}</span>`:''}</button>`; }
 function bindItems(root){ root.querySelectorAll('.item[data-id]').forEach(b=>b.onclick=()=>go({name:'part',id:b.dataset.id})); }
 
 let vehFilter='all';
@@ -393,7 +412,7 @@ function renderVeh(a){
   a.innerHTML=topbar(vc,VEH[vc],true,`<div class="search"><input id="q" type="search" placeholder="Search in ${h(vc)}…" enterkeyhint="search"></div>`)+
    `<div class="chips">${[['all','All'],['todo','To do'],['mine','My drafts'],['sent','Sent'],...STATUS].map(([k,l])=>`<button class="chip" data-f="${k}" aria-pressed="${vehFilter===k}">${l}</button>`).join('')}</div><main id="lst"></main>`;
   const draw=()=>{ const t=$('#q').value.trim().toUpperCase(); let rows=list.filter(p=>!t||p.n.toUpperCase().includes(t));
-    rows=rows.filter(p=>{const e=shown(p.id); if(vehFilter==='all')return true; if(vehFilter==='todo')return !e; if(vehFilter==='mine')return e&&e.draft; if(vehFilter==='sent')return e&&e.sent; return e&&e.status===vehFilter;});
+    rows=rows.flatMap(chain).filter(p=>{const e=shown(p.id); if(vehFilter==='all')return true; if(vehFilter==='todo')return !e; if(vehFilter==='mine')return e&&e.draft; if(vehFilter==='sent')return e&&e.sent; return e&&e.status===vehFilter;});
     let html='',cat=null; rows.forEach(p=>{ if(p.c!==cat){ if(cat!==null) html+='</div>'; cat=p.c; html+=`<div class="cat">${h(cat)}</div><div class="list">`; } html+=itemHTML(p); }); if(cat!==null) html+='</div>';
     $('#lst').innerHTML=html||'<div class="empty">No parts match this filter.</div>'; bindItems($('#lst')); };
   $('#q').oninput=draw; a.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{vehFilter=c.dataset.f; a.querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed',x===c)); draw();}); draw();
@@ -401,13 +420,15 @@ function renderVeh(a){
 
 let draft=null;
 function renderPart(a){
-  const p=BYID[view.id]; const mine=DRAFTS[p.id]&&!DRAFTS[p.id].deleted?DRAFTS[p.id]:null; const sh=SHARED[p.id];
-  if(!draft||draft.id!==p.id){ draft=mine?{...mine,photos:mine.photos.map(x=>({...x}))}:{id:p.id,status:sh?sh.statusKey||'':'',priority:sh?sh.priorityKey||'':'',note:sh?sh.note||'':'',resp:sh?sh.responsible||'':'',date:sh?sh.dateIso||'':'',photos:[]}; }
+  const p=getPart(view.id); if(!p){ go({name:'home'},true); return; }
+  const sh=SHARED[p.id]; if(sh) return renderLocked(a,p,sh);
+  const mine=DRAFTS[p.id]&&!DRAFTS[p.id].deleted?DRAFTS[p.id]:null;
+  if(!draft||draft.id!==p.id){ draft=mine?{...mine,photos:mine.photos.map(x=>({...x}))}:{id:p.id,status:'',priority:'',note:'',resp:'',date:'',photos:[]}; }
   const days=workdays(); if(draft.date&&!days.includes(draft.date)) days.unshift(draft.date);
   const team=[...new Set([...TEAM,draft.resp].filter(Boolean))];
   a.innerHTML=topbar(p.n,`${p.v} · ${p.c}`,true)+`<main>
-   <div class="hero"><img src="${p.img}" alt="Preview of ${h(p.n)}"><div class="info"><div class="pn">${h(p.n)}</div><div class="m">${h(VEH[p.v])} · ${h(p.c)} · ${p.t==='A'?'Assembly':'Part'}${p.s?' · '+h(p.s):''}</div></div></div>
-   ${sh?`<div class="card" style="margin-top:12px;border-left:5px solid var(--done)"><b>Already sent</b><div class="note" style="margin:4px 0 0">${h(sh.by)} sent this part on ${fmtDate(sh.at)}: <b>${h(sh.status||'')}</b>${sh.note?` – “${h(sh.note)}”`:''}${sh.responsible?` · Responsible: ${h(sh.responsible)}`:''}${sh.date?` · ${h(sh.date)}`:''}${sh.photos?` · ${sh.photos} photo${sh.photos>1?'s':''}`:''}.<br>${mine?'You have a newer draft for this part below.':'Change the fields below and send again to update it.'}</div></div>`:''}
+   <div class="hero"><img src="${p.img}" alt="Preview of ${h(p.n)}"><div class="info"><div class="pn">${h(p.n)}</div><div class="m">${h(VEH[p.v])} · ${h(p.c)} · ${p.t==='A'?'Assembly':'Part'}${revOf(p)?` · Revision of ${h(BYID[p.base].n)}`:(p.s?' · '+h(p.s):'')}</div></div></div>
+   ${revOf(p)?`<div class="card" style="margin-top:12px;border-left:5px solid var(--cyan)"><b>New revision ${h(p.n)}</b><div class="note" style="margin:4px 0 0">Created after the change below was sent. The picture shows the original part.</div>${historyHTML(p)}</div>`:''}
    ${mine?`<div class="note" style="margin-top:10px">📝 Your draft · last saved ${new Date(mine.updatedAt).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).replace(/\//g,'-')}${mine.dirty?' · not synced yet':' · saved to your account'}</div>`:''}
    <div class="field"><span class="lab">Status</span><div class="seg" id="st">${STATUS.map(([k,l])=>`<button class="s-${k}" data-v="${k}" aria-pressed="${draft.status===k}">${l}</button>`).join('')}</div></div>
    <div class="field"><span class="lab">Photos</span><div class="photos" id="ph"></div></div>
@@ -422,7 +443,7 @@ function renderPart(a){
     $('#ph').querySelectorAll('img[data-i]').forEach(async im=>{ im.src=await photoURL(draft.photos[+im.dataset.i])||''; });
     $('#ph').querySelectorAll('.ph button').forEach(b=>b.onclick=()=>{draft.photos.splice(+b.dataset.i,1);drawPh();});
     $('#take').onclick=()=>$('#camIn').click(); $('#pick').onclick=()=>$('#galIn').click(); };
-  drawPh();
+  drawPh(); bindHist(a);
   const onFiles=async files=>{ for(const f of files){ try{ draft.photos.push({key:rid(),blob:await compress(f)}); }catch(err){ toast("This photo couldn't be read. Try another one."); } } drawPh(); };
   $('#camIn').onchange=ev=>{onFiles([...ev.target.files]);ev.target.value='';}; $('#galIn').onchange=ev=>{onFiles([...ev.target.files]);ev.target.value='';};
   const seg=(id,key)=>$(id).querySelectorAll('button').forEach(b=>b.onclick=()=>{draft[key]=draft[key]===b.dataset.v?'':b.dataset.v;$(id).querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.v===draft[key]));});
@@ -436,14 +457,32 @@ function renderPart(a){
     $('#no').onclick=()=>renderPart(a); $('#yes').onclick=async()=>{ const d=DRAFTS[p.id]; d.deleted=true; await saveDraftLocal(d); draft=null; toast('Draft removed'); history.back(); sync(); }; bind(); };
 }
 
+function historyHTML(p){ const rows=[]; for(let k=revOf(p)-1;k>=0;k--){ const q=getPart(revId(baseOf(p),k)), s=SHARED[q.id]; if(!s) continue;
+    rows.push(`<button class="hist" data-id="${q.id}"><b>${h(q.n)}</b> · ${h(s.status||'')}${s.note?` – “${h(s.note)}”`:''}<span>🔒 ${h(s.by)} · ${fmtDate(s.at)}${s.responsible?` · ${h(s.responsible)}`:''}${s.photos?` · ${s.photos} photo${s.photos>1?'s':''}`:''}</span></button>`); }
+  return rows.length?`<div class="histlist">${rows.join('')}</div>`:''; }
+function bindHist(root){ root.querySelectorAll('.hist[data-id]').forEach(b=>b.onclick=()=>go({name:'part',id:b.dataset.id})); }
+function renderLocked(a,p,sh){ const nx=nextPart(p), nxLocked=!!SHARED[nx.id], canUnlock=SESSION.user.role==='admin'&&!nxLocked;
+  a.innerHTML=topbar(p.n,`${p.v} · ${p.c}`,true)+`<main>
+   <div class="hero"><img src="${p.img}" alt="Preview of ${h(p.n)}"><div class="info"><div class="pn">${h(p.n)}</div><div class="m">${h(VEH[p.v])} · ${h(p.c)} · ${p.t==='A'?'Assembly':'Part'}${revOf(p)?` · Revision of ${h(BYID[p.base].n)}`:''}</div></div></div>
+   <div class="card lockcard"><b>🔒 Sent and locked</b><div class="note" style="margin:4px 0 0">${h(sh.by)} sent this part to Engineering on ${fmtDate(sh.at)}. It can't be changed any more.</div>
+    <div class="cred" style="margin-top:10px"><div>Status</div><b style="font-family:inherit">${h(sh.status||'–')}</b>${sh.note?`<div>Change</div><b style="font-family:inherit;font-weight:500">${h(sh.note)}</b>`:''}${sh.priority?`<div>Priority</div><b style="font-family:inherit">${h(sh.priority)}</b>`:''}${sh.responsible?`<div>Responsible</div><b style="font-family:inherit">${h(sh.responsible)}</b>`:''}${sh.date?`<div>Planned</div><b style="font-family:inherit">${h(sh.date)}</b>`:''}<div>Photos</div><b style="font-family:inherit">${sh.photos||0} (in the e-mail)</b></div></div>
+   <div class="field"><button class="btn" id="nx" style="display:block;width:100%">${nxLocked?`Go to ${h(nx.n)}`:`Open new revision ${h(nx.n)}`}</button></div>
+   ${revOf(p)?`<div class="section-t">Earlier revisions</div>${historyHTML(p)}`:''}
+   ${canUnlock?`<div class="field"><button class="btn ghost" id="unl" style="display:block">Undo send (unlock) – admin</button><div class="note">Only if it was sent by mistake. ${h(nx.n)} is removed again; drafts on it move back here.</div></div>`:''}
+  </main>`;
+  $('#nx').onclick=()=>go({name:'part',id:nx.id}); bindHist(a);
+  const u=$('#unl'); if(u) u.onclick=async()=>{ if(!u.dataset.sure){ u.dataset.sure='1'; u.textContent='Tap again to unlock'; u.style.color='var(--chg)'; setTimeout(()=>{ if(u.isConnected){ delete u.dataset.sure; u.textContent='Undo send (unlock) – admin'; u.style.color=''; } },4000); return; }
+    try{ await api('admin/unlock/'+p.id,{method:'POST'}); delete SHARED[p.id]; toast(`${p.n} is unlocked`); await sync(); render(); }catch(e){ toast(e.message); } };
+}
+
 let sending=false;
 function renderSend(a){
-  const rows=myDrafts().sort((x,y)=>(BYID[x.id].v+BYID[x.id].n).localeCompare(BYID[y.id].v+BYID[y.id].n));
+  const rows=myDrafts().filter(d=>getPart(d.id)).sort((x,y)=>(getPart(x.id).v+getPart(x.id).n).localeCompare(getPart(y.id).v+getPart(y.id).n));
   const ph=rows.reduce((s,e)=>s+e.photos.length,0);
   a.innerHTML=topbar('Send to Engineering','Sent straight to the Engineering mailbox',true)+`<main>
    <div class="card"><div class="stat" style="margin-top:0"><div><b>${rows.length}</b><span>Parts</span></div><div><b>${ph}</b><span>Photos</span></div><div><b>${rows.filter(e=>e.status==='chg').length}</b><span>Changes</span></div></div>
-   <p class="note">Tap “Send”. Your drafts and photos go to Engineering by e-mail as an Excel file. Afterwards the parts show “Sent” for the whole team.</p></div>
-   <div id="after"></div><div class="section-t">In this send</div><div class="list" id="lst">${rows.map(e=>itemHTML(BYID[e.id])).join('')||'<div class="empty">No drafts to send.</div>'}</div></main>
+   <p class="note">Tap “Send”. Your drafts and photos go to Engineering by e-mail as an Excel file. Afterwards these parts are <b>locked</b> and a new revision (-A, -B …) opens for further changes.</p></div>
+   <div id="after"></div><div class="section-t">In this send</div><div class="list" id="lst">${rows.map(e=>itemHTML(getPart(e.id))).join('')||'<div class="empty">No drafts to send.</div>'}</div></main>
    <div class="bar"><button class="btn cyan" id="go" ${rows.length&&!sending?'':'disabled'}>${sending?'Sending…':`Send (${rows.length})`}</button></div>`;
   bindItems($('#lst'));
   $('#go').onclick=async()=>{ const btn=$('#go'); btn.setAttribute('disabled','');
@@ -473,9 +512,9 @@ async function sendReports(rows,progress){
     for(const d of rows) for(const r of d.photos) if(!(await photoBlob(r))) return {ok:false,error:'A photo could not be loaded.'};
     const batches=await buildBatches(rows);
     for(let i=0;i<batches.length;i++){ progress&&progress(i+1,batches.length); const bt=batches[i];
-      const summary=bt.rows.map(e=>{const p=BYID[e.id];return {id:p.id,statusKey:e.status||'',priorityKey:e.priority||'',dateIso:e.date||'',vehicle:p.v,part:p.n,status:SL[e.status]||'',priority:PL[e.priority]||'',note:e.note||'',responsible:e.resp||'',date:e.date?fmtDate(e.date):'',photos:e.photos.length};});
+      const summary=bt.rows.map(e=>{const p=getPart(e.id);return {id:p.id,next:nextPart(p).n,statusKey:e.status||'',priorityKey:e.priority||'',dateIso:e.date||'',vehicle:p.v,part:p.n,status:SL[e.status]||'',priority:PL[e.priority]||'',note:e.note||'',responsible:e.resp||'',date:e.date?fmtDate(e.date):'',photos:e.photos.length};});
       try{ await api('send',{method:'POST',body:{filename:bt.name,file:await b64(bt.blob),rows:summary,batch:i+1,batches:batches.length}}); }
-      catch(e){ if(e.status===0) return {queued:true}; return {ok:false,error:e.message}; }
+      catch(e){ if(e.status===0) return {queued:true}; if(e.status===409){ sending=false; await sync(); } return {ok:false,error:e.message}; }
       for(const e of bt.rows){ await loc.delDraft(e.id); for(const r of e.photos) if(r.id) await loc.delPhoto(r.id); delete DRAFTS[e.id]; }
     }
     await sync(); return {ok:true};
@@ -492,14 +531,14 @@ async function imgBytes(src,maxW,q=.85){ const url=typeof src==='string'?src:URL
   return {data:new Uint8Array(await b.arrayBuffer()),w:img.naturalWidth,h:img.naturalHeight}; }
 async function buildExcel(rows,phMax=1200,phQ=.8){
   const X=window.XLSX_MINI, maxPh=Math.max(1,...rows.map(e=>e.photos.length)), who=SESSION.user.name;
-  const hdr=['Preview','Vehicle','Part number','Type','Category','Status','Priority','What to change','Responsible','Planned date','Reported by','Reported on']; for(let i=1;i<=maxPh;i++) hdr.push('Photo '+i);
-  const cols=[{w:20},{w:9},{w:26},{w:10},{w:17},{w:15},{w:10},{w:48},{w:16},{w:16},{w:15},{w:16}]; for(let i=0;i<maxPh;i++) cols.push({w:36});
+  const hdr=['Preview','Vehicle','Part number','New revision','Type','Category','Status','Priority','What to change','Responsible','Planned date','Reported by','Reported on']; for(let i=1;i<=maxPh;i++) hdr.push('Photo '+i);
+  const cols=[{w:20},{w:9},{w:26},{w:22},{w:10},{w:17},{w:15},{w:10},{w:48},{w:16},{w:16},{w:15},{w:16}]; for(let i=0;i<maxPh;i++) cols.push({w:36});
   const sheetRows=[{h:30,cells:[{v:'BLIX Parts Review – report from '+who,s:4}]},{h:26,cells:hdr.map(v=>({v,s:1}))}], images=[], PH_W=240;
-  for(let i=0;i<rows.length;i++){ const e=rows[i], p=BYID[e.id], r=i+2;
-    const cells=[{s:0},{v:p.v,s:3},{v:p.n,s:3},{v:p.t==='A'?'Assembly':'Part',s:0},{v:p.c,s:0},{v:SL[e.status]||'',s:3},{v:PL[e.priority]||'',s:0},{v:e.note||'',s:0},{v:e.resp||'',s:0},
+  for(let i=0;i<rows.length;i++){ const e=rows[i], p=getPart(e.id), r=i+2;
+    const cells=[{s:0},{v:p.v,s:3},{v:p.n,s:3},{v:nextPart(p).n,s:0},{v:p.t==='A'?'Assembly':'Part',s:0},{v:p.c,s:0},{v:SL[e.status]||'',s:3},{v:PL[e.priority]||'',s:0},{v:e.note||'',s:0},{v:e.resp||'',s:0},
       e.date?{v:X.dateSerial(e.date),t:'d',s:2}:{s:0},{v:who,s:0},{v:e.updatedAt?new Date(e.updatedAt).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).replace(/\//g,'-'):'',s:0}];
     const pv=await imgBytes(p.img,200); images.push({row:r,col:0,w:130,h:91,data:pv.data}); let rowH=100;
-    for(let k=0;k<e.photos.length;k++){ const b=await photoBlob(e.photos[k]); if(!b) continue; const im=await imgBytes(b,phMax,phQ); const w=PH_W, hh=Math.round(PH_W*im.h/im.w); rowH=Math.max(rowH,hh*0.75+10); images.push({row:r,col:12+k,w,h:hh,data:im.data}); cells.push({s:0}); }
+    for(let k=0;k<e.photos.length;k++){ const b=await photoBlob(e.photos[k]); if(!b) continue; const im=await imgBytes(b,phMax,phQ); const w=PH_W, hh=Math.round(PH_W*im.h/im.w); rowH=Math.max(rowH,hh*0.75+10); images.push({row:r,col:13+k,w,h:hh,data:im.data}); cells.push({s:0}); }
     sheetRows.push({h:Math.min(409,Math.round(rowH)),cells}); }
   const bytes=X.build([{name:'Report',freeze:2,cols,rows:sheetRows,images,autoFilter:`A2:${X.colName(hdr.length-1)}${rows.length+2}`}]);
   return {blob:new Blob([bytes],{type:XMIME}),name:`BLIX_Parts_Report_${who.replace(/[^\w\-]+/g,'_')}_${new Date().toISOString().slice(0,10)}.xlsx`}; }
