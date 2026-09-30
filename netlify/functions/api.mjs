@@ -17,6 +17,7 @@
 
 import { getStore } from '@netlify/blobs';
 import crypto from 'node:crypto';
+import { XLSX_MINI } from '../lib/xlsx-mini.mjs';
 
 const DATA = () => getStore({ name: 'parts-review', consistency: 'strong' });
 const PHOTOS = () => getStore({ name: 'parts-photos', consistency: 'strong' });
@@ -80,13 +81,14 @@ const mailMissing = (env) => {
   const miss = need.filter((k) => !env[k]); return miss.length ? miss.join(', ') : '';
 };
 /* send one e-mail (Resend if RESEND_API_KEY is set, otherwise Microsoft 365). Returns '' or an error text. */
-async function sendMail(env, { subject, html, file }) {
+async function sendMail(env, { subject, html, file, files }) {
+  files = files || (file ? [file] : []);
   const to = env.MAIL_TO.split(',').map((a) => a.trim()).filter(Boolean);
   if (env.RESEND_API_KEY) {
     const r = await fetch('https://api.resend.com/emails', {
       method: 'POST', headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ from: env.RESEND_FROM || 'BLIX Parts App <onboarding@resend.dev>', to, subject, html,
-        ...(file ? { attachments: [{ filename: file.name, content: file.b64 }] } : {}) }),
+        ...(files.length ? { attachments: files.map((f) => ({ filename: f.name, content: f.b64 })) } : {}) }),
     });
     if (r.ok) return '';
     const t = await r.text(); console.error('Resend failed', r.status, t);
@@ -98,7 +100,7 @@ async function sendMail(env, { subject, html, file }) {
     method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ message: { subject, body: { contentType: 'HTML', content: html },
       toRecipients: to.map((address) => ({ emailAddress: { address } })),
-      attachments: file ? [{ '@odata.type': '#microsoft.graph.fileAttachment', name: file.name, contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', contentBytes: file.b64 }] : [] },
+      attachments: files.map((f) => ({ '@odata.type': '#microsoft.graph.fileAttachment', name: f.name, contentType: f.type || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', contentBytes: f.b64 })) },
       saveToSentItems: true }),
   });
   if (r.ok) return '';
@@ -119,6 +121,51 @@ function clearMailHtml(ev) {
 }
 async function clearedMap(store) {
   const out = {}; for (const c of await listJSON(store, 'clear/')) if (c && c.last) out[c.base] = c.last; return out;
+}
+
+async function releasedMap(store) {
+  const out = {}; for (const r of await listJSON(store, 'release/')) if (r && r.id) out[r.id] = r; return out;
+}
+const ROLES = { admin: 'Admin', engineer: 'Engineering', mechanic: 'Mechanic' };
+
+/* ---------- weekly backup (also on demand from Settings) ---------- */
+export async function runBackup(env, trigger = 'weekly') {
+  const store = DATA(), miss = mailMissing(env);
+  if (miss) return `The mail service is not set up yet (missing: ${miss}).`;
+  const sends = await listJSON(store, 'send/'), released = await releasedMap(store), clears = await listJSON(store, 'clear/');
+  const maint = await listJSON(store, 'maint/'), users = (await listJSON(store, 'users/')).map(publicUser), drafts = await listJSON(store, 'drafts/');
+  const team = ((await store.get('config/team', { type: 'json' })) || {}).names || [];
+  const { blobs: dk } = await store.list({ prefix: 'drafts/' });
+  const draftUsers = {}; dk.forEach((b) => { const u = b.key.split('/')[1]; draftUsers[u] = (draftUsers[u] || 0) + 1; });
+  const X = XLSX_MINI, day = (iso) => (iso ? X.dateSerial(new Date(iso).toLocaleDateString('sv-SE', { timeZone: 'Europe/Amsterdam' })) : null);
+  const H = (arr) => ({ h: 24, cells: arr.map((v) => ({ v, s: 1 })) }), T = (v) => ({ h: 28, cells: [{ v, s: 4 }] });
+  const cell = (v, s = 0) => (v === null || v === undefined || v === '' ? { s } : { v, s }), dcell = (iso) => (iso ? { v: day(iso), t: 'd', s: 2 } : { s: 0 });
+  const nextId = (id) => { const q = parseId(id); return q ? revId(q.base, q.k + 1) : ''; };
+  const rows = []; sends.forEach((s) => (s.rows || []).forEach((r) => rows.push({ ...r, by: s.by, at: s.at })));
+  rows.sort((a, b) => String(b.at).localeCompare(String(a.at)));
+  const stamp = new Date().toLocaleDateString('en-GB', { timeZone: 'Europe/Amsterdam' }).replace(/\//g, '-');
+  const sheets = [
+    { name: 'Sent reports', freeze: 2, cols: [16, 16, 9, 26, 22, 15, 10, 48, 16, 14, 8, 16, 16].map((w) => ({ w })),
+      rows: [T(`BLIX Parts Review – backup ${stamp}`), H(['Sent on', 'Sent by', 'Vehicle', 'Part', 'New revision', 'Status', 'Priority', 'What to change', 'Responsible', 'Planned date', 'Photos', 'Released in CAD', 'Released by']),
+        ...rows.map((r) => { const rl = released[nextId(r.id)]; return { cells: [dcell(r.at), cell(r.by), cell(r.vehicle, 3), cell(r.part, 3), cell(r.next), cell(r.status, 3), cell(r.priority), cell(r.note), cell(r.responsible), r.dateIso ? { v: X.dateSerial(r.dateIso), t: 'd', s: 2 } : { s: 0 }, cell(r.photos || 0), rl ? dcell(rl.at) : { s: 0 }, cell(rl && rl.by)] }; })] },
+    { name: 'Released in CAD', freeze: 2, cols: [16, 26, 18, 40].map((w) => ({ w })),
+      rows: [T('Released in CAD'), H(['Released on', 'Part (revision)', 'Released by', 'Note']), ...Object.values(released).sort((a, b) => String(b.at).localeCompare(String(a.at))).map((r) => ({ cells: [dcell(r.at), cell(r.name, 3), cell(r.by), cell(r.note)] }))] },
+    { name: 'Cleared', freeze: 2, cols: [16, 24, 18, 44, 22, 10, 10].map((w) => ({ w })),
+      rows: [T('Cleared changes'), H(['Cleared on', 'Part', 'Cleared by', 'Reason', 'Scope', 'Reports', 'Drafts']), ...clears.flatMap((c) => (c.history || []).map((e) => ({ cells: [dcell(e.at), cell(e.name || c.base, 3), cell(e.by), cell(e.reason), cell(e.from ? `From ${e.fromName} onwards` : 'Everything'), cell(e.reports || 0), cell(e.drafts || 0)] })))] },
+    { name: 'Maintenance', freeze: 2, cols: [16, 30, 18, 10, 10, 10, 10].map((w) => ({ w })),
+      rows: [T('Maintenance resets'), H(['Reset on', 'Path', 'By', 'Parts', 'Reports', 'Drafts', 'Notes']), ...maint.sort((a, b) => String(b.at).localeCompare(String(a.at))).map((m) => ({ cells: [dcell(m.at), cell(m.scope, 3), cell(m.by), cell(m.parts), cell(m.reports), cell(m.drafts), cell(m.notes)] }))] },
+    { name: 'Accounts', freeze: 2, cols: [22, 14, 14, 10, 16, 16, 14].map((w) => ({ w })),
+      rows: [T('Accounts (no passwords)'), H(['Name', 'Username', 'Role', 'Active', 'Created', 'Last sign-in', 'Unsent drafts']), ...users.map((u) => ({ cells: [cell(u.name, 3), cell(u.u), cell(ROLES[u.role] || u.role), cell(u.active ? 'Yes' : 'Blocked'), dcell(u.created), dcell(u.lastLogin), cell(draftUsers[u.u] || 0)] }))] },
+  ];
+  const xlsx = Buffer.from(X.build(sheets)).toString('base64');
+  const raw = { exportedAt: new Date().toISOString(), trigger, sends, released, clears, maint, users, team, drafts };
+  const json64 = Buffer.from(JSON.stringify(raw)).toString('base64');
+  const html = `<div style="font-family:Segoe UI,Arial,sans-serif;font-size:14px;color:#14232c"><div style="background:#012135;color:#fff;padding:14px 16px;border-bottom:4px solid #0bbbef"><b style="font-size:17px">BLIX Parts Review – ${trigger === 'weekly' ? 'weekly' : 'manual'} backup</b><br><span style="color:#a9dff2">${esc(fmtNL(raw.exportedAt))}</span></div>
+    <p>${rows.length} sent report${rows.length === 1 ? '' : 's'} · ${Object.keys(released).length} released in CAD · ${dk.length} unsent draft${dk.length === 1 ? '' : 's'} · ${users.length} account${users.length === 1 ? '' : 's'}.</p>
+    <p>Attached: the overview in Excel, and a full data file (.json) that can be used to restore the app if ever needed. Keep this e-mail.</p><p style="color:#5d6e78;font-size:12px">Sent automatically by the BLIX Parts app.</p></div>`;
+  const d = new Date().toISOString().slice(0, 10);
+  return sendMail(env, { subject: `BLIX parts – ${trigger === 'weekly' ? 'weekly' : 'manual'} backup – ${stamp}`, html,
+    files: [{ name: `BLIX_Parts_Backup_${d}.xlsx`, b64: xlsx }, { name: `BLIX_Parts_Backup_${d}.json`, b64: json64, type: 'application/json' }] });
 }
 
 /* ---------- drafts ---------- */
@@ -196,10 +243,11 @@ export default async (req) => {
       if (stale.length) { for (const d of stale) await moveDraft(me.u, d.id, openRev(parts, d.id)); drafts = await listJSON(store, `drafts/${me.u}/`); }
       const team = (await store.get('config/team', { type: 'json' })) || { names: [] };
       const maint = (await listJSON(store, 'maint/')).sort((a, b) => String(b.at).localeCompare(String(a.at)))[0] || null;
-      return json(200, { user: me, drafts, parts, team: team.names, cleared: await clearedMap(store), maint });
+      return json(200, { user: me, drafts, parts, team: team.names, cleared: await clearedMap(store), maint, released: await releasedMap(store) });
     }
 
     /* drafts */
+    if ((seg[0] === 'drafts' || path === 'send') && me.role === 'engineer') return err(403, 'Engineering accounts do not send reports.');
     if (seg[0] === 'drafts' && seg.length === 2 && PART_RE.test(seg[1]) && me.u !== 'admin') {
       if (M === 'PUT') {
         const parts = await sharedStatus(store), q = parseId(seg[1]);
@@ -254,6 +302,20 @@ export default async (req) => {
       return json(200, { ok: true, at });
     }
 
+    /* Engineering: mark a revision as released in CAD (or undo) */
+    if (seg[0] === 'release' && seg.length === 2 && PART_RE.test(seg[1])) {
+      if (me.role !== 'engineer') return err(403, 'Only an Engineering account can release parts.');
+      const id = seg[1], q = parseId(id), key = `release/${id}`;
+      if (M === 'POST') {
+        const parts = await sharedStatus(store);
+        if (q.k < 1 || !parts[revId(q.base, q.k - 1)]) return err(400, 'This revision does not exist (yet).');
+        const b = await req.json().catch(() => ({}));
+        const rec = { id, name: clip(b.name, 80), note: clip(String(b.note || '').trim(), 300), at: new Date().toISOString(), by: me.name, u: me.u };
+        await store.setJSON(key, rec); return json(200, { release: rec });
+      }
+      if (M === 'DELETE') { await store.delete(key); return json(200, { ok: true }); }
+    }
+
     /* clear changes of one part (any account) or a whole section (Admin): unlocks for everyone, e-mails Engineering first */
     if (path === 'clear' && M === 'POST') {
       const b = await req.json().catch(() => ({}));
@@ -283,9 +345,11 @@ export default async (req) => {
       for (const x of blobs) { const rec = await store.get(x.key, { type: 'json' }); if (!rec || !(rec.rows || []).some((r) => inScope(r.id))) continue;
         rec.rows = rec.rows.filter((r) => !inScope(r.id)); if (rec.rows.length) await store.setJSON(x.key, rec); else await store.delete(x.key); }
       await Promise.all(drafts.map((k) => deleteDraft(k[1], k[2])));
+      const { blobs: rl } = await store.list({ prefix: 'release/' }); // revisions created by removed reports no longer exist
+      for (const x of rl) { const q = parseId(x.key.slice(8)); const w = q && want.get(q.base); if (w && q.k > w.from) await store.delete(x.key); }
       for (const p of ev.parts) {
         const key = `clear/${p.id}`, old = (await store.get(key, { type: 'json' })) || { base: p.id, history: [] };
-        const last = { at: ev.at, by: ev.by, reason, from: p.from, fromName: p.fromName, reports: rows.filter((r) => r.base === p.id).length, drafts: p.drafts };
+        const last = { at: ev.at, by: ev.by, name: p.name, reason, from: p.from, fromName: p.fromName, reports: rows.filter((r) => r.base === p.id).length, drafts: p.drafts };
         await store.setJSON(key, { base: p.id, last, history: [...(old.history || []), last].slice(-30) });
       }
       return json(200, { ok: true, at: ev.at, parts: ev.parts.length });
@@ -302,7 +366,7 @@ export default async (req) => {
         if (!name) return err(400, 'Enter the full name.');
         if (pw.length < 6) return err(400, 'Password: at least 6 characters.');
         if (await store.get(`users/${u}`, { type: 'json' })) return err(409, 'This username already exists.');
-        const rec = { u, name, role: b.role === 'admin' ? 'admin' : 'mechanic', active: true, v: 1, created: new Date().toISOString(), ...hashPw(pw) };
+        const rec = { u, name, role: ROLES[b.role] ? b.role : 'mechanic', active: true, v: 1, created: new Date().toISOString(), ...hashPw(pw) };
         await store.setJSON(`users/${u}`, rec); return json(200, { user: publicUser(rec) });
       }
       if (seg[1] === 'users' && seg.length === 3 && USER_RE.test(seg[2]) && M === 'DELETE') {
@@ -322,6 +386,7 @@ export default async (req) => {
         const b = await req.json().catch(() => ({}));
         if (seg[3] === 'password' && M === 'POST') { if (String(b.password || '').length < 6) return err(400, 'Password: at least 6 characters.'); Object.assign(rec, hashPw(b.password)); rec.v = (rec.v || 1) + 1; }
         else if (seg[3] === 'active' && M === 'POST') { rec.active = !!b.active; rec.v = (rec.v || 1) + 1; }
+        else if (seg[3] === 'role' && M === 'POST') { if (!ROLES[b.role]) return err(400, 'Unknown role.'); if (seg[2] === me.u && b.role !== 'admin') return err(400, 'You cannot remove your own Admin role.'); rec.role = b.role; }
         else return err(404, 'Unknown action.');
         await store.setJSON(key, rec); return json(200, { user: publicUser(rec) });
       }
@@ -341,9 +406,14 @@ export default async (req) => {
         for (const k of dr.map((x) => x.key.split('/')).filter((k) => k.length === 3 && inScope(k[2]))) { await deleteDraft(k[1], k[2]); drafts++; }
         const { blobs: cl } = await store.list({ prefix: 'clear/' });
         for (const x of cl.filter((x) => ids.has(x.key.slice(6)))) { await store.delete(x.key); notes++; }
+        const { blobs: rl } = await store.list({ prefix: 'release/' });
+        for (const x of rl) { const q = parseId(x.key.slice(8)); if (q && ids.has(q.base)) await store.delete(x.key); }
         const ev = { at: new Date().toISOString(), by: me.name, u: me.u, scope: clip(b.scope, 160), parts: ids.size, reports, drafts, notes };
         await store.setJSON(`maint/${ev.at}-${crypto.randomBytes(3).toString('hex')}`, ev);
         return json(200, { ok: true, ...ev });
+      }
+      if (path === 'admin/backup' && M === 'POST') {
+        const e = await runBackup(env, 'manual'); return e ? err(502, e) : json(200, { ok: true });
       }
       if (path === 'admin/maint' && M === 'GET') {
         const log = (await listJSON(store, 'maint/')).sort((a, b) => String(b.at).localeCompare(String(a.at))).slice(0, 40);

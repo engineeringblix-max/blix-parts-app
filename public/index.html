@@ -146,6 +146,12 @@ textarea:focus,select:focus,input.txt:focus{outline:2px solid var(--cyan);outlin
 .pathstats{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:6px;font-size:13px;color:var(--muted)}.pathstats b{color:var(--navy)}
 .setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}.setrow:last-child{border-bottom:0}
 select:disabled{opacity:.5}
+.engline{margin-top:8px;font-size:13px;color:var(--muted);text-align:center}.engline b{color:var(--navy)}
+.sent.reltag{color:#fff;background:var(--ok)}.sent.waittag{color:#6b4a12;background:#fff4dc}
+.relcard{margin-top:12px;border-left:5px solid var(--ok)}.waitcard{margin-top:12px;border-left:5px solid #d9a441}
+.relbadge{margin-top:8px;font-size:13px;font-weight:600;color:var(--ok);background:var(--ok-bg);border-radius:8px;padding:6px 8px}
+label.check{display:flex;gap:8px;align-items:center;margin-top:12px;font-size:14px}
+.rolesel{font-size:13px;padding:4px 6px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--navy)}
 </style>
 </head>
 <body>
@@ -293,7 +299,7 @@ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().cat
 /* ================= state ================= */
 let SESSION=null;           // {token, user:{u,name,role}}
 let DRAFTS={};              // partId -> {id,status,priority,note,resp,date,photos:[{id?,key,blob?}],updatedAt,dirty,queued}
-let SHARED={}, CLEARED={}, MAINT=null, TEAM=[], online=navigator.onLine, lastSync=0, syncing=false;
+let SHARED={}, CLEARED={}, RELEASED={}, MAINT=null, TEAM=[], online=navigator.onLine, lastSync=0, syncing=false;
 
 /* ================= helpers ================= */
 const $=s=>document.querySelector(s);
@@ -347,13 +353,13 @@ async function sync(){
   try{
     for(const d of Object.values(DRAFTS).filter(x=>x.dirty)) await pushOne(d);
     const st=await api('state'); setOnline(true);
-    SHARED=st.parts||{}; CLEARED=st.cleared||{}; MAINT=st.maint||null; TEAM=st.team||[]; SESSION.user=st.user; await dev.set('session',SESSION);
+    SHARED=st.parts||{}; CLEARED=st.cleared||{}; MAINT=st.maint||null; RELEASED=st.released||{}; TEAM=st.team||[]; SESSION.user=st.user; await dev.set('session',SESSION);
     const server=Object.fromEntries((st.drafts||[]).map(d=>[d.id,d]));
     for(const id of Object.keys(DRAFTS)) if(!server[id]&&!DRAFTS[id].dirty){ await loc.delDraft(id); delete DRAFTS[id]; }   // sent or removed on another phone
     for(const s of Object.values(server)){ const l=DRAFTS[s.id]; if(l&&l.dirty) continue;
       const d={id:s.id,status:s.status,priority:s.priority,note:s.note,resp:s.resp,date:s.date,photos:(s.photos||[]).map(pid=>({id:pid,key:pid})),updatedAt:s.updatedAt,dirty:false,queued:l?l.queued:false};
       DRAFTS[s.id]=d; await loc.putDraft(d); }
-    await loc.set('shared',SHARED); await loc.set('cleared',CLEARED); await loc.set('maint',MAINT); await loc.set('team',TEAM); lastSync=Date.now();
+    await loc.set('shared',SHARED); await loc.set('cleared',CLEARED); await loc.set('maint',MAINT); await loc.set('released',RELEASED); await loc.set('team',TEAM); lastSync=Date.now();
     if(['home','veh'].includes(view.name)&&!document.querySelector('input:focus,textarea:focus')) render();
     flushQueue();
   }catch(e){ if(e.status===0) setOnline(false); else console.warn(e); }
@@ -372,8 +378,8 @@ function shown(id){ const m=DRAFTS[id], s=SHARED[id];
 
 /* ================= session ================= */
 async function signIn(token,user){ SESSION={token,user}; await dev.set('session',SESSION); userp=null; DRAFTS={};
-  (await loc.drafts()).forEach(d=>DRAFTS[d.id]=d); SHARED=(await loc.get('shared'))||{}; CLEARED=(await loc.get('cleared'))||{}; MAINT=(await loc.get('maint'))||null; TEAM=(await loc.get('team'))||[]; }
-async function signOut(expired){ SESSION=null; userp=null; DRAFTS={}; SHARED={}; CLEARED={}; draft=null; await dev.del('session'); urlCache.clear();
+  (await loc.drafts()).forEach(d=>DRAFTS[d.id]=d); SHARED=(await loc.get('shared'))||{}; CLEARED=(await loc.get('cleared'))||{}; MAINT=(await loc.get('maint'))||null; RELEASED=(await loc.get('released'))||{}; TEAM=(await loc.get('team'))||[]; }
+async function signOut(expired){ SESSION=null; userp=null; DRAFTS={}; SHARED={}; CLEARED={}; RELEASED={}; draft=null; await dev.del('session'); urlCache.clear();
   go({name:'home'},true); if(expired) toast('Please sign in again.'); }
 
 /* ================= router ================= */
@@ -381,14 +387,17 @@ let view={name:'home'};
 function go(v,replace){ view=v; const hash=v.name==='home'?'#':v.name==='veh'?`#v/${v.vc}`:v.name==='part'?`#p/${v.id}`:`#${v.name}`; replace?history.replaceState(v,'',hash):history.pushState(v,'',hash); render(); window.scrollTo(0,0); }
 window.addEventListener('popstate',e=>{ view=e.state||{name:'home'}; render(); });
 function parseHash(){ const m=location.hash.match(/^#(v|p)\/(.+)$/); if(m) return m[1]==='v'&&VEH[m[2]]?{name:'veh',vc:m[2]}:(getPart(m[2])?{name:'part',id:m[2]}:{name:'home'}); const n=location.hash.slice(1); if(['send','account','admin','settings'].includes(n)) return {name:n}; return {name:'home'}; }
-function topbar(title,sub,back,extra=''){ return `<header class="top"><div class="row">${back?`<button class="iconbtn" id="back" aria-label="Back">${ICON.back}</button>`:LOGO}<h1>${h(title)}${sub?`<small>${h(sub)}</small>`:''}</h1>${!back&&isAdminUser()?`<button class="iconbtn" id="gear" aria-label="Settings">${ICON.gear}</button>`:''}${!back?`<button class="iconbtn" id="acct" aria-label="Account">${ICON.user}</button>`:''}</div>${extra}</header><div id="net" class="netbar" ${online?'hidden':''}>Offline – your work is saved on this phone and synced when you're back online.</div>`; }
+function topbar(title,sub,back,extra=''){ return `<header class="top"><div class="row">${back?`<button class="iconbtn" id="back" aria-label="Back">${ICON.back}</button>`:LOGO}<h1>${h(title)}${sub?`<small>${h(sub)}</small>`:''}</h1>${!back&&SESSION?`<button class="iconbtn" id="gear" aria-label="Settings">${ICON.gear}</button>`:''}${!back?`<button class="iconbtn" id="acct" aria-label="Account">${ICON.user}</button>`:''}</div>${extra}</header><div id="net" class="netbar" ${online?'hidden':''}>Offline – your work is saved on this phone and synced when you're back online.</div>`; }
 const isAdminUser=()=>!!SESSION&&SESSION.user.role==='admin';
+const isEng=()=>!!SESSION&&SESSION.user.role==='engineer';
+const ROLE_L={mechanic:'Mechanic',engineer:'Engineering',admin:'Admin'};
+const waitingEng=id=>!!SHARED[id]&&!RELEASED[nextPart(getPart(id)).id];   // sent, new revision not yet released in CAD
 function bind(){ const gr=$('#gear'); if(gr) gr.onclick=()=>go({name:'settings'}); const b=$('#back'); if(b) b.onclick=()=>history.length>1?history.back():go({name:'home'}); const g=$('#acct'); if(g) g.onclick=()=>go({name:SESSION.user.role==='admin'&&SESSION.user.u==='admin'?'admin':'account'}); }
 const myDrafts=()=>Object.values(DRAFTS).filter(d=>!d.deleted);
 function render(){ const a=$('#app');
   if(!SESSION) return renderLogin(a);
   if(SESSION.user.u==='admin'&&!['admin','settings'].includes(view.name)) view={name:'admin'};
-  if(view.name==='settings'&&!isAdminUser()) view={name:'home'};
+  if(['send'].includes(view.name)&&isEng()) view={name:'home'};
   ({home:renderHome,veh:renderVeh,part:renderPart,send:renderSend,account:renderAccount,admin:renderAdmin,settings:renderSettings})[view.name](a); bind(); }
 
 /* ================= screens ================= */
@@ -409,17 +418,23 @@ function renderHome(a){
   const cnt={}, dr={}; PARTS.forEach(p=>{ if(SHARED[p.id]) cnt[p.v]=(cnt[p.v]||0)+1; });
   myDrafts().forEach(d=>{ const p=getPart(d.id); if(p) dr[p.v]=(dr[p.v]||0)+1; });
   const drafts=myDrafts().length, sentTotal=PARTS.filter(p=>SHARED[p.id]).length;
+  const waiting=Object.keys(SHARED).filter(id=>getPart(id)&&waitingEng(id)).sort((x,y)=>String(SHARED[x].at).localeCompare(String(SHARED[y].at))), relN=Object.keys(RELEASED).filter(id=>getPart(id)).length;
+  const statHTML=isEng()?`<div class="stat" style="margin-top:0"><div><b>${waiting.length}</b><span>Waiting for you</span></div><div><b>${relN}</b><span>Released</span></div><div><b>${Object.keys(SHARED).length}</b><span>Reports</span></div></div>`
+    :`<div class="stat" style="margin-top:0"><div><b>${drafts}</b><span>My drafts</span></div><div><b>${sentTotal}</b><span>Team sent</span></div><div><b>${PARTS.length-sentTotal}</b><span>To do</span></div></div>
+      ${Object.keys(SHARED).length?`<div class="engline">Engineering: <b>${relN}</b> released in CAD · <b>${waiting.length}</b> waiting</div>`:''}`;
+  const waitHTML=isEng()?`<div class="section-t">Waiting for Engineering</div>${waiting.length?`<div class="list">${waiting.slice(0,40).map(id=>itemHTML(getPart(id))).join('')}</div>${waiting.length>40?`<p class="note">+ ${waiting.length-40} more – use the “Waiting for Eng.” filter per vehicle.</p>`:''}`:'<div class="empty" style="padding:18px">Nothing waiting – all sent changes are released. 🎉</div>'}`:'';
   a.innerHTML=topbar('Parts Review',`Signed in as ${SESSION.user.name}`,false,`<div class="search"><input id="q" type="search" placeholder="Search part number in all vehicles…" enterkeyhint="search"></div>`)+
   `<main><div id="res"></div><div id="homebody">${maintNotice()}
-   <div class="stat" style="margin-top:0"><div><b>${drafts}</b><span>My drafts</span></div><div><b>${sentTotal}</b><span>Team sent</span></div><div><b>${PARTS.length-sentTotal}</b><span>To do</span></div></div>
+   ${statHTML}
    ${isStandalone()?'':`<div class="card" style="margin-top:10px;font-size:13px"><b>Tip: install as an app</b><br>${/iPhone|iPad/.test(navigator.userAgent)?'Tap the Share button in Safari, then “Add to Home Screen”.':'Tap the ⋮ menu in Chrome, then “Install app”.'}</div>`}
-   <div class="section-t">Vehicles</div><div class="grid">${Object.entries(VEH).map(([vc,vn])=>{const n=PARTS.filter(p=>p.v===vc).length;const c=cnt[vc]||0;return `<button class="veh" data-vc="${vc}"><span class="c">${vc}</span><span class="n">${h(vn)}</span><span class="prog"><i style="width:${Math.round(c/n*100)}%"></i></span><span class="k ${dr[vc]?'has':''}">${c} of ${n} sent${dr[vc]?` · ${dr[vc]} draft`:''}</span></button>`}).join('')}</div>
+   ${waitHTML}<div class="section-t">Vehicles</div><div class="grid">${Object.entries(VEH).map(([vc,vn])=>{const n=PARTS.filter(p=>p.v===vc).length;const c=cnt[vc]||0;return `<button class="veh" data-vc="${vc}"><span class="c">${vc}</span><span class="n">${h(vn)}</span><span class="prog"><i style="width:${Math.round(c/n*100)}%"></i></span><span class="k ${dr[vc]?'has':''}">${c} of ${n} sent${dr[vc]?` · ${dr[vc]} draft`:''}</span></button>`}).join('')}</div>
    <p class="note">${lastSync?`Synced ${new Date(lastSync).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`:'Not synced yet'}</p>
   </div></main>
-  <div class="bar"><button class="btn cyan" id="send" ${drafts?'':'disabled'}>Send to Engineering${drafts?` (${drafts})`:''}</button></div>`;
+  ${isEng()?'':`<div class="bar"><button class="btn cyan" id="send" ${drafts?'':'disabled'}>Send to Engineering${drafts?` (${drafts})`:''}</button></div>`}`;
+  bindItems(a);
   a.querySelectorAll('.veh').forEach(b=>b.onclick=()=>go({name:'veh',vc:b.dataset.vc}));
   const mx=$('#mx'); if(mx) mx.onclick=()=>{ try{ localStorage.setItem('blixMaintSeen',MAINT.at); }catch(e){} $('#mnote').remove(); };
-  $('#send').onclick=()=>go({name:'send'});
+  const sb=$('#send'); if(sb) sb.onclick=()=>go({name:'send'});
   const q=$('#q'); q.oninput=()=>{ const t=q.value.trim().toUpperCase(); const res=$('#res'), hb=$('#homebody');
     if(t.length<2){res.innerHTML='';hb.hidden=false;return;} hb.hidden=true;
     const hits=PARTS.filter(p=>p.n.toUpperCase().includes(t)).slice(0,60).flatMap(chain);
@@ -427,7 +442,7 @@ function renderHome(a){
 }
 const isStandalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
 function itemHTML(p){ const s=shown(p.id); const st=s&&s.status, rv=revOf(p);
-  const tag=(!s?'':s.draft?`<span class="sent" style="color:var(--wip);background:var(--wip-bg)">${s.queued?'Waiting to send':'My draft'}</span>`:`<span class="sent">🔒 Sent · ${h(s.by)} · ${ddmm(s.at)}</span>`)+(rv&&!(s&&s.sent)?`<span class="sent rvtag">New revision</span>`:'')+(!(s&&s.sent)&&CLEARED[baseOf(p)]&&!SHARED[revId(baseOf(p),revOf(p)+1)]?`<span class="sent clrtag">⟲ Cleared ${ddmm(CLEARED[baseOf(p)].at)}</span>`:'');
+  const tag=(!s?'':s.draft?`<span class="sent" style="color:var(--wip);background:var(--wip-bg)">${s.queued?'Waiting to send':'My draft'}</span>`:`<span class="sent">🔒 Sent · ${h(s.by)} · ${ddmm(s.at)}</span>`)+(s&&s.sent?(RELEASED[nextPart(p).id]?`<span class="sent reltag">✓ ${h(nextPart(p).n)} released</span>`:`<span class="sent waittag">⏳ Engineering</span>`):'')+(rv&&!(s&&s.sent)?(RELEASED[p.id]?`<span class="sent reltag">✓ Released in CAD</span>`:`<span class="sent rvtag">New revision</span>`):'')+(!(s&&s.sent)&&CLEARED[baseOf(p)]&&!SHARED[revId(baseOf(p),revOf(p)+1)]?`<span class="sent clrtag">⟲ Cleared ${ddmm(CLEARED[baseOf(p)].at)}</span>`:'');
   return `<button class="item ${st?'s-'+st:''}${rv?' rev':''}${s&&s.sent?' locked':''}" data-id="${p.id}"><img src="${p.img}" alt="" loading="lazy"><span class="t"><span class="pn">${h(p.n)}</span><span class="m">${p.v} · ${h(p.c)}${p.t==='A'?' · Assembly':''}</span>${st?`<span class="pill">${SL[st]}</span>`:''}${tag}</span>${s&&s.photos?`<span class="cam">📷 ${s.photos}</span>`:''}</button>`; }
 function bindItems(root){ root.querySelectorAll('.item[data-id]').forEach(b=>b.onclick=()=>go({name:'part',id:b.dataset.id})); }
 
@@ -435,9 +450,9 @@ let vehFilter='all';
 function renderVeh(a){
   const vc=view.vc, list=PARTS.filter(p=>p.v===vc);
   a.innerHTML=topbar(vc,VEH[vc],true,`<div class="search"><input id="q" type="search" placeholder="Search in ${h(vc)}…" enterkeyhint="search"></div>`)+
-   `<div class="chips">${[['all','All'],['todo','To do'],['mine','My drafts'],['sent','Sent'],...STATUS].map(([k,l])=>`<button class="chip" data-f="${k}" aria-pressed="${vehFilter===k}">${l}</button>`).join('')}</div><main id="lst"></main>`;
+   `<div class="chips">${[['all','All'],['todo','To do'],...(isEng()?[]:[['mine','My drafts']]),['sent','Sent'],['wait','Waiting for Eng.'],['rel','Released'],...STATUS].map(([k,l])=>`<button class="chip" data-f="${k}" aria-pressed="${vehFilter===k}">${l}</button>`).join('')}</div><main id="lst"></main>`;
   const draw=()=>{ const t=$('#q').value.trim().toUpperCase(); let rows=list.filter(p=>!t||p.n.toUpperCase().includes(t));
-    rows=rows.flatMap(chain).filter(p=>{const e=shown(p.id); if(vehFilter==='all')return true; if(vehFilter==='todo')return !e; if(vehFilter==='mine')return e&&e.draft; if(vehFilter==='sent')return e&&e.sent; return e&&e.status===vehFilter;});
+    rows=rows.flatMap(chain).filter(p=>{const e=shown(p.id); if(vehFilter==='all')return true; if(vehFilter==='wait')return waitingEng(p.id); if(vehFilter==='rel')return revOf(p)>0&&!!RELEASED[p.id]; if(vehFilter==='todo')return !e; if(vehFilter==='mine')return e&&e.draft; if(vehFilter==='sent')return e&&e.sent; return e&&e.status===vehFilter;});
     let html='',cat=null; rows.forEach(p=>{ if(p.c!==cat){ if(cat!==null) html+='</div>'; cat=p.c; const sentIn=list.filter(q=>q.c===cat&&SHARED[q.id]).length; html+=`<div class="cat"><span>${h(cat)}</span>${SESSION.user.role==='admin'&&sentIn?`<button class="catclr" data-cat="${h(cat)}">Clear section</button>`:''}</div><div class="list">`; } html+=itemHTML(p); }); if(cat!==null) html+='</div>';
     $('#lst').innerHTML=html||'<div class="empty">No parts match this filter.</div>'; bindItems($('#lst'));
     $('#lst').querySelectorAll('.catclr').forEach(b=>b.onclick=()=>{ const ps=list.filter(q=>q.c===b.dataset.cat&&SHARED[q.id]); openClear(ps.map(q=>({p:q,from:0})),`${vc} · section “${b.dataset.cat}” – ${ps.length} part${ps.length>1?'s':''} with sent changes`); }); };
@@ -448,6 +463,7 @@ let draft=null;
 function renderPart(a){
   const p=getPart(view.id); if(!p){ go({name:'home'},true); return; }
   const sh=SHARED[p.id]; if(sh) return renderLocked(a,p,sh);
+  if(isEng()) return renderEngOpen(a,p);
   const mine=DRAFTS[p.id]&&!DRAFTS[p.id].deleted?DRAFTS[p.id]:null;
   if(!draft||draft.id!==p.id){ draft=mine?{...mine,photos:mine.photos.map(x=>({...x}))}:{id:p.id,status:'',priority:'',note:'',resp:'',date:'',photos:[]}; }
   const days=workdays(); if(draft.date&&!days.includes(draft.date)) days.unshift(draft.date);
@@ -455,7 +471,7 @@ function renderPart(a){
   a.innerHTML=topbar(p.n,`${p.v} · ${p.c}`,true)+`<main>
    <div class="hero"><img src="${p.img}" alt="Preview of ${h(p.n)}"><div class="info"><div class="pn">${h(p.n)}</div><div class="m">${h(VEH[p.v])} · ${h(p.c)} · ${p.t==='A'?'Assembly':'Part'}${revOf(p)?` · Revision of ${h(BYID[p.base].n)}`:(p.s?' · '+h(p.s):'')}</div></div></div>
    ${clearedHTML(p)}
-   ${revOf(p)?`<div class="card" style="margin-top:12px;border-left:5px solid var(--cyan)"><b>New revision ${h(p.n)}</b><div class="note" style="margin:4px 0 0">Created after the change below was sent. The picture shows the original part.</div>${historyHTML(p)}</div>`:''}
+   ${revOf(p)?`<div class="card" style="margin-top:12px;border-left:5px solid var(--cyan)"><b>New revision ${h(p.n)}</b><div class="note" style="margin:4px 0 0">Created after the change below was sent. The picture shows the original part.</div>${RELEASED[p.id]?`<div class="relbadge">✓ Released in CAD · ${h(RELEASED[p.id].by)} · ${fmtDT(RELEASED[p.id].at)}${RELEASED[p.id].note?` – “${h(RELEASED[p.id].note)}”`:''}</div>`:''}${historyHTML(p)}</div>`:''}
    ${mine?`<div class="note" style="margin-top:10px">📝 Your draft · last saved ${new Date(mine.updatedAt).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).replace(/\//g,'-')}${mine.dirty?' · not synced yet':' · saved to your account'}</div>`:''}
    <div class="field"><span class="lab">Status</span><div class="seg" id="st">${STATUS.map(([k,l])=>`<button class="s-${k}" data-v="${k}" aria-pressed="${draft.status===k}">${l}</button>`).join('')}</div></div>
    <div class="field"><span class="lab">Photos</span><div class="photos" id="ph"></div></div>
@@ -489,6 +505,15 @@ function historyHTML(p){ const rows=[]; for(let k=revOf(p)-1;k>=0;k--){ const q=
     rows.push(`<button class="hist" data-id="${q.id}"><b>${h(q.n)}</b> · ${h(s.status||'')}${s.note?` – “${h(s.note)}”`:''}<span>🔒 ${h(s.by)} · ${fmtDate(s.at)}${s.responsible?` · ${h(s.responsible)}`:''}${s.photos?` · ${s.photos} photo${s.photos>1?'s':''}`:''}</span></button>`); }
   return rows.length?`<div class="histlist">${rows.join('')}</div>`:''; }
 function bindHist(root){ root.querySelectorAll('.hist[data-id]').forEach(b=>b.onclick=()=>go({name:'part',id:b.dataset.id})); }
+function engHTML(rev){ // rev = the revision that Engineering creates in CAD
+  const r=RELEASED[rev.id];
+  if(r) return `<div class="card relcard"><b>✓ ${h(rev.n)} released in CAD</b><div class="note" style="margin:4px 0 0">${h(r.by)} · ${fmtDT(r.at)}${r.note?` – “${h(r.note)}”`:''}</div>${isEng()?`<button class="btn ghost" id="unrel" style="display:block;width:100%;margin-top:10px">Undo release</button>`:''}</div>`;
+  return `<div class="card waitcard"><b>⏳ Waiting for Engineering</b><div class="note" style="margin:4px 0 0">${h(rev.n)} has not been released in CAD yet.</div>${isEng()?`<div class="field" style="margin-top:10px"><label for="relnote">Note (optional)</label><input class="txt" id="relnote" placeholder="e.g. drawing updated, released to production"></div><button class="btn" id="rel" style="display:block;width:100%;margin-top:10px;background:var(--ok)">Mark ${h(rev.n)} as released in CAD</button>`:''}</div>`; }
+function bindEng(rev,a){
+  const r=$('#rel'); if(r) r.onclick=async()=>{ r.setAttribute('disabled',''); r.textContent='Saving…';
+    try{ const x=await api('release/'+rev.id,{method:'POST',body:{name:rev.n,note:($('#relnote')||{}).value||''}}); RELEASED[rev.id]=x.release; toast(`${rev.n} released`); render(); sync(); }catch(e){ toast(e.message); r.removeAttribute('disabled'); r.textContent=`Mark ${rev.n} as released in CAD`; } };
+  const u=$('#unrel'); if(u) u.onclick=async()=>{ if(!u.dataset.sure){ u.dataset.sure='1'; u.textContent='Tap again to undo'; setTimeout(()=>{ if(u.isConnected){ delete u.dataset.sure; u.textContent='Undo release'; } },4000); return; }
+    try{ await api('release/'+rev.id,{method:'DELETE'}); delete RELEASED[rev.id]; toast('Release undone'); render(); sync(); }catch(e){ toast(e.message); } }; }
 function clearedHTML(p){ const c=CLEARED[baseOf(p)]; if(!c) return '';
   return `<div class="clrline">⟲ Changes cleared on <b>${fmtDT(c.at)}</b> by ${h(c.by)}${c.from?` (from ${h(c.fromName||'')} onwards)`:''} – “${h(c.reason)}”. Engineering was notified.</div>`; }
 function sentChain(base){ const out=[]; for(let k=0;k<60;k++){ const id=revId(base.id,k); if(!SHARED[id]) break; out.push(getPart(id)); } return out; }
@@ -528,14 +553,24 @@ function renderLocked(a,p,sh){ const nx=nextPart(p), nxLocked=!!SHARED[nx.id];
    <div class="hero"><img src="${p.img}" alt="Preview of ${h(p.n)}"><div class="info"><div class="pn">${h(p.n)}</div><div class="m">${h(VEH[p.v])} · ${h(p.c)} · ${p.t==='A'?'Assembly':'Part'}${revOf(p)?` · Revision of ${h(BYID[p.base].n)}`:''}</div></div></div>
    <div class="card lockcard"><b>🔒 Sent and locked</b><div class="note" style="margin:4px 0 0">${h(sh.by)} sent this part to Engineering on ${fmtDate(sh.at)}. It can't be changed any more.</div>
     <div class="cred" style="margin-top:10px"><div>Status</div><b style="font-family:inherit">${h(sh.status||'–')}</b>${sh.note?`<div>Change</div><b style="font-family:inherit;font-weight:500">${h(sh.note)}</b>`:''}${sh.priority?`<div>Priority</div><b style="font-family:inherit">${h(sh.priority)}</b>`:''}${sh.responsible?`<div>Responsible</div><b style="font-family:inherit">${h(sh.responsible)}</b>`:''}${sh.date?`<div>Planned</div><b style="font-family:inherit">${h(sh.date)}</b>`:''}<div>Photos</div><b style="font-family:inherit">${sh.photos||0} (in the e-mail)</b></div></div>
+   ${engHTML(nx)}
    <div class="field"><button class="btn" id="nx" style="display:block;width:100%">${nxLocked?`Go to ${h(nx.n)}`:`Open new revision ${h(nx.n)}`}</button></div>
    ${revOf(p)?`<div class="section-t">Earlier revisions</div>${historyHTML(p)}`:''}
    ${clearedHTML(p)}
    <div class="field"><button class="btn ghost dangerline" id="clr" style="display:block;width:100%">Clear changes…</button><div class="note">Change not correct? Clear it, unlock the part and make the right change. Engineering is notified.</div></div>
   </main>`;
-  $('#nx').onclick=()=>go({name:'part',id:nx.id}); bindHist(a);
+  $('#nx').onclick=()=>go({name:'part',id:nx.id}); bindHist(a); bindEng(nx,a);
   $('#clr').onclick=()=>openClear([{p:BYID[baseOf(p)],from:0}],BYID[baseOf(p)].n);
 }
+
+function renderEngOpen(a,p){ const rv=revOf(p);
+  a.innerHTML=topbar(p.n,`${p.v} · ${p.c}`,true)+`<main>
+   <div class="hero"><img src="${p.img}" alt="Preview of ${h(p.n)}"><div class="info"><div class="pn">${h(p.n)}</div><div class="m">${h(VEH[p.v])} · ${h(p.c)} · ${p.t==='A'?'Assembly':'Part'}${rv?` · Revision of ${h(BYID[p.base].n)}`:''}</div></div></div>
+   ${clearedHTML(p)}
+   ${rv?`${engHTML(p)}<div class="section-t">Changes that led to this revision</div>${historyHTML(p)}`:`<div class="card" style="margin-top:12px"><b>No report yet</b><div class="note" style="margin:4px 0 0">The mechanics haven't sent a change for this part.</div></div>`}
+   ${rv?`<div class="field"><button class="btn ghost dangerline" id="clr" style="display:block;width:100%">Clear changes…</button></div>`:''}
+  </main>`;
+  bindHist(a); bindEng(p,a); const cb=$('#clr'); if(cb) cb.onclick=()=>openClear([{p:BYID[baseOf(p)],from:0}],BYID[baseOf(p)].n); }
 
 let sending=false;
 function renderSend(a){
@@ -618,7 +653,31 @@ function renderAccount(a){
 }
 
 /* ---------- settings (Admin accounts): maintenance & more ---------- */
-let setVeh='', setCat='';
+let setVeh='', setCat='', dlVeh='', dlCat='', dlPics=true;
+async function downloadOverview(ps,btn){
+  btn.setAttribute('disabled',''); const lbl=btn.textContent;
+  try{
+    const X=window.XLSX_MINI, rows=ps.flatMap(chain), pics=dlPics;
+    const hdr=[...(pics?['Preview']:[]),'Vehicle','Category','Part number','Type','Revision of','State','Status','Priority','What to change','Responsible','Planned date','Sent by','Sent on','New revision','Released in CAD','Released by','Cleared'];
+    const cols=[...(pics?[{w:20}]:[]),{w:9},{w:17},{w:26},{w:10},{w:18},{w:22},{w:15},{w:10},{w:48},{w:16},{w:14},{w:16},{w:14},{w:22},{w:15},{w:16},{w:44}];
+    const title=`BLIX Parts Review – overview ${dlVeh||'all vehicles'}${dlCat?' › '+dlCat:''} – ${new Date().toLocaleDateString('en-GB').replace(/\//g,'-')}`;
+    const sheetRows=[{h:30,cells:[{v:title,s:4}]},{h:26,cells:hdr.map(v=>({v,s:1}))}], images=[]; const day=iso=>iso?X.dateSerial(new Date(iso).toLocaleDateString('sv-SE')):null;
+    for(let i=0;i<rows.length;i++){ const p=rows[i], sh=SHARED[p.id], rv=revOf(p), nx=nextPart(p), rel=RELEASED[p.id], nrel=RELEASED[nx.id], cl=!sh&&!SHARED[nx.id]?CLEARED[baseOf(p)]:null;
+      if(i%25===0){ btn.textContent=`Building… ${Math.round(i/rows.length*100)}%`; await new Promise(r=>setTimeout(r)); }
+      const state=sh?(nrel?`Sent – ${nx.n} released`:'Sent – waiting for Engineering'):(rv?(rel?'Released in CAD – open':'New revision – open'):'Open – to do');
+      const c=[{v:p.v,s:3},{v:p.c,s:0},{v:p.n,s:3},{v:p.t==='A'?'Assembly':'Part',s:0},{v:rv?BYID[p.base].n:'',s:0},{v:state,s:0},{v:sh?sh.status||'':'',s:3},{v:sh?sh.priority||'':'',s:0},{v:sh?sh.note||'':'',s:0},{v:sh?sh.responsible||'':'',s:0},
+        sh&&sh.dateIso?{v:X.dateSerial(sh.dateIso),t:'d',s:2}:{s:0},{v:sh?sh.by:'',s:0},sh?{v:day(sh.at),t:'d',s:2}:{s:0},{v:sh?nx.n:'',s:0},
+        (sh?nrel:rel)?{v:day((sh?nrel:rel).at),t:'d',s:2}:{s:0},{v:(sh?nrel:rel)?(sh?nrel:rel).by:'',s:0},{v:cl?`${fmtDT(cl.at)} by ${cl.by} – ${cl.reason}`:'',s:0}];
+      if(pics){ const pv=await imgBytes(p.img,200); images.push({row:i+2,col:0,w:130,h:91,data:pv.data}); c.unshift({s:0}); }
+      sheetRows.push({h:pics?72:null,cells:c}); }
+    btn.textContent='Saving…';
+    const bytes=X.build([{name:'Overview',freeze:2,cols,rows:sheetRows,images,autoFilter:`A2:${X.colName(hdr.length-1)}${rows.length+2}`}]);
+    const name=`BLIX_Parts_Overview_${(dlVeh||'All')}${dlCat?'_'+dlCat.replace(/[^\w]+/g,'_'):''}_${new Date().toISOString().slice(0,10)}.xlsx`;
+    const blob=new Blob([bytes],{type:XMIME}), file=new File([blob],name,{type:XMIME});
+    if(/Android|iPhone|iPad/.test(navigator.userAgent)&&navigator.canShare&&navigator.canShare({files:[file]})){ try{ await navigator.share({files:[file],title:name}); toast('Overview ready'); return; }catch(e){ if(e.name==='AbortError') return; } }
+    const u=URL.createObjectURL(blob), el=document.createElement('a'); el.href=u; el.download=name; document.body.appendChild(el); el.click(); el.remove(); setTimeout(()=>URL.revokeObjectURL(u),30000); toast('Overview downloaded');
+  }catch(e){ console.error(e); toast("Couldn't build the Excel file."); }
+  finally{ btn.removeAttribute('disabled'); btn.textContent=lbl; } }
 function resetScope(){ const ps=PARTS.filter(p=>(!setVeh||p.v===setVeh)&&(!setCat||p.c===setCat));
   const ids=new Set(ps.map(p=>p.id)); let reports=0, revs=0;
   for(const id of Object.keys(SHARED)){ const q=parseId(id); if(q&&ids.has(q.base)){ reports++; if(q.k>0) revs++; } }
@@ -629,8 +688,18 @@ async function renderSettings(a){
   const cats=setVeh?[...new Set(PARTS.filter(p=>p.v===setVeh).map(p=>p.c))]:[];
   if(setCat&&!cats.includes(setCat)) setCat='';
   const sc=resetScope();
-  a.innerHTML=topbar('Settings','Admin tools',true)+`<main>
-   <div class="section-t" style="margin-top:0">Maintenance – reset list</div>
+  const adm=isAdminUser(), dcats=dlVeh?[...new Set(PARTS.filter(p=>p.v===dlVeh).map(p=>p.c))]:[];
+  if(dlCat&&!dcats.includes(dlCat)) dlCat='';
+  const dsel=PARTS.filter(p=>(!dlVeh||p.v===dlVeh)&&(!dlCat||p.c===dlCat)), drows=dsel.flatMap(chain).length;
+  a.innerHTML=topbar('Settings',`${h(ROLE_L[SESSION.user.role]||'')} · ${h(SESSION.user.name)}`,true)+`<main>
+   <div class="section-t" style="margin-top:0">Download overview</div>
+   <div class="card"><p class="note" style="margin-top:0">Download an Excel overview of the list: every part with its revisions, status, what to change, who sent it, and whether it's released in CAD.</p>
+    <div class="field"><label for="dv">Vehicle</label><select id="dv"><option value="">All vehicles</option>${Object.entries(VEH).map(([k,n])=>`<option value="${k}" ${k===dlVeh?'selected':''}>${k} – ${h(n)}</option>`).join('')}</select></div>
+    <div class="field"><label for="dc">Category</label><select id="dc" ${dlVeh?'':'disabled'}><option value="">All categories</option>${dcats.map(c=>`<option ${c===dlCat?'selected':''}>${h(c)}</option>`).join('')}</select></div>
+    <label class="check"><input type="checkbox" id="dp" ${dlPics?'checked':''}> Include part pictures <span class="note" style="margin:0">(bigger file)</span></label>
+    <div class="pathbox"><b>${h(dlVeh?`${dlVeh}${dlCat?' › '+dlCat:' › all categories'}`:'All vehicles')}</b><div class="pathstats"><span><b>${dsel.length}</b> parts</span><span><b>${drows}</b> rows incl. revisions</span></div></div>
+    <button class="btn" id="dlgo" style="display:block;width:100%;margin-top:12px">Download Excel</button></div>
+   ${adm?`<div class="section-t">Maintenance – reset list</div>
    <div class="card"><p class="note" style="margin-top:0">Wipe a vehicle or a category back to a clean list in one go: all sent reports, revisions (-A, -B …), drafts of every user and “cleared” notes are removed. <b>No e-mail is sent</b> – the reset is only logged here.</p>
     <div class="field"><label for="sv">1 · Vehicle</label><select id="sv"><option value="">All vehicles (whole list)</option>${Object.entries(VEH).map(([k,n])=>`<option value="${k}" ${k===setVeh?'selected':''}>${k} – ${h(n)}</option>`).join('')}</select></div>
     <div class="field"><label for="sc">2 · Category</label><select id="sc" ${setVeh?'':'disabled'}><option value="">All categories</option>${cats.map(c=>`<option ${c===setCat?'selected':''}>${h(c)}</option>`).join('')}</select></div>
@@ -640,15 +709,24 @@ async function renderSettings(a){
     <button class="btn" id="rst" style="display:block;width:100%;margin-top:12px;background:var(--chg)">Reset ${h(sc.path)}…</button></div>
    <div id="rstdone"></div>
    <div class="section-t">Maintenance history</div><div class="names" id="mlog"><div class="note">Loading…</div></div>
+   <div class="section-t">Backup</div>
+   <div class="card"><p class="note" style="margin-top:0">Every <b>Monday around 07:00</b> a backup is e-mailed to Engineering: an Excel overview plus a full data file (.json) to restore the app if ever needed.</p>
+    <button class="btn ghost" id="bk" style="display:block;width:100%">Send a backup now</button></div>`:''}
    <div class="section-t">App</div>
-   <div class="card"><div class="setrow"><span>Accounts & “Responsible” names</span><button class="btn ghost" id="toadm" style="flex:0 0 auto;padding:10px 14px">Open</button></div>
+   <div class="card">${adm?`<div class="setrow"><span>Accounts & “Responsible” names</span><button class="btn ghost" id="toadm" style="flex:0 0 auto;padding:10px 14px">Open</button></div>`:''}
     <div class="setrow"><span>Refresh data now<br><span class="note" style="margin:0">${lastSync?'Last synced '+new Date(lastSync).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'Not synced yet'}</span></span><button class="btn ghost" id="syn" style="flex:0 0 auto;padding:10px 14px">Sync</button></div>
-    <div class="setrow"><span>App version</span><b>v9 · ${PARTS.length} parts · ${Object.keys(VEH).length} vehicles</b></div></div>
+    <div class="setrow"><span>App version</span><b>v10 · ${PARTS.length} parts · ${Object.keys(VEH).length} vehicles</b></div></div>
   </main>`;
+  $('#dv').onchange=e=>{ dlVeh=e.target.value; dlCat=''; renderSettings(a); bind(); };
+  $('#dc').onchange=e=>{ dlCat=e.target.value; renderSettings(a); bind(); };
+  $('#dp').onchange=e=>{ dlPics=e.target.checked; };
+  $('#dlgo').onclick=()=>downloadOverview(dsel,$('#dlgo'));
+  $('#syn').onclick=async()=>{ await sync(); toast('Data refreshed'); renderSettings(a); bind(); };
+  if(!adm) return;
+  $('#bk').onclick=async()=>{ const b=$('#bk'); b.setAttribute('disabled',''); b.textContent='Sending…'; try{ await api('admin/backup',{method:'POST'}); toast('Backup sent to Engineering'); b.textContent='✓ Backup sent'; }catch(e){ toast(e.message); b.textContent='Send a backup now'; b.removeAttribute('disabled'); } };
   $('#sv').onchange=e=>{ setVeh=e.target.value; setCat=''; renderSettings(a); bind(); };
   $('#sc').onchange=e=>{ setCat=e.target.value; renderSettings(a); bind(); };
   $('#toadm').onclick=()=>go({name:'admin'});
-  $('#syn').onclick=async()=>{ await sync(); toast('Data refreshed'); renderSettings(a); bind(); };
   $('#rst').onclick=()=>openReset(sc,a);
   try{ const r=await api('admin/maint'); const el=$('#mlog'); if(!el) return;
     el.innerHTML=r.log.map(m=>`<div class="nm"><span><b>${h(m.scope)}</b><br><span class="note" style="margin:0">${fmtDT(m.at)} · ${h(m.by)} · ${m.reports} report${m.reports===1?'':'s'}, ${m.drafts} draft${m.drafts===1?'':'s'}, ${m.notes} note${m.notes===1?'':'s'} removed</span></span></div>`).join('')||'<div class="note">No resets yet.</div>'; }
@@ -686,7 +764,7 @@ async function renderAdmin(a){
    <form class="card" id="nf"><div class="field" style="margin-top:0"><label for="nn">Full name</label><input class="txt" id="nn" placeholder="e.g. Jan de Vries" required></div>
     <div class="field"><label for="nu">Username</label><input class="txt" id="nu" placeholder="e.g. jan" autocapitalize="none" spellcheck="false" required></div>
     <div class="field"><label for="np">Password</label><div style="display:flex;gap:8px"><input class="txt" id="np" value="${genPw()}" required><button class="btn ghost" type="button" id="gen" style="flex:0 0 auto">New</button></div></div>
-    <div class="field"><label for="nr">Role</label><select id="nr"><option value="mechanic">Mechanic</option><option value="admin">Admin (can manage accounts)</option></select></div>
+    <div class="field"><label for="nr">Role</label><select id="nr"><option value="mechanic">Mechanic</option><option value="engineer">Engineering (releases parts in CAD)</option><option value="admin">Admin (can manage accounts)</option></select></div>
     <div id="nerr" class="note" style="color:var(--chg)" hidden></div><button class="btn" type="submit" style="display:block;width:100%;margin-top:10px">Create account</button></form>
    <div id="created"></div>
    <div class="section-t">Accounts</div><div class="names" id="ul"><div class="note">Loading…</div></div>
@@ -698,8 +776,9 @@ async function renderAdmin(a){
   $('#gen').onclick=()=>$('#np').value=genPw();
   $('#nn').oninput=()=>{ if(!$('#nu').dataset.touched) $('#nu').value=$('#nn').value.trim().split(/\s+/)[0].toLowerCase().normalize('NFD').replace(/[^a-z0-9]/g,''); };
   $('#nu').oninput=()=>$('#nu').dataset.touched='1';
-  const loadUsers=async()=>{ try{ const r=await api('admin/users'); $('#ul').innerHTML=r.users.map(u=>`<div class="nm" style="flex-wrap:wrap"><span><b>${h(u.name)}</b><br><span class="note" style="margin:0">${h(u.u)} · ${u.role==='admin'?'Admin':'Mechanic'}${u.active?'':' · <b style="color:var(--chg)">blocked</b>'}${u.lastLogin?` · last sign-in ${ddmm(u.lastLogin)}`:' · never signed in'}</span></span>
-      <button data-u="${h(u.u)}" data-a="pw">New password</button><button data-u="${h(u.u)}" data-a="${u.active?'block':'unblock'}">${u.active?'Block':'Unblock'}</button>${u.u===SESSION.user.u?'':`<button data-u="${h(u.u)}" data-a="del" style="color:var(--chg)">Delete</button>`}</div>`).join('')||'<div class="note">No accounts yet.</div>';
+  const loadUsers=async()=>{ try{ const r=await api('admin/users'); $('#ul').innerHTML=r.users.map(u=>`<div class="nm" style="flex-wrap:wrap"><span><b>${h(u.name)}</b><br><span class="note" style="margin:0">${h(u.u)} · ${ROLE_L[u.role]||u.role}${u.active?'':' · <b style="color:var(--chg)">blocked</b>'}${u.lastLogin?` · last sign-in ${ddmm(u.lastLogin)}`:' · never signed in'}</span></span>
+      <select class="rolesel" data-u="${h(u.u)}" aria-label="Role of ${h(u.name)}">${Object.entries(ROLE_L).map(([k,l])=>`<option value="${k}" ${k===u.role?'selected':''}>${l}</option>`).join('')}</select><button data-u="${h(u.u)}" data-a="pw">New password</button><button data-u="${h(u.u)}" data-a="${u.active?'block':'unblock'}">${u.active?'Block':'Unblock'}</button>${u.u===SESSION.user.u?'':`<button data-u="${h(u.u)}" data-a="del" style="color:var(--chg)">Delete</button>`}</div>`).join('')||'<div class="note">No accounts yet.</div>';
+      $('#ul').querySelectorAll('.rolesel').forEach(sel=>sel.onchange=async()=>{ try{ await api(`admin/users/${sel.dataset.u}/role`,{method:'POST',body:{role:sel.value}}); toast(`Role changed to ${ROLE_L[sel.value]}`); loadUsers(); }catch(e){ toast(e.message); loadUsers(); } });
       $('#ul').querySelectorAll('button').forEach(b=>b.onclick=async()=>{ const u=b.dataset.u;
         if(b.dataset.a==='del'&&!b.dataset.sure){ b.dataset.sure='1'; b.textContent='Tap again to delete'; b.style.fontWeight='700'; setTimeout(()=>{ if(b.isConnected){ delete b.dataset.sure; b.textContent='Delete'; b.style.fontWeight=''; } },4000); return; }
         try{ if(b.dataset.a==='del'){ await api(`admin/users/${u}`,{method:'DELETE'}); toast('Account deleted'); }
