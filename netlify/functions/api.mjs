@@ -195,7 +195,8 @@ export default async (req) => {
       const stale = drafts.filter((d) => parts[d.id]);
       if (stale.length) { for (const d of stale) await moveDraft(me.u, d.id, openRev(parts, d.id)); drafts = await listJSON(store, `drafts/${me.u}/`); }
       const team = (await store.get('config/team', { type: 'json' })) || { names: [] };
-      return json(200, { user: me, drafts, parts, team: team.names, cleared: await clearedMap(store) });
+      const maint = (await listJSON(store, 'maint/')).sort((a, b) => String(b.at).localeCompare(String(a.at)))[0] || null;
+      return json(200, { user: me, drafts, parts, team: team.names, cleared: await clearedMap(store), maint });
     }
 
     /* drafts */
@@ -323,6 +324,30 @@ export default async (req) => {
         else if (seg[3] === 'active' && M === 'POST') { rec.active = !!b.active; rec.v = (rec.v || 1) + 1; }
         else return err(404, 'Unknown action.');
         await store.setJSON(key, rec); return json(200, { user: publicUser(rec) });
+      }
+      /* maintenance: reset a vehicle / category completely (no e-mail, logged in the app) */
+      if (path === 'admin/reset' && M === 'POST') {
+        const b = await req.json().catch(() => ({}));
+        if (String(b.confirm || '').trim().toUpperCase() !== 'CONFIRM') return err(400, 'Type CONFIRM to reset the list.');
+        const ids = new Set((Array.isArray(b.ids) ? b.ids : []).slice(0, 2000).map(String).filter((x) => /^p[0-9a-f]{10}$/.test(x)));
+        if (!ids.size) return err(400, 'No parts in this selection.');
+        const inScope = (id) => { const q = parseId(id); return !!q && ids.has(q.base); };
+        let reports = 0, drafts = 0, notes = 0;
+        const { blobs } = await store.list({ prefix: 'send/' });
+        for (const x of blobs) { const rec = await store.get(x.key, { type: 'json' }); if (!rec) continue; const keep = (rec.rows || []).filter((r) => !inScope(r.id));
+          if (keep.length === (rec.rows || []).length) continue; reports += rec.rows.length - keep.length;
+          if (keep.length) await store.setJSON(x.key, { ...rec, rows: keep }); else await store.delete(x.key); }
+        const { blobs: dr } = await store.list({ prefix: 'drafts/' });
+        for (const k of dr.map((x) => x.key.split('/')).filter((k) => k.length === 3 && inScope(k[2]))) { await deleteDraft(k[1], k[2]); drafts++; }
+        const { blobs: cl } = await store.list({ prefix: 'clear/' });
+        for (const x of cl.filter((x) => ids.has(x.key.slice(6)))) { await store.delete(x.key); notes++; }
+        const ev = { at: new Date().toISOString(), by: me.name, u: me.u, scope: clip(b.scope, 160), parts: ids.size, reports, drafts, notes };
+        await store.setJSON(`maint/${ev.at}-${crypto.randomBytes(3).toString('hex')}`, ev);
+        return json(200, { ok: true, ...ev });
+      }
+      if (path === 'admin/maint' && M === 'GET') {
+        const log = (await listJSON(store, 'maint/')).sort((a, b) => String(b.at).localeCompare(String(a.at))).slice(0, 40);
+        return json(200, { log });
       }
       if (path === 'admin/team' && M === 'PUT') {
         const b = await req.json().catch(() => ({}));

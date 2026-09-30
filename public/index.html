@@ -142,6 +142,10 @@ textarea:focus,select:focus,input.txt:focus{outline:2px solid var(--cyan);outlin
 .ovbtns{display:flex;gap:8px;margin-top:14px}.ovbtns .btn{font-size:15px}
 .field label.radio{display:flex;gap:8px;align-items:flex-start;font-size:14px;font-weight:500;text-transform:none;letter-spacing:0;color:#14232c;padding:9px 10px;border:1px solid var(--line);border-radius:10px;margin-top:6px}.field label.radio b{font-family:var(--mono);color:var(--navy)}
 .btn[disabled]{opacity:.45;pointer-events:none}
+.pathbox{margin-top:12px;background:var(--ice);border-radius:10px;padding:10px 12px}.pathbox>b{display:block;font-size:16px;color:var(--navy);margin-top:2px}
+.pathstats{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:6px;font-size:13px;color:var(--muted)}.pathstats b{color:var(--navy)}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}.setrow:last-child{border-bottom:0}
+select:disabled{opacity:.5}
 </style>
 </head>
 <body>
@@ -289,13 +293,14 @@ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().cat
 /* ================= state ================= */
 let SESSION=null;           // {token, user:{u,name,role}}
 let DRAFTS={};              // partId -> {id,status,priority,note,resp,date,photos:[{id?,key,blob?}],updatedAt,dirty,queued}
-let SHARED={}, CLEARED={}, TEAM=[], online=navigator.onLine, lastSync=0, syncing=false;
+let SHARED={}, CLEARED={}, MAINT=null, TEAM=[], online=navigator.onLine, lastSync=0, syncing=false;
 
 /* ================= helpers ================= */
 const $=s=>document.querySelector(s);
 const h=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2800);}
 const ICON={back:'<svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>',user:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>',
+gear:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>',
 cam:'<svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>',
 img:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>'};
 function workdays(){const out=[];const d=new Date();d.setHours(12,0,0,0);const end=new Date(LAST_DATE+"T12:00:00");while(d<=end){const iso=d.toISOString().slice(0,10);if(d.getDay()%6!==0&&!HOLIDAYS.includes(iso))out.push(iso);d.setDate(d.getDate()+1);}return out;}
@@ -342,13 +347,13 @@ async function sync(){
   try{
     for(const d of Object.values(DRAFTS).filter(x=>x.dirty)) await pushOne(d);
     const st=await api('state'); setOnline(true);
-    SHARED=st.parts||{}; CLEARED=st.cleared||{}; TEAM=st.team||[]; SESSION.user=st.user; await dev.set('session',SESSION);
+    SHARED=st.parts||{}; CLEARED=st.cleared||{}; MAINT=st.maint||null; TEAM=st.team||[]; SESSION.user=st.user; await dev.set('session',SESSION);
     const server=Object.fromEntries((st.drafts||[]).map(d=>[d.id,d]));
     for(const id of Object.keys(DRAFTS)) if(!server[id]&&!DRAFTS[id].dirty){ await loc.delDraft(id); delete DRAFTS[id]; }   // sent or removed on another phone
     for(const s of Object.values(server)){ const l=DRAFTS[s.id]; if(l&&l.dirty) continue;
       const d={id:s.id,status:s.status,priority:s.priority,note:s.note,resp:s.resp,date:s.date,photos:(s.photos||[]).map(pid=>({id:pid,key:pid})),updatedAt:s.updatedAt,dirty:false,queued:l?l.queued:false};
       DRAFTS[s.id]=d; await loc.putDraft(d); }
-    await loc.set('shared',SHARED); await loc.set('cleared',CLEARED); await loc.set('team',TEAM); lastSync=Date.now();
+    await loc.set('shared',SHARED); await loc.set('cleared',CLEARED); await loc.set('maint',MAINT); await loc.set('team',TEAM); lastSync=Date.now();
     if(['home','veh'].includes(view.name)&&!document.querySelector('input:focus,textarea:focus')) render();
     flushQueue();
   }catch(e){ if(e.status===0) setOnline(false); else console.warn(e); }
@@ -367,7 +372,7 @@ function shown(id){ const m=DRAFTS[id], s=SHARED[id];
 
 /* ================= session ================= */
 async function signIn(token,user){ SESSION={token,user}; await dev.set('session',SESSION); userp=null; DRAFTS={};
-  (await loc.drafts()).forEach(d=>DRAFTS[d.id]=d); SHARED=(await loc.get('shared'))||{}; CLEARED=(await loc.get('cleared'))||{}; TEAM=(await loc.get('team'))||[]; }
+  (await loc.drafts()).forEach(d=>DRAFTS[d.id]=d); SHARED=(await loc.get('shared'))||{}; CLEARED=(await loc.get('cleared'))||{}; MAINT=(await loc.get('maint'))||null; TEAM=(await loc.get('team'))||[]; }
 async function signOut(expired){ SESSION=null; userp=null; DRAFTS={}; SHARED={}; CLEARED={}; draft=null; await dev.del('session'); urlCache.clear();
   go({name:'home'},true); if(expired) toast('Please sign in again.'); }
 
@@ -375,14 +380,16 @@ async function signOut(expired){ SESSION=null; userp=null; DRAFTS={}; SHARED={};
 let view={name:'home'};
 function go(v,replace){ view=v; const hash=v.name==='home'?'#':v.name==='veh'?`#v/${v.vc}`:v.name==='part'?`#p/${v.id}`:`#${v.name}`; replace?history.replaceState(v,'',hash):history.pushState(v,'',hash); render(); window.scrollTo(0,0); }
 window.addEventListener('popstate',e=>{ view=e.state||{name:'home'}; render(); });
-function parseHash(){ const m=location.hash.match(/^#(v|p)\/(.+)$/); if(m) return m[1]==='v'&&VEH[m[2]]?{name:'veh',vc:m[2]}:(getPart(m[2])?{name:'part',id:m[2]}:{name:'home'}); const n=location.hash.slice(1); if(['send','account','admin'].includes(n)) return {name:n}; return {name:'home'}; }
-function topbar(title,sub,back,extra=''){ return `<header class="top"><div class="row">${back?`<button class="iconbtn" id="back" aria-label="Back">${ICON.back}</button>`:LOGO}<h1>${h(title)}${sub?`<small>${h(sub)}</small>`:''}</h1>${!back?`<button class="iconbtn" id="acct" aria-label="Account">${ICON.user}</button>`:''}</div>${extra}</header><div id="net" class="netbar" ${online?'hidden':''}>Offline – your work is saved on this phone and synced when you're back online.</div>`; }
-function bind(){ const b=$('#back'); if(b) b.onclick=()=>history.length>1?history.back():go({name:'home'}); const g=$('#acct'); if(g) g.onclick=()=>go({name:SESSION.user.role==='admin'&&SESSION.user.u==='admin'?'admin':'account'}); }
+function parseHash(){ const m=location.hash.match(/^#(v|p)\/(.+)$/); if(m) return m[1]==='v'&&VEH[m[2]]?{name:'veh',vc:m[2]}:(getPart(m[2])?{name:'part',id:m[2]}:{name:'home'}); const n=location.hash.slice(1); if(['send','account','admin','settings'].includes(n)) return {name:n}; return {name:'home'}; }
+function topbar(title,sub,back,extra=''){ return `<header class="top"><div class="row">${back?`<button class="iconbtn" id="back" aria-label="Back">${ICON.back}</button>`:LOGO}<h1>${h(title)}${sub?`<small>${h(sub)}</small>`:''}</h1>${!back&&isAdminUser()?`<button class="iconbtn" id="gear" aria-label="Settings">${ICON.gear}</button>`:''}${!back?`<button class="iconbtn" id="acct" aria-label="Account">${ICON.user}</button>`:''}</div>${extra}</header><div id="net" class="netbar" ${online?'hidden':''}>Offline – your work is saved on this phone and synced when you're back online.</div>`; }
+const isAdminUser=()=>SESSION&&SESSION.user.role==='admin'&&SESSION.user.u!=='admin';
+function bind(){ const gr=$('#gear'); if(gr) gr.onclick=()=>go({name:'settings'}); const b=$('#back'); if(b) b.onclick=()=>history.length>1?history.back():go({name:'home'}); const g=$('#acct'); if(g) g.onclick=()=>go({name:SESSION.user.role==='admin'&&SESSION.user.u==='admin'?'admin':'account'}); }
 const myDrafts=()=>Object.values(DRAFTS).filter(d=>!d.deleted);
 function render(){ const a=$('#app');
   if(!SESSION) return renderLogin(a);
   if(SESSION.user.u==='admin'&&view.name!=='admin') view={name:'admin'};
-  ({home:renderHome,veh:renderVeh,part:renderPart,send:renderSend,account:renderAccount,admin:renderAdmin})[view.name](a); bind(); }
+  if(view.name==='settings'&&!isAdminUser()) view={name:'home'};
+  ({home:renderHome,veh:renderVeh,part:renderPart,send:renderSend,account:renderAccount,admin:renderAdmin,settings:renderSettings})[view.name](a); bind(); }
 
 /* ================= screens ================= */
 function renderLogin(a){
@@ -396,12 +403,14 @@ function renderLogin(a){
     catch(e){ $('#lerr').textContent=e.status===0?"No connection. Signing in needs internet the first time.":e.message; $('#lerr').hidden=false; b.textContent='Sign in'; b.removeAttribute('disabled'); } };
 }
 
+function maintNotice(){ if(!MAINT||Date.now()-new Date(MAINT.at)>4*864e5||(()=>{try{return localStorage.getItem('blixMaintSeen')}catch(e){return null}})()===MAINT.at) return '';
+  return `<div class="clrline" id="mnote" style="margin:0 0 10px;display:flex;gap:8px;align-items:flex-start"><span style="flex:1">🧹 <b>Maintenance:</b> ${h(MAINT.by)} reset <b>${h(MAINT.scope)}</b> on ${fmtDT(MAINT.at)}. Sent reports, revisions and drafts there were removed for everyone.</span><button id="mx" aria-label="Dismiss" style="all:unset;cursor:pointer;font-weight:700;padding:0 4px">×</button></div>`; }
 function renderHome(a){
   const cnt={}, dr={}; PARTS.forEach(p=>{ if(SHARED[p.id]) cnt[p.v]=(cnt[p.v]||0)+1; });
   myDrafts().forEach(d=>{ const p=getPart(d.id); if(p) dr[p.v]=(dr[p.v]||0)+1; });
   const drafts=myDrafts().length, sentTotal=PARTS.filter(p=>SHARED[p.id]).length;
   a.innerHTML=topbar('Parts Review',`Signed in as ${SESSION.user.name}`,false,`<div class="search"><input id="q" type="search" placeholder="Search part number in all vehicles…" enterkeyhint="search"></div>`)+
-  `<main><div id="res"></div><div id="homebody">
+  `<main><div id="res"></div><div id="homebody">${maintNotice()}
    <div class="stat" style="margin-top:0"><div><b>${drafts}</b><span>My drafts</span></div><div><b>${sentTotal}</b><span>Team sent</span></div><div><b>${PARTS.length-sentTotal}</b><span>To do</span></div></div>
    ${isStandalone()?'':`<div class="card" style="margin-top:10px;font-size:13px"><b>Tip: install as an app</b><br>${/iPhone|iPad/.test(navigator.userAgent)?'Tap the Share button in Safari, then “Add to Home Screen”.':'Tap the ⋮ menu in Chrome, then “Install app”.'}</div>`}
    <div class="section-t">Vehicles</div><div class="grid">${Object.entries(VEH).map(([vc,vn])=>{const n=PARTS.filter(p=>p.v===vc).length;const c=cnt[vc]||0;return `<button class="veh" data-vc="${vc}"><span class="c">${vc}</span><span class="n">${h(vn)}</span><span class="prog"><i style="width:${Math.round(c/n*100)}%"></i></span><span class="k ${dr[vc]?'has':''}">${c} of ${n} sent${dr[vc]?` · ${dr[vc]} draft`:''}</span></button>`}).join('')}</div>
@@ -409,6 +418,7 @@ function renderHome(a){
   </div></main>
   <div class="bar"><button class="btn cyan" id="send" ${drafts?'':'disabled'}>Send to Engineering${drafts?` (${drafts})`:''}</button></div>`;
   a.querySelectorAll('.veh').forEach(b=>b.onclick=()=>go({name:'veh',vc:b.dataset.vc}));
+  const mx=$('#mx'); if(mx) mx.onclick=()=>{ try{ localStorage.setItem('blixMaintSeen',MAINT.at); }catch(e){} $('#mnote').remove(); };
   $('#send').onclick=()=>go({name:'send'});
   const q=$('#q'); q.oninput=()=>{ const t=q.value.trim().toUpperCase(); const res=$('#res'), hb=$('#homebody');
     if(t.length<2){res.innerHTML='';hb.hidden=false;return;} hb.hidden=true;
@@ -605,6 +615,65 @@ function renderAccount(a){
    <div id="outwarn"></div></main>`;
   const adm=$('#adm'); if(adm) adm.onclick=()=>go({name:'admin'});
   $('#out').onclick=()=>{ const n=myDrafts().filter(d=>d.dirty).length; if(n){ $('#outwarn').innerHTML=`<div class="card" style="margin-top:10px;border-color:var(--chg)"><b>${n} draft${n>1?'s are':' is'} not synced yet.</b><p class="note">Go online first, or they stay only on this phone.</p><button class="btn danger" id="out2" style="display:block">Sign out anyway</button></div>`; $('#out2').onclick=()=>signOut(); } else signOut(); };
+}
+
+/* ---------- settings (Admin accounts): maintenance & more ---------- */
+let setVeh='', setCat='';
+function resetScope(){ const ps=PARTS.filter(p=>(!setVeh||p.v===setVeh)&&(!setCat||p.c===setCat));
+  const ids=new Set(ps.map(p=>p.id)); let reports=0, revs=0;
+  for(const id of Object.keys(SHARED)){ const q=parseId(id); if(q&&ids.has(q.base)){ reports++; if(q.k>0) revs++; } }
+  const notes=ps.filter(p=>CLEARED[p.id]).length, mine=myDrafts().filter(d=>{const q=parseId(d.id);return q&&ids.has(q.base);}).length;
+  const path=setVeh?`${setVeh}${setCat?' › '+setCat:' › all categories'}`:'All vehicles';
+  return {ps,reports,revs,notes,mine,path}; }
+async function renderSettings(a){
+  const cats=setVeh?[...new Set(PARTS.filter(p=>p.v===setVeh).map(p=>p.c))]:[];
+  if(setCat&&!cats.includes(setCat)) setCat='';
+  const sc=resetScope();
+  a.innerHTML=topbar('Settings','Admin tools',true)+`<main>
+   <div class="section-t" style="margin-top:0">Maintenance – reset list</div>
+   <div class="card"><p class="note" style="margin-top:0">Wipe a vehicle or a category back to a clean list in one go: all sent reports, revisions (-A, -B …), drafts of every user and “cleared” notes are removed. <b>No e-mail is sent</b> – the reset is only logged here.</p>
+    <div class="field"><label for="sv">1 · Vehicle</label><select id="sv"><option value="">All vehicles (whole list)</option>${Object.entries(VEH).map(([k,n])=>`<option value="${k}" ${k===setVeh?'selected':''}>${k} – ${h(n)}</option>`).join('')}</select></div>
+    <div class="field"><label for="sc">2 · Category</label><select id="sc" ${setVeh?'':'disabled'}><option value="">All categories</option>${cats.map(c=>`<option ${c===setCat?'selected':''}>${h(c)}</option>`).join('')}</select></div>
+    <div class="pathbox"><div class="note" style="margin:0">3 · Path to reset</div><b>${h(sc.path)}</b>
+     <div class="pathstats"><span><b>${sc.ps.length}</b> parts</span><span><b>${sc.reports}</b> sent report${sc.reports===1?'':'s'}</span><span><b>${sc.revs}</b> revision${sc.revs===1?'':'s'}</span><span><b>${sc.notes}</b> cleared notes</span></div>
+     <div class="note" style="margin:6px 0 0">+ all unsent drafts of every user in this path${sc.mine?` (you have ${sc.mine})`:''}.</div></div>
+    <button class="btn" id="rst" style="display:block;width:100%;margin-top:12px;background:var(--chg)">Reset ${h(sc.path)}…</button></div>
+   <div id="rstdone"></div>
+   <div class="section-t">Maintenance history</div><div class="names" id="mlog"><div class="note">Loading…</div></div>
+   <div class="section-t">App</div>
+   <div class="card"><div class="setrow"><span>Accounts & “Responsible” names</span><button class="btn ghost" id="toadm" style="flex:0 0 auto;padding:10px 14px">Open</button></div>
+    <div class="setrow"><span>Refresh data now<br><span class="note" style="margin:0">${lastSync?'Last synced '+new Date(lastSync).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'Not synced yet'}</span></span><button class="btn ghost" id="syn" style="flex:0 0 auto;padding:10px 14px">Sync</button></div>
+    <div class="setrow"><span>App version</span><b>v9 · ${PARTS.length} parts · ${Object.keys(VEH).length} vehicles</b></div></div>
+  </main>`;
+  $('#sv').onchange=e=>{ setVeh=e.target.value; setCat=''; renderSettings(a); bind(); };
+  $('#sc').onchange=e=>{ setCat=e.target.value; renderSettings(a); bind(); };
+  $('#toadm').onclick=()=>go({name:'admin'});
+  $('#syn').onclick=async()=>{ await sync(); toast('Data refreshed'); renderSettings(a); bind(); };
+  $('#rst').onclick=()=>openReset(sc,a);
+  try{ const r=await api('admin/maint'); const el=$('#mlog'); if(!el) return;
+    el.innerHTML=r.log.map(m=>`<div class="nm"><span><b>${h(m.scope)}</b><br><span class="note" style="margin:0">${fmtDT(m.at)} · ${h(m.by)} · ${m.reports} report${m.reports===1?'':'s'}, ${m.drafts} draft${m.drafts===1?'':'s'}, ${m.notes} note${m.notes===1?'':'s'} removed</span></span></div>`).join('')||'<div class="note">No resets yet.</div>'; }
+  catch(e){ const el=$('#mlog'); if(el) el.innerHTML=`<div class="note" style="color:var(--chg)">${h(e.message)}</div>`; }
+}
+function openReset(sc,a){
+  const ov=document.createElement('div'); ov.className='ov'; ov.setAttribute('role','alertdialog'); ov.setAttribute('aria-modal','true');
+  ov.innerHTML=`<div class="ovbox"><div class="ovhead"><div class="big">⚠ Reset list</div><div>${h(sc.path)}</div></div><div class="ovbody">
+    <p><b>Everything in this path is wiped for every user</b> and the parts go back to their original, unlocked state. This can't be undone.</p>
+    <div class="ovpart"><div>🗂 <b>${sc.ps.length}</b> parts in <b>${h(sc.path)}</b></div><div>🔒 <b>${sc.reports}</b> sent reports and <b>${sc.revs}</b> revision${sc.revs===1?'':'s'} removed</div><div>📝 all unsent drafts of every user removed</div><div>⟲ <b>${sc.notes}</b> “cleared” notes removed</div><div><span>No e-mail is sent. The reset is logged under Settings → Maintenance history.</span></div></div>
+    <div class="field"><label for="cf">Type CONFIRM to continue</label><input class="txt" id="cf" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="CONFIRM"></div>
+    <div id="overr" class="note" style="color:var(--chg)" hidden></div>
+    <div class="ovbtns"><button class="btn ghost" id="ovno">Cancel</button><button class="btn" id="ovyes" style="background:var(--chg)" disabled>Reset list</button></div></div></div>`;
+  document.body.appendChild(ov); document.body.style.overflow='hidden';
+  const close=()=>{ ov.remove(); document.body.style.overflow=''; };
+  const yes=ov.querySelector('#ovyes'), cf=ov.querySelector('#cf'); cf.focus();
+  cf.oninput=()=>yes.toggleAttribute('disabled',cf.value.trim().toUpperCase()!=='CONFIRM');
+  ov.querySelector('#ovno').onclick=close;
+  yes.onclick=async()=>{ yes.setAttribute('disabled',''); yes.textContent='Resetting…';
+    try{ const r=await api('admin/reset',{method:'POST',body:{confirm:cf.value,ids:sc.ps.map(p=>p.id),scope:sc.path}});
+      const ids=new Set(sc.ps.map(p=>p.id));
+      for(const id of Object.keys(DRAFTS)){ const q=parseId(id); if(q&&ids.has(q.base)){ await loc.delDraft(id); delete DRAFTS[id]; } }
+      close(); draft=null; await sync(); toast(`List reset – ${sc.path}`); renderSettings(a); bind();
+      const d=$('#rstdone'); if(d) d.innerHTML=`<div class="card" style="margin-top:12px;border-left:5px solid var(--ok)"><b>✓ ${h(sc.path)} has been reset</b><div class="note" style="margin:4px 0 0">${r.reports} sent report${r.reports===1?'':'s'}, ${r.drafts} draft${r.drafts===1?'':'s'} and ${r.notes} cleared note${r.notes===1?'':'s'} removed for everyone · ${fmtDT(r.at)}</div></div>`; }
+    catch(e){ const er=ov.querySelector('#overr'); er.textContent=e.message; er.hidden=false; yes.textContent='Reset list'; yes.removeAttribute('disabled'); } };
 }
 
 /* ---------- admin: accounts + Responsible names ---------- */
