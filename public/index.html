@@ -382,12 +382,12 @@ function go(v,replace){ view=v; const hash=v.name==='home'?'#':v.name==='veh'?`#
 window.addEventListener('popstate',e=>{ view=e.state||{name:'home'}; render(); });
 function parseHash(){ const m=location.hash.match(/^#(v|p)\/(.+)$/); if(m) return m[1]==='v'&&VEH[m[2]]?{name:'veh',vc:m[2]}:(getPart(m[2])?{name:'part',id:m[2]}:{name:'home'}); const n=location.hash.slice(1); if(['send','account','admin','settings'].includes(n)) return {name:n}; return {name:'home'}; }
 function topbar(title,sub,back,extra=''){ return `<header class="top"><div class="row">${back?`<button class="iconbtn" id="back" aria-label="Back">${ICON.back}</button>`:LOGO}<h1>${h(title)}${sub?`<small>${h(sub)}</small>`:''}</h1>${!back&&isAdminUser()?`<button class="iconbtn" id="gear" aria-label="Settings">${ICON.gear}</button>`:''}${!back?`<button class="iconbtn" id="acct" aria-label="Account">${ICON.user}</button>`:''}</div>${extra}</header><div id="net" class="netbar" ${online?'hidden':''}>Offline – your work is saved on this phone and synced when you're back online.</div>`; }
-const isAdminUser=()=>SESSION&&SESSION.user.role==='admin'&&SESSION.user.u!=='admin';
+const isAdminUser=()=>!!SESSION&&SESSION.user.role==='admin';
 function bind(){ const gr=$('#gear'); if(gr) gr.onclick=()=>go({name:'settings'}); const b=$('#back'); if(b) b.onclick=()=>history.length>1?history.back():go({name:'home'}); const g=$('#acct'); if(g) g.onclick=()=>go({name:SESSION.user.role==='admin'&&SESSION.user.u==='admin'?'admin':'account'}); }
 const myDrafts=()=>Object.values(DRAFTS).filter(d=>!d.deleted);
 function render(){ const a=$('#app');
   if(!SESSION) return renderLogin(a);
-  if(SESSION.user.u==='admin'&&view.name!=='admin') view={name:'admin'};
+  if(SESSION.user.u==='admin'&&!['admin','settings'].includes(view.name)) view={name:'admin'};
   if(view.name==='settings'&&!isAdminUser()) view={name:'home'};
   ({home:renderHome,veh:renderVeh,part:renderPart,send:renderSend,account:renderAccount,admin:renderAdmin,settings:renderSettings})[view.name](a); bind(); }
 
