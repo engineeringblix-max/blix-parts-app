@@ -128,6 +128,20 @@ textarea:focus,select:focus,input.txt:focus{outline:2px solid var(--cyan);outlin
 .histlist{display:flex;flex-direction:column;gap:6px;margin-top:10px}
 .hist{all:unset;box-sizing:border-box;cursor:pointer;display:block;background:#f4f7f9;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px;color:var(--ink,#14232c)}
 .hist b{font-family:var(--mono);color:var(--navy)}.hist span{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.clrline{margin-top:12px;font-size:13px;color:#6b4a12;background:#fff4dc;border:1px solid #f0d9a8;border-radius:10px;padding:8px 10px}
+.sent.clrtag{color:#6b4a12;background:#fff4dc}
+.dangerline{color:var(--chg)!important;border-color:var(--chg)!important}
+.cat{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.catclr{all:unset;cursor:pointer;font-size:12px;font-weight:700;color:var(--chg);text-transform:none;letter-spacing:0;padding:4px 8px;border:1px solid var(--chg);border-radius:999px}
+.ov{position:fixed;inset:0;z-index:60;background:rgba(40,12,0,.88);overflow:auto;padding:calc(var(--safe-t) + 16px) 12px 24px}
+.ovbox{background:#fff;border-radius:16px;max-width:520px;margin:0 auto;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.ovhead{background:var(--chg);color:#fff;padding:18px 18px 16px}.ovhead .big{font-size:24px;font-weight:800;margin-bottom:4px}
+.ovbody{padding:14px 16px 16px}.ovbody>p{margin:0 0 10px;font-size:14px;line-height:1.45}
+.ovpart{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:6px;font-size:13px}.ovpart>b{font-family:var(--mono);color:var(--navy)}
+.ovpart div{margin-top:3px}.ovpart span{color:var(--muted);font-size:12px}
+.ovbtns{display:flex;gap:8px;margin-top:14px}.ovbtns .btn{font-size:15px}
+.field label.radio{display:flex;gap:8px;align-items:flex-start;font-size:14px;font-weight:500;text-transform:none;letter-spacing:0;color:#14232c;padding:9px 10px;border:1px solid var(--line);border-radius:10px;margin-top:6px}.field label.radio b{font-family:var(--mono);color:var(--navy)}
+.btn[disabled]{opacity:.45;pointer-events:none}
 </style>
 </head>
 <body>
@@ -275,7 +289,7 @@ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().cat
 /* ================= state ================= */
 let SESSION=null;           // {token, user:{u,name,role}}
 let DRAFTS={};              // partId -> {id,status,priority,note,resp,date,photos:[{id?,key,blob?}],updatedAt,dirty,queued}
-let SHARED={}, TEAM=[], online=navigator.onLine, lastSync=0, syncing=false;
+let SHARED={}, CLEARED={}, TEAM=[], online=navigator.onLine, lastSync=0, syncing=false;
 
 /* ================= helpers ================= */
 const $=s=>document.querySelector(s);
@@ -285,6 +299,7 @@ const ICON={back:'<svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>',us
 cam:'<svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>',
 img:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>'};
 function workdays(){const out=[];const d=new Date();d.setHours(12,0,0,0);const end=new Date(LAST_DATE+"T12:00:00");while(d<=end){const iso=d.toISOString().slice(0,10);if(d.getDay()%6!==0&&!HOLIDAYS.includes(iso))out.push(iso);d.setDate(d.getDate()+1);}return out;}
+const fmtDT=iso=>iso?new Date(iso).toLocaleString('en-GB',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).replace(/\//g,'-'):'';
 const fmtDate=iso=>{if(!iso)return'';const d=new Date(iso.slice(0,10)+"T12:00:00");return d.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'}).replace(/\//g,'-');};
 const ddmm=iso=>iso?new Date(iso).toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit'}).replace('/','-'):'';
 const rid=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36);
@@ -327,13 +342,13 @@ async function sync(){
   try{
     for(const d of Object.values(DRAFTS).filter(x=>x.dirty)) await pushOne(d);
     const st=await api('state'); setOnline(true);
-    SHARED=st.parts||{}; TEAM=st.team||[]; SESSION.user=st.user; await dev.set('session',SESSION);
+    SHARED=st.parts||{}; CLEARED=st.cleared||{}; TEAM=st.team||[]; SESSION.user=st.user; await dev.set('session',SESSION);
     const server=Object.fromEntries((st.drafts||[]).map(d=>[d.id,d]));
     for(const id of Object.keys(DRAFTS)) if(!server[id]&&!DRAFTS[id].dirty){ await loc.delDraft(id); delete DRAFTS[id]; }   // sent or removed on another phone
     for(const s of Object.values(server)){ const l=DRAFTS[s.id]; if(l&&l.dirty) continue;
       const d={id:s.id,status:s.status,priority:s.priority,note:s.note,resp:s.resp,date:s.date,photos:(s.photos||[]).map(pid=>({id:pid,key:pid})),updatedAt:s.updatedAt,dirty:false,queued:l?l.queued:false};
       DRAFTS[s.id]=d; await loc.putDraft(d); }
-    await loc.set('shared',SHARED); await loc.set('team',TEAM); lastSync=Date.now();
+    await loc.set('shared',SHARED); await loc.set('cleared',CLEARED); await loc.set('team',TEAM); lastSync=Date.now();
     if(['home','veh'].includes(view.name)&&!document.querySelector('input:focus,textarea:focus')) render();
     flushQueue();
   }catch(e){ if(e.status===0) setOnline(false); else console.warn(e); }
@@ -352,8 +367,8 @@ function shown(id){ const m=DRAFTS[id], s=SHARED[id];
 
 /* ================= session ================= */
 async function signIn(token,user){ SESSION={token,user}; await dev.set('session',SESSION); userp=null; DRAFTS={};
-  (await loc.drafts()).forEach(d=>DRAFTS[d.id]=d); SHARED=(await loc.get('shared'))||{}; TEAM=(await loc.get('team'))||[]; }
-async function signOut(expired){ SESSION=null; userp=null; DRAFTS={}; SHARED={}; draft=null; await dev.del('session'); urlCache.clear();
+  (await loc.drafts()).forEach(d=>DRAFTS[d.id]=d); SHARED=(await loc.get('shared'))||{}; CLEARED=(await loc.get('cleared'))||{}; TEAM=(await loc.get('team'))||[]; }
+async function signOut(expired){ SESSION=null; userp=null; DRAFTS={}; SHARED={}; CLEARED={}; draft=null; await dev.del('session'); urlCache.clear();
   go({name:'home'},true); if(expired) toast('Please sign in again.'); }
 
 /* ================= router ================= */
@@ -402,7 +417,7 @@ function renderHome(a){
 }
 const isStandalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
 function itemHTML(p){ const s=shown(p.id); const st=s&&s.status, rv=revOf(p);
-  const tag=(!s?'':s.draft?`<span class="sent" style="color:var(--wip);background:var(--wip-bg)">${s.queued?'Waiting to send':'My draft'}</span>`:`<span class="sent">🔒 Sent · ${h(s.by)} · ${ddmm(s.at)}</span>`)+(rv&&!(s&&s.sent)?`<span class="sent rvtag">New revision</span>`:'');
+  const tag=(!s?'':s.draft?`<span class="sent" style="color:var(--wip);background:var(--wip-bg)">${s.queued?'Waiting to send':'My draft'}</span>`:`<span class="sent">🔒 Sent · ${h(s.by)} · ${ddmm(s.at)}</span>`)+(rv&&!(s&&s.sent)?`<span class="sent rvtag">New revision</span>`:'')+(!(s&&s.sent)&&CLEARED[baseOf(p)]&&!SHARED[revId(baseOf(p),revOf(p)+1)]?`<span class="sent clrtag">⟲ Cleared ${ddmm(CLEARED[baseOf(p)].at)}</span>`:'');
   return `<button class="item ${st?'s-'+st:''}${rv?' rev':''}${s&&s.sent?' locked':''}" data-id="${p.id}"><img src="${p.img}" alt="" loading="lazy"><span class="t"><span class="pn">${h(p.n)}</span><span class="m">${p.v} · ${h(p.c)}${p.t==='A'?' · Assembly':''}</span>${st?`<span class="pill">${SL[st]}</span>`:''}${tag}</span>${s&&s.photos?`<span class="cam">📷 ${s.photos}</span>`:''}</button>`; }
 function bindItems(root){ root.querySelectorAll('.item[data-id]').forEach(b=>b.onclick=()=>go({name:'part',id:b.dataset.id})); }
 
@@ -413,8 +428,9 @@ function renderVeh(a){
    `<div class="chips">${[['all','All'],['todo','To do'],['mine','My drafts'],['sent','Sent'],...STATUS].map(([k,l])=>`<button class="chip" data-f="${k}" aria-pressed="${vehFilter===k}">${l}</button>`).join('')}</div><main id="lst"></main>`;
   const draw=()=>{ const t=$('#q').value.trim().toUpperCase(); let rows=list.filter(p=>!t||p.n.toUpperCase().includes(t));
     rows=rows.flatMap(chain).filter(p=>{const e=shown(p.id); if(vehFilter==='all')return true; if(vehFilter==='todo')return !e; if(vehFilter==='mine')return e&&e.draft; if(vehFilter==='sent')return e&&e.sent; return e&&e.status===vehFilter;});
-    let html='',cat=null; rows.forEach(p=>{ if(p.c!==cat){ if(cat!==null) html+='</div>'; cat=p.c; html+=`<div class="cat">${h(cat)}</div><div class="list">`; } html+=itemHTML(p); }); if(cat!==null) html+='</div>';
-    $('#lst').innerHTML=html||'<div class="empty">No parts match this filter.</div>'; bindItems($('#lst')); };
+    let html='',cat=null; rows.forEach(p=>{ if(p.c!==cat){ if(cat!==null) html+='</div>'; cat=p.c; const sentIn=list.filter(q=>q.c===cat&&SHARED[q.id]).length; html+=`<div class="cat"><span>${h(cat)}</span>${SESSION.user.role==='admin'&&sentIn?`<button class="catclr" data-cat="${h(cat)}">Clear section</button>`:''}</div><div class="list">`; } html+=itemHTML(p); }); if(cat!==null) html+='</div>';
+    $('#lst').innerHTML=html||'<div class="empty">No parts match this filter.</div>'; bindItems($('#lst'));
+    $('#lst').querySelectorAll('.catclr').forEach(b=>b.onclick=()=>{ const ps=list.filter(q=>q.c===b.dataset.cat&&SHARED[q.id]); openClear(ps.map(q=>({p:q,from:0})),`${vc} · section “${b.dataset.cat}” – ${ps.length} part${ps.length>1?'s':''} with sent changes`); }); };
   $('#q').oninput=draw; a.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{vehFilter=c.dataset.f; a.querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed',x===c)); draw();}); draw();
 }
 
@@ -428,6 +444,7 @@ function renderPart(a){
   const team=[...new Set([...TEAM,draft.resp].filter(Boolean))];
   a.innerHTML=topbar(p.n,`${p.v} · ${p.c}`,true)+`<main>
    <div class="hero"><img src="${p.img}" alt="Preview of ${h(p.n)}"><div class="info"><div class="pn">${h(p.n)}</div><div class="m">${h(VEH[p.v])} · ${h(p.c)} · ${p.t==='A'?'Assembly':'Part'}${revOf(p)?` · Revision of ${h(BYID[p.base].n)}`:(p.s?' · '+h(p.s):'')}</div></div></div>
+   ${clearedHTML(p)}
    ${revOf(p)?`<div class="card" style="margin-top:12px;border-left:5px solid var(--cyan)"><b>New revision ${h(p.n)}</b><div class="note" style="margin:4px 0 0">Created after the change below was sent. The picture shows the original part.</div>${historyHTML(p)}</div>`:''}
    ${mine?`<div class="note" style="margin-top:10px">📝 Your draft · last saved ${new Date(mine.updatedAt).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).replace(/\//g,'-')}${mine.dirty?' · not synced yet':' · saved to your account'}</div>`:''}
    <div class="field"><span class="lab">Status</span><div class="seg" id="st">${STATUS.map(([k,l])=>`<button class="s-${k}" data-v="${k}" aria-pressed="${draft.status===k}">${l}</button>`).join('')}</div></div>
@@ -437,13 +454,14 @@ function renderPart(a){
    <div class="field"><label for="resp">Responsible</label><select id="resp"><option value="">— Choose a person —</option>${team.map(n=>`<option ${n===draft.resp?'selected':''}>${h(n)}</option>`).join('')}</select></div>
    <div class="field"><label for="date">Planned date</label><select id="date"><option value="">— Choose a workday —</option>${days.map(d=>`<option value="${d}" ${d===draft.date?'selected':''}>${fmtDate(d)}</option>`).join('')}</select><div class="note">Workdays only (Mon–Fri), until 31-12-2026.</div></div>
    ${mine?`<div class="field"><div id="delzone"><button class="btn danger" id="del" style="display:block">Remove my draft</button></div></div>`:''}
+   ${revOf(p)?`<div class="field"><button class="btn ghost dangerline" id="clr" style="display:block;width:100%">Clear changes…</button></div>`:''}
   </main><div class="bar"><button class="btn ghost" id="cancel" style="flex:0 0 auto;padding:14px 18px">Cancel</button><button class="btn" id="save">Save draft</button></div>`;
   const drawPh=()=>{ $('#ph').innerHTML=draft.photos.map((r,i)=>`<div class="ph"><img data-i="${i}" alt="Photo ${i+1}"><button data-i="${i}" aria-label="Remove photo">×</button></div>`).join('')+
       `<button class="addph" id="take">${ICON.cam}Take photo</button><button class="addph" id="pick">${ICON.img}From gallery</button>`;
     $('#ph').querySelectorAll('img[data-i]').forEach(async im=>{ im.src=await photoURL(draft.photos[+im.dataset.i])||''; });
     $('#ph').querySelectorAll('.ph button').forEach(b=>b.onclick=()=>{draft.photos.splice(+b.dataset.i,1);drawPh();});
     $('#take').onclick=()=>$('#camIn').click(); $('#pick').onclick=()=>$('#galIn').click(); };
-  drawPh(); bindHist(a);
+  drawPh(); bindHist(a); const cb=$('#clr'); if(cb) cb.onclick=()=>openClear([{p:BYID[baseOf(p)],from:0}],BYID[baseOf(p)].n);
   const onFiles=async files=>{ for(const f of files){ try{ draft.photos.push({key:rid(),blob:await compress(f)}); }catch(err){ toast("This photo couldn't be read. Try another one."); } } drawPh(); };
   $('#camIn').onchange=ev=>{onFiles([...ev.target.files]);ev.target.value='';}; $('#galIn').onchange=ev=>{onFiles([...ev.target.files]);ev.target.value='';};
   const seg=(id,key)=>$(id).querySelectorAll('button').forEach(b=>b.onclick=()=>{draft[key]=draft[key]===b.dataset.v?'':b.dataset.v;$(id).querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.v===draft[key]));});
@@ -461,18 +479,52 @@ function historyHTML(p){ const rows=[]; for(let k=revOf(p)-1;k>=0;k--){ const q=
     rows.push(`<button class="hist" data-id="${q.id}"><b>${h(q.n)}</b> · ${h(s.status||'')}${s.note?` – “${h(s.note)}”`:''}<span>🔒 ${h(s.by)} · ${fmtDate(s.at)}${s.responsible?` · ${h(s.responsible)}`:''}${s.photos?` · ${s.photos} photo${s.photos>1?'s':''}`:''}</span></button>`); }
   return rows.length?`<div class="histlist">${rows.join('')}</div>`:''; }
 function bindHist(root){ root.querySelectorAll('.hist[data-id]').forEach(b=>b.onclick=()=>go({name:'part',id:b.dataset.id})); }
-function renderLocked(a,p,sh){ const nx=nextPart(p), nxLocked=!!SHARED[nx.id], canUnlock=SESSION.user.role==='admin'&&!nxLocked;
+function clearedHTML(p){ const c=CLEARED[baseOf(p)]; if(!c) return '';
+  return `<div class="clrline">⟲ Changes cleared on <b>${fmtDT(c.at)}</b> by ${h(c.by)}${c.from?` (from ${h(c.fromName||'')} onwards)`:''} – “${h(c.reason)}”. Engineering was notified.</div>`; }
+function sentChain(base){ const out=[]; for(let k=0;k<60;k++){ const id=revId(base.id,k); if(!SHARED[id]) break; out.push(getPart(id)); } return out; }
+/* full-screen warning before clearing; items=[{base part, from}] */
+function openClear(items,title){
+  const list=items.map(({p,from})=>({p,from,sent:sentChain(p).filter(q=>revOf(q)>=from)}));
+  const ov=document.createElement('div'); ov.className='ov'; ov.setAttribute('role','alertdialog'); ov.setAttribute('aria-modal','true');
+  const scopeHTML=items.length===1&&sentChain(items[0].p).length>1?(()=>{ const all=sentChain(items[0].p), last=all[all.length-1];
+      return `<div class="field"><span class="lab">What to clear</span><label class="radio"><input type="radio" name="sc" value="last" checked> Only the last sent revision <b>${h(last.n)}</b></label><label class="radio"><input type="radio" name="sc" value="all"> Everything – all revisions, back to <b>${h(items[0].p.n)}</b></label></div>`; })():'';
+  const draw=()=>{ const sc=(ov.querySelector('input[name=sc]:checked')||{}).value; const L=list.map(x=>{ if(sc==='last'){ const all=sentChain(x.p); return {...x,from:revOf(all[all.length-1]),sent:[all[all.length-1]]}; } if(sc==='all') return {...x,from:0,sent:sentChain(x.p)}; return x; });
+    ov.querySelector('#ovlist').innerHTML=L.map(x=>`<div class="ovpart"><b>${h(x.p.n)}</b>${x.sent.length?x.sent.map(q=>{const s=SHARED[q.id];return `<div>🔒 ${h(q.n)} · ${h(s.status||'')}${s.note?` – “${h(s.note)}”`:''} <span>sent by ${h(s.by)} · ${fmtDate(s.at)}</span></div>`;}).join(''):'<div><span>No sent reports – only unsent drafts</span></div>'}</div>`).join('');
+    ov._items=L; };
+  ov.innerHTML=`<div class="ovbox"><div class="ovhead"><div class="big">⚠ Clear changes</div><div>${h(title)}</div></div><div class="ovbody">
+    <p><b>This removes the changes below for every user</b> and unlocks the part${items.length>1?'s':''} again. Revisions created by these reports disappear, and <b>unsent drafts of all mechanics</b> on ${items.length>1?'these parts':'this part'} are deleted too. This can't be undone.</p>
+    ${scopeHTML}<div class="section-t" style="margin-top:6px">Will be cleared</div><div id="ovlist"></div>
+    <div class="field"><label for="ovr">Reason (sent to Engineering)</label><textarea id="ovr" placeholder="e.g. wrong part measured, change was not correct"></textarea></div>
+    <div id="overr" class="note" style="color:var(--chg)" hidden></div>
+    <div class="ovbtns"><button class="btn ghost" id="ovno">Cancel</button><button class="btn" id="ovyes" style="background:var(--chg)" disabled>Clear and notify Engineering</button></div>
+    <p class="note" style="text-align:center">Engineering gets an e-mail with what was cleared, by whom and when.</p></div></div>`;
+  document.body.appendChild(ov); document.body.style.overflow='hidden'; draw();
+  const close=()=>{ ov.remove(); document.body.style.overflow=''; };
+  ov.querySelectorAll('input[name=sc]').forEach(r=>r.onchange=draw);
+  const yes=ov.querySelector('#ovyes'), rs=ov.querySelector('#ovr');
+  rs.oninput=()=>yes.toggleAttribute('disabled',rs.value.trim().length<3);
+  ov.querySelector('#ovno').onclick=close;
+  yes.onclick=async()=>{ yes.setAttribute('disabled',''); yes.textContent='Clearing…'; ov.querySelector('#overr').hidden=true;
+    try{ const body={reason:rs.value.trim(),items:ov._items.map(x=>({id:x.p.id,from:x.from,name:x.p.n,fromName:getPart(revId(x.p.id,x.from)).n}))};
+      const r=await api('clear',{method:'POST',body}); close();
+      for(const x of ov._items){ for(const id of Object.keys(DRAFTS)){ const q=parseId(id); if(q&&q.base===x.p.id&&q.k>=x.from){ await loc.delDraft(id); delete DRAFTS[id]; } } }
+      toast(`Cleared ${r.parts} part${r.parts>1?'s':''} – Engineering notified`); draft=null; await sync();
+      const q=view.name==='part'&&parseId(view.id), endK=q?chain(BYID[q.base]).length-1:0;
+      if(q&&q.k>endK) go({name:'part',id:revId(q.base,endK)},true); else render(); }
+    catch(e){ const er=ov.querySelector('#overr'); er.textContent=e.message; er.hidden=false; yes.textContent='Clear and notify Engineering'; yes.removeAttribute('disabled'); } };
+}
+function renderLocked(a,p,sh){ const nx=nextPart(p), nxLocked=!!SHARED[nx.id];
   a.innerHTML=topbar(p.n,`${p.v} · ${p.c}`,true)+`<main>
    <div class="hero"><img src="${p.img}" alt="Preview of ${h(p.n)}"><div class="info"><div class="pn">${h(p.n)}</div><div class="m">${h(VEH[p.v])} · ${h(p.c)} · ${p.t==='A'?'Assembly':'Part'}${revOf(p)?` · Revision of ${h(BYID[p.base].n)}`:''}</div></div></div>
    <div class="card lockcard"><b>🔒 Sent and locked</b><div class="note" style="margin:4px 0 0">${h(sh.by)} sent this part to Engineering on ${fmtDate(sh.at)}. It can't be changed any more.</div>
     <div class="cred" style="margin-top:10px"><div>Status</div><b style="font-family:inherit">${h(sh.status||'–')}</b>${sh.note?`<div>Change</div><b style="font-family:inherit;font-weight:500">${h(sh.note)}</b>`:''}${sh.priority?`<div>Priority</div><b style="font-family:inherit">${h(sh.priority)}</b>`:''}${sh.responsible?`<div>Responsible</div><b style="font-family:inherit">${h(sh.responsible)}</b>`:''}${sh.date?`<div>Planned</div><b style="font-family:inherit">${h(sh.date)}</b>`:''}<div>Photos</div><b style="font-family:inherit">${sh.photos||0} (in the e-mail)</b></div></div>
    <div class="field"><button class="btn" id="nx" style="display:block;width:100%">${nxLocked?`Go to ${h(nx.n)}`:`Open new revision ${h(nx.n)}`}</button></div>
    ${revOf(p)?`<div class="section-t">Earlier revisions</div>${historyHTML(p)}`:''}
-   ${canUnlock?`<div class="field"><button class="btn ghost" id="unl" style="display:block">Undo send (unlock) – admin</button><div class="note">Only if it was sent by mistake. ${h(nx.n)} is removed again; drafts on it move back here.</div></div>`:''}
+   ${clearedHTML(p)}
+   <div class="field"><button class="btn ghost dangerline" id="clr" style="display:block;width:100%">Clear changes…</button><div class="note">Change not correct? Clear it, unlock the part and make the right change. Engineering is notified.</div></div>
   </main>`;
   $('#nx').onclick=()=>go({name:'part',id:nx.id}); bindHist(a);
-  const u=$('#unl'); if(u) u.onclick=async()=>{ if(!u.dataset.sure){ u.dataset.sure='1'; u.textContent='Tap again to unlock'; u.style.color='var(--chg)'; setTimeout(()=>{ if(u.isConnected){ delete u.dataset.sure; u.textContent='Undo send (unlock) – admin'; u.style.color=''; } },4000); return; }
-    try{ await api('admin/unlock/'+p.id,{method:'POST'}); delete SHARED[p.id]; toast(`${p.n} is unlocked`); await sync(); render(); }catch(e){ toast(e.message); } };
+  $('#clr').onclick=()=>openClear([{p:BYID[baseOf(p)],from:0}],BYID[baseOf(p)].n);
 }
 
 let sending=false;

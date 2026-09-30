@@ -75,6 +75,52 @@ function mailHtml(p, reporter) {
   <p style="color:#5d6e78;font-size:12px">Sent automatically by the BLIX Parts app.</p></div>`;
 }
 
+const mailMissing = (env) => {
+  const need = env.RESEND_API_KEY ? ['RESEND_API_KEY', 'MAIL_TO'] : env.MS_TENANT_ID ? ['MS_TENANT_ID', 'MS_CLIENT_ID', 'MS_CLIENT_SECRET', 'MAIL_FROM', 'MAIL_TO'] : ['RESEND_API_KEY', 'MAIL_TO'];
+  const miss = need.filter((k) => !env[k]); return miss.length ? miss.join(', ') : '';
+};
+/* send one e-mail (Resend if RESEND_API_KEY is set, otherwise Microsoft 365). Returns '' or an error text. */
+async function sendMail(env, { subject, html, file }) {
+  const to = env.MAIL_TO.split(',').map((a) => a.trim()).filter(Boolean);
+  if (env.RESEND_API_KEY) {
+    const r = await fetch('https://api.resend.com/emails', {
+      method: 'POST', headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: env.RESEND_FROM || 'BLIX Parts App <onboarding@resend.dev>', to, subject, html,
+        ...(file ? { attachments: [{ filename: file.name, content: file.b64 }] } : {}) }),
+    });
+    if (r.ok) return '';
+    const t = await r.text(); console.error('Resend failed', r.status, t);
+    let m = ''; try { m = JSON.parse(t).message || ''; } catch (e) {}
+    return `The e-mail could not be sent (Resend ${r.status}${m ? ': ' + m : ''}).`;
+  }
+  const token = await graphToken(env);
+  const r = await fetch(`https://graph.microsoft.com/v1.0/users/${encodeURIComponent(env.MAIL_FROM)}/sendMail`, {
+    method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: { subject, body: { contentType: 'HTML', content: html },
+      toRecipients: to.map((address) => ({ emailAddress: { address } })),
+      attachments: file ? [{ '@odata.type': '#microsoft.graph.fileAttachment', name: file.name, contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', contentBytes: file.b64 }] : [] },
+      saveToSentItems: true }),
+  });
+  if (r.ok) return '';
+  console.error('Graph sendMail failed', r.status, await r.text()); return 'The e-mail could not be sent by Microsoft 365.';
+}
+const fmtNL = (iso) => new Date(iso).toLocaleString('en-GB', { timeZone: 'Europe/Amsterdam', weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(/\//g, '-');
+function clearMailHtml(ev) {
+  const td = (v, x = '') => `<td style="padding:6px 8px;border-bottom:1px solid #dbe3e8;vertical-align:top;${x}">${esc(v)}</td>`;
+  const th = (t) => `<th style="text-align:left;padding:7px 8px;background:#b3470c;color:#fff;font-weight:600">${t}</th>`;
+  const rows = ev.parts.map((p) => { const rs = ev.rows.filter((r) => r.base === p.id);
+    const what = rs.length ? rs.map((r) => `${r.part}: ${r.status}${r.note ? ' – “' + r.note + '”' : ''} (sent by ${r.by}, ${fmtNL(r.at)})`).join('\n') : 'No sent reports';
+    return `<tr>${td(p.name, 'font-family:Consolas,monospace;font-weight:600')}${td(p.from ? `From ${p.fromName} onwards` : 'Everything (back to the original part)')}${td(what, 'white-space:pre-line')}${td(p.drafts || 0, 'text-align:center')}</tr>`; }).join('');
+  return `<div style="font-family:Segoe UI,Arial,sans-serif;font-size:14px;color:#14232c"><div style="background:#b3470c;color:#fff;padding:14px 16px"><b style="font-size:17px">BLIX Parts Review – changes CLEARED</b><br><span style="color:#fde5d6">${esc(ev.by)} cleared ${ev.parts.length} part${ev.parts.length === 1 ? '' : 's'} on ${esc(fmtNL(ev.at))}</span></div>
+  <p><b>Reason:</b> ${esc(ev.reason)}</p>
+  <table style="border-collapse:collapse;font-size:13px;width:100%"><tr>${th('Part')}${th('What was cleared')}${th('Removed reports')}${th('Unsent drafts removed')}</tr>${rows}</table>
+  <p>These parts are unlocked again for every user. Revisions created by the removed reports no longer exist in the app. The earlier report e-mails for these changes are cancelled – do not use them.</p>
+  <p style="color:#5d6e78;font-size:12px">Sent automatically by the BLIX Parts app.</p></div>`;
+}
+async function clearedMap(store) {
+  const out = {}; for (const c of await listJSON(store, 'clear/')) if (c && c.last) out[c.base] = c.last; return out;
+}
+
 /* ---------- drafts ---------- */
 function cleanDraft(d, id) {
   return {
@@ -149,7 +195,7 @@ export default async (req) => {
       const stale = drafts.filter((d) => parts[d.id]);
       if (stale.length) { for (const d of stale) await moveDraft(me.u, d.id, openRev(parts, d.id)); drafts = await listJSON(store, `drafts/${me.u}/`); }
       const team = (await store.get('config/team', { type: 'json' })) || { names: [] };
-      return json(200, { user: me, drafts, parts, team: team.names });
+      return json(200, { user: me, drafts, parts, team: team.names, cleared: await clearedMap(store) });
     }
 
     /* drafts */
@@ -181,12 +227,8 @@ export default async (req) => {
 
     /* send report by e-mail */
     if (path === 'send' && M === 'POST' && me.u !== 'admin') {
-      const useResend = !!env.RESEND_API_KEY;
-      const need = useResend ? ['RESEND_API_KEY', 'MAIL_TO'] : ['MS_TENANT_ID', 'MS_CLIENT_ID', 'MS_CLIENT_SECRET', 'MAIL_FROM', 'MAIL_TO'];
-      const miss = need.filter((k) => !env[k]);
-      if (miss.length) return err(500, useResend || !env.MS_TENANT_ID
-        ? `The mail service is not set up yet (missing: ${useResend ? miss.join(', ') : 'RESEND_API_KEY, MAIL_TO'}).`
-        : `The mail service is not set up yet (missing: ${miss.join(', ')}).`);
+      const miss = mailMissing(env);
+      if (miss) return err(500, `The mail service is not set up yet (missing: ${miss}).`);
       const p = await req.json().catch(() => null);
       if (!p || typeof p.file !== 'string' || !/^[\w\-. ()]+\.xlsx$/.test(p.filename || '')) return err(400, 'The report is incomplete.');
       if (p.file.length * 0.75 > MAX_FILE) return err(413, 'The report is too large to e-mail. Send fewer parts at once.');
@@ -200,28 +242,8 @@ export default async (req) => {
       if (rows.some((r) => { const q = parseId(r.id); return q.k > 0 && !parts[revId(q.base, q.k - 1)]; })) return err(400, 'The report contains a revision that does not exist yet.');
       const vehicles = [...new Set(rows.map((r) => r.vehicle))].join(', ');
       const subject = `BLIX parts report – ${me.name} – ${vehicles || 'parts'} (${rows.length} part${rows.length === 1 ? '' : 's'})${p.batches > 1 ? ` [${p.batch}/${p.batches}]` : ''}`;
-      const to = env.MAIL_TO.split(',').map((a) => a.trim()).filter(Boolean);
-      const html = mailHtml({ ...p, rows }, me.name);
-      if (useResend) {
-        const r = await fetch('https://api.resend.com/emails', {
-          method: 'POST', headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ from: env.RESEND_FROM || 'BLIX Parts App <onboarding@resend.dev>', to, subject, html,
-            attachments: [{ filename: p.filename, content: p.file }] }),
-        });
-        if (!r.ok) { const t = await r.text(); console.error('Resend failed', r.status, t);
-          let m = ''; try { m = JSON.parse(t).message || ''; } catch (e) {}
-          return err(502, `The e-mail could not be sent (Resend ${r.status}${m ? ': ' + m : ''}).`); }
-      } else {
-        const token = await graphToken(env);
-        const r = await fetch(`https://graph.microsoft.com/v1.0/users/${encodeURIComponent(env.MAIL_FROM)}/sendMail`, {
-          method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: { subject, body: { contentType: 'HTML', content: html },
-            toRecipients: to.map((address) => ({ emailAddress: { address } })),
-            attachments: [{ '@odata.type': '#microsoft.graph.fileAttachment', name: p.filename, contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', contentBytes: p.file }] },
-            saveToSentItems: true }),
-        });
-        if (!r.ok) { console.error('Graph sendMail failed', r.status, await r.text()); return err(502, 'The e-mail could not be sent by Microsoft 365.'); }
-      }
+      const mailErr = await sendMail(env, { subject, html: mailHtml({ ...p, rows }, me.name), file: { name: p.filename, b64: p.file } });
+      if (mailErr) return err(502, mailErr);
       const at = new Date().toISOString();
       const rec = rows.map((x) => ({ id: x.id, statusKey: clip(x.statusKey, 6), status: clip(x.status, 40), priorityKey: clip(x.priorityKey, 4), priority: clip(x.priority, 20),
         note: clip(x.note, 4000), responsible: clip(x.responsible, 80), dateIso: /^\d{4}-\d{2}-\d{2}$/.test(x.dateIso || '') ? x.dateIso : '', date: clip(x.date, 30),
@@ -229,6 +251,43 @@ export default async (req) => {
       await store.setJSON(`send/${at}-${crypto.randomBytes(3).toString('hex')}`, { by: me.name, u: me.u, at, rows: rec });
       await Promise.all(rows.map((x) => deleteDraft(me.u, x.id))); // photos went out by e-mail; clear the draft
       return json(200, { ok: true, at });
+    }
+
+    /* clear changes of one part (any account) or a whole section (Admin): unlocks for everyone, e-mails Engineering first */
+    if (path === 'clear' && M === 'POST') {
+      const b = await req.json().catch(() => ({}));
+      const reason = clip(String(b.reason || '').trim(), 500);
+      if (reason.length < 3) return err(400, 'Write a short reason – it is sent to Engineering.');
+      const want = new Map();
+      for (const x of Array.isArray(b.items) ? b.items.slice(0, 600) : []) {
+        const id = String(x && x.id || ''); if (!/^p[0-9a-f]{10}$/.test(id) || want.has(id)) continue;
+        want.set(id, { id, from: Math.max(0, Math.min(60, parseInt(x.from, 10) || 0)), name: clip(x.name, 80), fromName: clip(x.fromName, 80), drafts: 0 });
+      }
+      if (!want.size) return err(400, 'No parts chosen.');
+      if (want.size > 1 && me.role !== 'admin') return err(403, 'Only an Admin account can clear a whole section.');
+      const miss = mailMissing(env);
+      if (miss) return err(500, `Clearing needs the e-mail service so Engineering is notified (missing: ${miss}).`);
+      const inScope = (id) => { const q = parseId(id); const w = q && want.get(q.base); return !!w && q.k >= w.from; };
+      const parts = await sharedStatus(store);
+      const rows = Object.values(parts).filter((r) => inScope(r.id)).map((r) => ({ base: parseId(r.id).base, id: r.id, part: r.part, status: r.status, note: r.note, by: r.by, at: r.at }));
+      const { blobs: dr } = await store.list({ prefix: 'drafts/' });
+      const drafts = dr.map((x) => x.key.split('/')).filter((k) => k.length === 3 && inScope(k[2]));
+      for (const k of drafts) want.get(parseId(k[2]).base).drafts++;
+      if (!rows.length && !drafts.length) return err(400, 'There is nothing to clear – no sent reports or drafts.');
+      const ev = { at: new Date().toISOString(), by: me.name, u: me.u, reason, parts: [...want.values()], rows };
+      ev.parts = ev.parts.filter((p) => p.drafts || rows.some((r) => r.base === p.id));
+      const mailErr = await sendMail(env, { subject: `BLIX parts CLEARED – ${ev.parts.map((p) => p.name).slice(0, 6).join(', ')}${ev.parts.length > 6 ? ` +${ev.parts.length - 6}` : ''} – by ${me.name}`, html: clearMailHtml(ev) });
+      if (mailErr) return err(502, `${mailErr} Nothing was cleared.`);
+      const { blobs } = await store.list({ prefix: 'send/' });
+      for (const x of blobs) { const rec = await store.get(x.key, { type: 'json' }); if (!rec || !(rec.rows || []).some((r) => inScope(r.id))) continue;
+        rec.rows = rec.rows.filter((r) => !inScope(r.id)); if (rec.rows.length) await store.setJSON(x.key, rec); else await store.delete(x.key); }
+      await Promise.all(drafts.map((k) => deleteDraft(k[1], k[2])));
+      for (const p of ev.parts) {
+        const key = `clear/${p.id}`, old = (await store.get(key, { type: 'json' })) || { base: p.id, history: [] };
+        const last = { at: ev.at, by: ev.by, reason, from: p.from, fromName: p.fromName, reports: rows.filter((r) => r.base === p.id).length, drafts: p.drafts };
+        await store.setJSON(key, { base: p.id, last, history: [...(old.history || []), last].slice(-30) });
+      }
+      return json(200, { ok: true, at: ev.at, parts: ev.parts.length });
     }
 
     /* ---- admin ---- */
@@ -264,17 +323,6 @@ export default async (req) => {
         else if (seg[3] === 'active' && M === 'POST') { rec.active = !!b.active; rec.v = (rec.v || 1) + 1; }
         else return err(404, 'Unknown action.');
         await store.setJSON(key, rec); return json(200, { user: publicUser(rec) });
-      }
-      if (seg[1] === 'unlock' && seg.length === 3 && PART_RE.test(seg[2]) && M === 'POST') {
-        const id = seg[2], q = parseId(id), parts = await sharedStatus(store), next = revId(q.base, q.k + 1);
-        if (!parts[id]) return err(400, 'This part is not locked.');
-        if (parts[next]) return err(400, 'The next revision has already been sent. Unlock that one first.');
-        const { blobs } = await store.list({ prefix: 'send/' });
-        for (const b of blobs) { const rec = await store.get(b.key, { type: 'json' }); if (!rec || !(rec.rows || []).some((r) => r.id === id)) continue;
-          rec.rows = rec.rows.filter((r) => r.id !== id); if (rec.rows.length) await store.setJSON(b.key, rec); else await store.delete(b.key); }
-        const { blobs: dr } = await store.list({ prefix: 'drafts/' }); // drafts on the removed revision go back to this part
-        for (const b of dr.filter((x) => x.key.endsWith(`/${next}`))) await moveDraft(b.key.split('/')[1], next, id);
-        return json(200, { ok: true });
       }
       if (path === 'admin/team' && M === 'PUT') {
         const b = await req.json().catch(() => ({}));
