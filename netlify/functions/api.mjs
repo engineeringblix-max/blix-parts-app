@@ -158,23 +158,40 @@ export default async (req) => {
 
     /* send report by e-mail */
     if (path === 'send' && M === 'POST' && me.u !== 'admin') {
-      const miss = ['MS_TENANT_ID', 'MS_CLIENT_ID', 'MS_CLIENT_SECRET', 'MAIL_FROM', 'MAIL_TO'].filter((k) => !env[k]);
-      if (miss.length) return err(500, `The mail service is not set up yet (missing: ${miss.join(', ')}).`);
+      const useResend = !!env.RESEND_API_KEY;
+      const need = useResend ? ['RESEND_API_KEY', 'MAIL_TO'] : ['MS_TENANT_ID', 'MS_CLIENT_ID', 'MS_CLIENT_SECRET', 'MAIL_FROM', 'MAIL_TO'];
+      const miss = need.filter((k) => !env[k]);
+      if (miss.length) return err(500, useResend || !env.MS_TENANT_ID
+        ? `The mail service is not set up yet (missing: ${useResend ? miss.join(', ') : 'RESEND_API_KEY, MAIL_TO'}).`
+        : `The mail service is not set up yet (missing: ${miss.join(', ')}).`);
       const p = await req.json().catch(() => null);
       if (!p || typeof p.file !== 'string' || !/^[\w\-. ()]+\.xlsx$/.test(p.filename || '')) return err(400, 'The report is incomplete.');
       if (p.file.length * 0.75 > MAX_FILE) return err(413, 'The report is too large to e-mail. Send fewer parts at once.');
       const rows = (p.rows || []).filter((r) => r && PART_RE.test(r.id || ''));
       const vehicles = [...new Set(rows.map((r) => r.vehicle))].join(', ');
       const subject = `BLIX parts report – ${me.name} – ${vehicles || 'parts'} (${rows.length} part${rows.length === 1 ? '' : 's'})${p.batches > 1 ? ` [${p.batch}/${p.batches}]` : ''}`;
-      const token = await graphToken(env);
-      const r = await fetch(`https://graph.microsoft.com/v1.0/users/${encodeURIComponent(env.MAIL_FROM)}/sendMail`, {
-        method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: { subject, body: { contentType: 'HTML', content: mailHtml({ ...p, rows }, me.name) },
-          toRecipients: env.MAIL_TO.split(',').map((a) => a.trim()).filter(Boolean).map((address) => ({ emailAddress: { address } })),
-          attachments: [{ '@odata.type': '#microsoft.graph.fileAttachment', name: p.filename, contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', contentBytes: p.file }] },
-          saveToSentItems: true }),
-      });
-      if (!r.ok) { console.error('Graph sendMail failed', r.status, await r.text()); return err(502, 'The e-mail could not be sent by Microsoft 365.'); }
+      const to = env.MAIL_TO.split(',').map((a) => a.trim()).filter(Boolean);
+      const html = mailHtml({ ...p, rows }, me.name);
+      if (useResend) {
+        const r = await fetch('https://api.resend.com/emails', {
+          method: 'POST', headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ from: env.RESEND_FROM || 'BLIX Parts App <onboarding@resend.dev>', to, subject, html,
+            attachments: [{ filename: p.filename, content: p.file }] }),
+        });
+        if (!r.ok) { const t = await r.text(); console.error('Resend failed', r.status, t);
+          let m = ''; try { m = JSON.parse(t).message || ''; } catch (e) {}
+          return err(502, `The e-mail could not be sent (Resend ${r.status}${m ? ': ' + m : ''}).`); }
+      } else {
+        const token = await graphToken(env);
+        const r = await fetch(`https://graph.microsoft.com/v1.0/users/${encodeURIComponent(env.MAIL_FROM)}/sendMail`, {
+          method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: { subject, body: { contentType: 'HTML', content: html },
+            toRecipients: to.map((address) => ({ emailAddress: { address } })),
+            attachments: [{ '@odata.type': '#microsoft.graph.fileAttachment', name: p.filename, contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', contentBytes: p.file }] },
+            saveToSentItems: true }),
+        });
+        if (!r.ok) { console.error('Graph sendMail failed', r.status, await r.text()); return err(502, 'The e-mail could not be sent by Microsoft 365.'); }
+      }
       const at = new Date().toISOString();
       const rec = rows.map((x) => ({ id: x.id, statusKey: clip(x.statusKey, 6), status: clip(x.status, 40), priorityKey: clip(x.priorityKey, 4), priority: clip(x.priority, 20),
         note: clip(x.note, 4000), responsible: clip(x.responsible, 80), dateIso: /^\d{4}-\d{2}-\d{2}$/.test(x.dateIso || '') ? x.dateIso : '', date: clip(x.date, 30),

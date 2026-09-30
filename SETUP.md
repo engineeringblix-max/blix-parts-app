@@ -15,7 +15,19 @@
 
 ---
 
-## Step 1 – IT: allow the server to send e-mail (≈15 min, once)
+## Step 1 (quick option, no IT) – e-mail via Resend (≈5 min)
+Use this until IT has done the Microsoft 365 part (or instead of it).
+1. Go to https://resend.com → **Sign up** with **t.wiendels@blixautomotive.com** (the address the reports must go to). Confirm the e-mail.
+2. In Resend: **API Keys → Create API Key** → name `BLIX Parts App`, permission **Sending access** → **Add**. Copy the key (starts with `re_`) – it is shown only once.
+3. In Netlify → **Site configuration → Environment variables**, add:
+   - `RESEND_API_KEY` = the key from step 2
+   - `MAIL_TO` = `t.wiendels@blixautomotive.com`
+4. **Deploys → Trigger deploy → Deploy site**.
+The e-mails come from `onboarding@resend.dev`. Without your own domain, Resend only delivers to the address you signed up with – that is fine, because the reports only go to you.
+Later, to send from a Blix address or to more people: in Resend **Domains → Add domain** (IT adds 3 DNS records), then set `RESEND_FROM` = `BLIX Parts App <partsreview@blixautomotive.com>`.
+When `RESEND_API_KEY` is set, Resend is used; remove it to switch to Microsoft 365.
+
+## Step 1 (alternative) – IT: send via Microsoft 365 (≈15 min, once)
 In https://entra.microsoft.com (Microsoft 365 administrator):
 1. **App registrations → New registration** – name `BLIX Parts App Mailer`, *this organizational directory only*. Copy **Application (client) ID** and **Directory (tenant) ID**.
 2. **API permissions → Add → Microsoft Graph → Application permissions → Mail.Send → Add**, then **Grant admin consent**.
