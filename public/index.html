@@ -539,9 +539,11 @@ async function renderAdmin(a){
   $('#nn').oninput=()=>{ if(!$('#nu').dataset.touched) $('#nu').value=$('#nn').value.trim().split(/\s+/)[0].toLowerCase().normalize('NFD').replace(/[^a-z0-9]/g,''); };
   $('#nu').oninput=()=>$('#nu').dataset.touched='1';
   const loadUsers=async()=>{ try{ const r=await api('admin/users'); $('#ul').innerHTML=r.users.map(u=>`<div class="nm" style="flex-wrap:wrap"><span><b>${h(u.name)}</b><br><span class="note" style="margin:0">${h(u.u)} · ${u.role==='admin'?'Admin':'Mechanic'}${u.active?'':' · <b style="color:var(--chg)">blocked</b>'}${u.lastLogin?` · last sign-in ${ddmm(u.lastLogin)}`:' · never signed in'}</span></span>
-      <button data-u="${h(u.u)}" data-a="pw">New password</button><button data-u="${h(u.u)}" data-a="${u.active?'block':'unblock'}">${u.active?'Block':'Unblock'}</button></div>`).join('')||'<div class="note">No accounts yet.</div>';
+      <button data-u="${h(u.u)}" data-a="pw">New password</button><button data-u="${h(u.u)}" data-a="${u.active?'block':'unblock'}">${u.active?'Block':'Unblock'}</button>${u.u===SESSION.user.u?'':`<button data-u="${h(u.u)}" data-a="del" style="color:var(--chg)">Delete</button>`}</div>`).join('')||'<div class="note">No accounts yet.</div>';
       $('#ul').querySelectorAll('button').forEach(b=>b.onclick=async()=>{ const u=b.dataset.u;
-        try{ if(b.dataset.a==='pw'){ const pw=genPw(); await api(`admin/users/${u}/password`,{method:'POST',body:{password:pw}}); showCred(r.users.find(x=>x.u===u).name,u,pw,true); }
+        if(b.dataset.a==='del'&&!b.dataset.sure){ b.dataset.sure='1'; b.textContent='Tap again to delete'; b.style.fontWeight='700'; setTimeout(()=>{ if(b.isConnected){ delete b.dataset.sure; b.textContent='Delete'; b.style.fontWeight=''; } },4000); return; }
+        try{ if(b.dataset.a==='del'){ await api(`admin/users/${u}`,{method:'DELETE'}); toast('Account deleted'); }
+             else if(b.dataset.a==='pw'){ const pw=genPw(); await api(`admin/users/${u}/password`,{method:'POST',body:{password:pw}}); showCred(r.users.find(x=>x.u===u).name,u,pw,true); }
              else { await api(`admin/users/${u}/active`,{method:'POST',body:{active:b.dataset.a==='unblock'}}); toast(b.dataset.a==='block'?'Account blocked':'Account unblocked'); }
              loadUsers(); }catch(e){ toast(e.message); } }); }
     catch(e){ $('#ul').innerHTML=`<div class="note" style="color:var(--chg)">${h(e.message)}</div>`; } };

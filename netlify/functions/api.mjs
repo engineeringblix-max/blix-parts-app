@@ -215,6 +215,17 @@ export default async (req) => {
         const rec = { u, name, role: b.role === 'admin' ? 'admin' : 'mechanic', active: true, v: 1, created: new Date().toISOString(), ...hashPw(pw) };
         await store.setJSON(`users/${u}`, rec); return json(200, { user: publicUser(rec) });
       }
+      if (seg[1] === 'users' && seg.length === 3 && USER_RE.test(seg[2]) && M === 'DELETE') {
+        const u = seg[2], key = `users/${u}`;
+        if (u === me.u) return err(400, 'You cannot delete the account you are signed in with.');
+        if (!(await store.get(key, { type: 'json' }))) return err(404, 'Account not found.');
+        const { blobs: dr } = await store.list({ prefix: `drafts/${u}/` });
+        await Promise.all(dr.map((b) => deleteDraft(u, b.key.split('/').pop())));
+        const { blobs: ph } = await PHOTOS().list({ prefix: `${u}/` }); // loose photos not linked to a draft
+        await Promise.all(ph.map((b) => PHOTOS().delete(b.key)));
+        await store.delete(key); // sent reports stay in the history ("Sent · name · date")
+        return json(200, { ok: true });
+      }
       if (seg[1] === 'users' && seg.length === 4 && USER_RE.test(seg[2])) {
         const key = `users/${seg[2]}`, rec = await store.get(key, { type: 'json' });
         if (!rec) return err(404, 'Account not found.');
